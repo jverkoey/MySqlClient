@@ -1,12 +1,21 @@
-sudo: false
-language: swift
+os:
+  - linux
+  - osx
+
+sudo:
+  - false
+
+language:
+  - swift
 
 matrix:
   include:
-    - os: osx
+    - name: "OS X"
+      os: osx
       osx_image: xcode10.1
 
-    - os: linux
+    - name: "Linux"
+      os: linux
       dist: xenial
       services:
         - mysql
