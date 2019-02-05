@@ -1,18 +1,17 @@
 sudo:
   - false
 
-language:
-  - swift
-
 matrix:
   include:
     - name: "OS X"
       os: osx
       osx_image: xcode10.1
+      language: swift
 
     - name: "Linux"
       os: linux
       dist: xenial
+      language: c
       services:
         - mysql
       before_script:
