@@ -22,8 +22,4 @@ final class MySqlConnectorTests: XCTestCase {
     // results.
     XCTAssertEqual(MySqlConnector().text, "Hello, World!")
   }
-
-  static var allTests = [
-    ("testExample", testExample),
-  ]
 }
