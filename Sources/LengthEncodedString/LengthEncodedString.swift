@@ -18,8 +18,8 @@ public struct LengthEncodedString {
    - Parameter data: The data from which the length-encoded string should be parsed.
    - Throws: `LengthEncodedStringError.unexpectedEndOfData` If `data` looks like a length-encoded string but its
    length is less than the expected amount.
-   - Throws: `LengthEncodedStringError.unableToCreateStringWithEncoding` If a String was unable to be initialize with
-   the given String Encoding.
+   - Throws: `LengthEncodedStringError.unableToCreateStringWithEncoding` If a String was not able to be initialized from
+   `data` with the given `encoding`.
    */
   public init?(data: Data, encoding: String.Encoding) throws {
     // Empty data is not a length-encoded string.
