@@ -12,9 +12,9 @@ enum LengthEncodedIntegerType {
   init?(firstByte: UInt8) {
     switch firstByte {
     case 0xff: return nil // Error packet / undefined.
-    case 0xfe: self = .eight // May be an EOF packet. See LengthEncodedInteger implementation for details.
-    case 0xfd: self = .three
     case 0xfc: self = .two
+    case 0xfd: self = .three
+    case 0xfe: self = .eight // May be an EOF packet. See LengthEncodedInteger implementation for details.
     default: self = .one
     }
   }
