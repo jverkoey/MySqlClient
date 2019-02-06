@@ -16,6 +16,11 @@ matrix:
       language: c
       services:
         - mysql
+      env:
+        - MYSQL_SERVER_HOST=localhost
+        - MYSQL_SERVER_PORT=3306
+        - MYSQL_SERVER_USER="root"
+        - MYSQL_SERVER_PASSWORD=""
       before_script:
         - wget https://swift.org/builds/swift-4.2.2-release/ubuntu1604/swift-4.2.2-RELEASE/swift-4.2.2-RELEASE-ubuntu16.04.tar.gz
         - tar xzf swift-4.2.2-RELEASE-ubuntu16.04.tar.gz
