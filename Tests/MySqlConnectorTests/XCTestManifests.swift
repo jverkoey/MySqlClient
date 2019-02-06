@@ -2,7 +2,7 @@ import XCTest
 
 extension MySqlConnectorTests {
     static let __allTests = [
-        ("testExample", testExample),
+        ("testConnectToServer", testConnectToServer),
     ]
 }
 

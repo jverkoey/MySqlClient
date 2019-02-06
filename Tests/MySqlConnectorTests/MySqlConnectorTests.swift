@@ -13,13 +13,37 @@
 // limitations under the License.
 
 import XCTest
+import Socket
 @testable import MySqlConnector
 
+func getEnvironmentVariable(named name: String) -> String? {
+  if let environmentValue = getenv(name) {
+    return String(cString: environmentValue)
+  } else {
+    return nil
+  }
+}
+
 final class MySqlConnectorTests: XCTestCase {
-  func testExample() {
-    // This is an example of a functional test case.
-    // Use XCTAssert and related functions to verify your tests produce the correct
-    // results.
-    XCTAssertEqual(MySqlConnector().text, "Hello, World!")
+  func testConnectToServer() throws {
+    guard let mySqlServerHost = getEnvironmentVariable(named: "MYSQL_SERVER_HOST"),
+      let mySqlServerPortString = getEnvironmentVariable(named: "MYSQL_SERVER_PORT"),
+      let mySqlServerPort = Int32(mySqlServerPortString),
+      let mySqlServerUser = getEnvironmentVariable(named: "MYSQL_SERVER_USER"),
+      let mySqlServerPassword = getEnvironmentVariable(named: "MYSQL_SERVER_PASSWORD") else {
+      return
+    }
+
+    print("Host: \(mySqlServerHost)")
+    print("Port: \(mySqlServerPort)")
+    print("User: \(mySqlServerUser)")
+    print("Password: \(mySqlServerPassword)")
+
+    let socket = try Socket.create()
+    try socket.connect(to: mySqlServerHost, port: mySqlServerPort)
+    guard socket.isConnected else {
+      XCTFail("Unable to connect to server.")
+      return
+    }
   }
 }
