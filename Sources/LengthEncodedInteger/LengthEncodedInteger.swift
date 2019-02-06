@@ -44,23 +44,23 @@ public struct LengthEncodedInteger {
 
     // Parse the data into the relevant storage.
     switch type {
-    case .eight:
-      let value = (data[1...7]).withUnsafeBytes { (ptr: UnsafePointer<UInt64>) -> UInt64 in
-        return ptr.pointee
-      }
-      self.storage = .eight(value: value)
-    case .three:
-      let value = (data[1...3] + [0x00]).withUnsafeBytes { (ptr: UnsafePointer<UInt32>) -> UInt32 in
-        return ptr.pointee
-      }
-      self.storage = .three(value: value)
+    case .one:
+      self.storage = .one(value: data[0])
     case .two:
       let value = data[1...2].withUnsafeBytes { (ptr: UnsafePointer<UInt16>) -> UInt16 in
         return ptr.pointee
       }
       self.storage = .two(value: value)
-    case .one:
-      self.storage = .one(value: data[0])
+    case .three:
+      let value = (data[1...3] + [0x00]).withUnsafeBytes { (ptr: UnsafePointer<UInt32>) -> UInt32 in
+        return ptr.pointee
+      }
+      self.storage = .three(value: value)
+    case .eight:
+      let value = (data[1...7]).withUnsafeBytes { (ptr: UnsafePointer<UInt64>) -> UInt64 in
+        return ptr.pointee
+      }
+      self.storage = .eight(value: value)
     }
   }
 
@@ -70,14 +70,14 @@ public struct LengthEncodedInteger {
   public init(value: UInt64) {
     self.type = LengthEncodedIntegerType(value: value)
     switch type {
-    case .eight:
-      self.storage = .eight(value: UInt64(value))
-    case .three:
-      self.storage = .three(value: UInt32(value))
-    case .two:
-      self.storage = .two(value: UInt16(value))
     case .one:
       self.storage = .one(value: UInt8(value))
+    case .two:
+      self.storage = .two(value: UInt16(value))
+    case .three:
+      self.storage = .three(value: UInt32(value))
+    case .eight:
+      self.storage = .eight(value: UInt64(value))
     }
   }
 
