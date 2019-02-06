@@ -27,6 +27,7 @@ let package = Package(
     .target(
       name: "MySqlConnector",
       dependencies: [
+        "Data+xored",
         "FixedWidthInteger+bytes",
         "LengthEncodedInteger",
         "LengthEncodedString"
@@ -35,6 +36,15 @@ let package = Package(
     .testTarget(
       name: "MySqlConnectorTests",
       dependencies: ["MySqlConnector"]
+    ),
+
+    .target(
+      name: "Data+xored",
+      dependencies: []
+    ),
+    .testTarget(
+      name: "Data+xoredTests",
+      dependencies: ["Data+xored"]
     ),
 
     .target(
