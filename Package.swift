@@ -41,5 +41,19 @@ let package = Package(
       name: "FixedWidthInteger+bytesTests",
       dependencies: ["FixedWidthInteger+bytes"]
     ),
+
+    .target(
+      name: "LengthEncodedInteger",
+      dependencies: [
+        "FixedWidthInteger+bytes"
+      ]
+    ),
+    .testTarget(
+      name: "LengthEncodedIntegerTests",
+      dependencies: [
+        "LengthEncodedInteger",
+        "FixedWidthInteger+bytes"
+      ]
+    ),
   ]
 )
