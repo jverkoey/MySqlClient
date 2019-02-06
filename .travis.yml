@@ -23,17 +23,19 @@ matrix:
       script:
         - swift test
 
-    - name: "Check Linux Test Cases"
-      os: osx
-      osx_image: xcode10.1
-      language: swift
-      script:
-        - swift test --generate-linuxmain
-        - git diff # Appears to be necessary for the next check to work as expected.
-        - |
-          if ! git diff-index --quiet HEAD --; then
-            echo "Linux tests are out of date. Please run the following command:"
-            echo
-            echo "    swift test --generate-linuxmain"
-            exit 1
-          fi
+# This job is unfortunately flaky because swift test --generate-linuxmain doesn't generate values in sorted
+# order. See https://bugs.swift.org/browse/SR-9872 for bug tracking resolution of this.
+#    - name: "Check Linux Test Cases"
+#      os: osx
+#      osx_image: xcode10.1
+#      language: swift
+#      script:
+#        - swift test --generate-linuxmain
+#        - git diff # Appears to be necessary for the next check to work as expected.
+#        - |
+#          if ! git diff-index --quiet HEAD --; then
+#            echo "Linux tests are out of date. Please run the following command:"
+#            echo
+#            echo "    swift test --generate-linuxmain"
+#            exit 1
+#          fi
