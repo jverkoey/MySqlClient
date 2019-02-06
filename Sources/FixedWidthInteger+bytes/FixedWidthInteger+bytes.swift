@@ -1,4 +1,3 @@
-// swift-tools-version:4.2
 // Copyright 2019-present the MySqlConnector authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,33 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import PackageDescription
+import Foundation
 
-let package = Package(
-  name: "MySqlConnector",
-  products: [
-    .library(
-      name: "MySqlConnector",
-      targets: ["MySqlConnector"]
-    ),
-  ],
-  targets: [
-    .target(
-      name: "MySqlConnector",
-      dependencies: []
-    ),
-    .testTarget(
-      name: "MySqlConnectorTests",
-      dependencies: ["MySqlConnector"]
-    ),
-
-    .target(
-      name: "FixedWidthInteger+bytes",
-      dependencies: []
-    ),
-    .testTarget(
-      name: "FixedWidthInteger+bytesTests",
-      dependencies: ["FixedWidthInteger+bytes"]
-    ),
-  ]
-)
+extension FixedWidthInteger {
+  /**
+   Returns a byte array representation of a fixed-width integer in little endian format.
+   */
+  public var bytes: [UInt8] {
+    let bitWidth = type(of: self).bitWidth
+    return stride(from: 0, to: bitWidth, by: 8).map { UInt8((self >> $0) & 0xFF) }
+  }
+}
