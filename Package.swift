@@ -22,6 +22,13 @@ let package = Package(
       name: "MySqlConnector",
       targets: ["MySqlConnector"]
     ),
+    .library(
+      name: "SocketIterator",
+      targets: ["SocketIterator"]
+    ),
+  ],
+  dependencies: [
+    .package(url: "https://github.com/IBM-Swift/BlueSocket.git", .upToNextMajor(from: "1.0.0")),
   ],
   targets: [
     .target(
@@ -30,13 +37,16 @@ let package = Package(
         "Data+xored",
         "FixedWidthInteger+bytes",
         "LengthEncodedInteger",
-        "LengthEncodedString"
+        "LengthEncodedString",
+        "SocketIterator"
       ]
     ),
     .testTarget(
       name: "MySqlConnectorTests",
       dependencies: ["MySqlConnector"]
     ),
+
+    // Foundation extensions
 
     .target(
       name: "Data+xored",
@@ -55,6 +65,17 @@ let package = Package(
       name: "FixedWidthInteger+bytesTests",
       dependencies: ["FixedWidthInteger+bytes"]
     ),
+
+    // Socket extensions
+
+    .target(
+      name: "SocketIterator",
+      dependencies: [
+        "Socket"
+      ]
+    ),
+
+    // MySql data types
 
     .target(
       name: "LengthEncodedInteger",
