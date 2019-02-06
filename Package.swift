@@ -28,7 +28,8 @@ let package = Package(
       name: "MySqlConnector",
       dependencies: [
         "FixedWidthInteger+bytes",
-        "LengthEncodedInteger"
+        "LengthEncodedInteger",
+        "LengthEncodedString"
       ]
     ),
     .testTarget(
@@ -55,6 +56,20 @@ let package = Package(
       name: "LengthEncodedIntegerTests",
       dependencies: [
         "LengthEncodedInteger",
+        "FixedWidthInteger+bytes"
+      ]
+    ),
+
+    .target(
+      name: "LengthEncodedString",
+      dependencies: [
+        "LengthEncodedInteger"
+      ]
+    ),
+    .testTarget(
+      name: "LengthEncodedStringTests",
+      dependencies: [
+        "LengthEncodedString",
         "FixedWidthInteger+bytes"
       ]
     ),
