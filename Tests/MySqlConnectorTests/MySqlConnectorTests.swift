@@ -45,5 +45,9 @@ final class MySqlConnectorTests: XCTestCase {
       XCTFail("Unable to connect to server.")
       return
     }
+
+    var buffer = Data(capacity: socket.readBufferSize)
+    _ = try socket.read(into: &buffer)
+    print([UInt8](buffer))
   }
 }
