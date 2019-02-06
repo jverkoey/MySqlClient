@@ -29,7 +29,6 @@ matrix:
       language: swift
       script:
         - swift test --generate-linuxmain
-        - git status
         - |
           if ! git diff-index --quiet HEAD --; then
             echo "Linux tests are out of date. Please run the following command:"
