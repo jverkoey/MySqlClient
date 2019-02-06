@@ -41,6 +41,7 @@ let package = Package(
         "SocketIterator"
       ]
     ),
+    
     .testTarget(
       name: "MySqlConnectorTests",
       dependencies: ["MySqlConnector"]

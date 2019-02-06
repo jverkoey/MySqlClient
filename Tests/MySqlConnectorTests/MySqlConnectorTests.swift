@@ -25,29 +25,45 @@ func getEnvironmentVariable(named name: String) -> String? {
 }
 
 final class MySqlConnectorTests: XCTestCase {
-  func testConnectToServer() throws {
+  var socket: Socket!
+  override func setUp() {
+    super.setUp()
+
     guard let mySqlServerHost = getEnvironmentVariable(named: "MYSQL_SERVER_HOST"),
       let mySqlServerPortString = getEnvironmentVariable(named: "MYSQL_SERVER_PORT"),
       let mySqlServerPort = Int32(mySqlServerPortString),
       let mySqlServerUser = getEnvironmentVariable(named: "MYSQL_SERVER_USER"),
       let mySqlServerPassword = getEnvironmentVariable(named: "MYSQL_SERVER_PASSWORD") else {
-      return
+        return
     }
 
-    print("Host: \(mySqlServerHost)")
-    print("Port: \(mySqlServerPort)")
-    print("User: \(mySqlServerUser)")
-    print("Password: \(mySqlServerPassword)")
+    do {
+      socket = try Socket.create()
+      try socket.connect(to: mySqlServerHost, port: mySqlServerPort)
+      guard socket.isConnected else {
+        preconditionFailure("Unable to connect to server.")
+      }
+    } catch let error {
+      preconditionFailure("Unable to connect to server: \(String(describing: error))")
+    }
+  }
 
-    let socket = try Socket.create()
-    try socket.connect(to: mySqlServerHost, port: mySqlServerPort)
-    guard socket.isConnected else {
-      XCTFail("Unable to connect to server.")
+  override func tearDown() {
+    if socket != nil {
+      socket.close()
+      socket = nil
+    }
+
+    super.tearDown()
+  }
+
+  func testConnectToServer() throws {
+    guard let socket = socket else {
       return
     }
 
     var buffer = Data(capacity: socket.readBufferSize)
     _ = try socket.read(into: &buffer)
-    print([UInt8](buffer))
+    XCTAssertGreaterThan(buffer.count, 0, "Did not receive any data from the server.")
   }
 }
