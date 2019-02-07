@@ -51,6 +51,15 @@ let package = Package(
     // Foundation extensions
 
     .target(
+      name: "CustomStringConvertible+description",
+      dependencies: []
+    ),
+    .testTarget(
+      name: "CustomStringConvertible+descriptionTests",
+      dependencies: ["CustomStringConvertible+description"]
+    ),
+
+    .target(
       name: "Data+xored",
       dependencies: []
     ),
