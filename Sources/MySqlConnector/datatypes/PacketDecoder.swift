@@ -106,7 +106,7 @@ private final class PayloadStorage {
   }
 }
 
-private final class _PacketDecoder<I>: Decoder where I: IteratorProtocol, I.Element == UInt8 {
+private struct _PacketDecoder<I>: Decoder where I: IteratorProtocol, I.Element == UInt8 {
   let storage: PayloadStorage
   let codingPath: [CodingKey] = []
   let userInfo: [CodingUserInfoKey: Any] = [:]
@@ -166,7 +166,7 @@ private final class _PacketDecoder<I>: Decoder where I: IteratorProtocol, I.Elem
   }
 }
 
-private final class _PayloadDecoder: Decoder {
+private struct _PayloadDecoder: Decoder {
   let storage: PayloadStorage
 
   init(storage: PayloadStorage) throws {

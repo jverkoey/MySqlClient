@@ -34,6 +34,74 @@ private struct Payload: Decodable {
 
 class PacketDecodingTests: XCTestCase {
 
+  func testThrowsWithEmptyData() throws {
+    // Given
+    let data = Data()
+    let decoder = PacketDecoder()
+
+    // Then
+    XCTAssertThrowsError(try decoder.decode(Payload.self, from: data.makeIterator())) { error in
+      switch error {
+      case DecodingError.dataCorrupted(let context):
+        XCTAssertEqual(context.debugDescription, "Unable to read packet length.")
+      default:
+        XCTFail("Unexpected error \(String(describing: error))")
+      }
+    }
+  }
+
+  func testThrowsWithPartialPacketHeader() throws {
+    // Given
+    let packetHeader = UInt32(4).bytes[0...2]
+    let data = Data(packetHeader)
+    let decoder = PacketDecoder()
+
+    // Then
+    XCTAssertThrowsError(try decoder.decode(Payload.self, from: data.makeIterator())) { error in
+      switch error {
+      case DecodingError.dataCorrupted(let context):
+        XCTAssertEqual(context.debugDescription, "Unable to read packet sequence number.")
+      default:
+        XCTFail("Unexpected error \(String(describing: error))")
+      }
+    }
+  }
+
+  func testThrowsWithMissingPayload() throws {
+    // Given
+    let packetHeader = UInt32(4).bytes[0...2] + [0]
+    let data = Data(packetHeader)
+    let decoder = PacketDecoder()
+
+    // Then
+    XCTAssertThrowsError(try decoder.decode(Payload.self, from: data.makeIterator())) { error in
+      switch error {
+      case DecodingError.dataCorrupted(let context):
+        XCTAssertEqual(context.debugDescription, "Packet is missing payload data.")
+      default:
+        XCTFail("Unexpected error \(String(describing: error))")
+      }
+    }
+  }
+
+  func testThrowsWithPartialPayload() throws {
+    // Given
+    let payloadData = UInt32(0x012345678).bytes
+    let packetHeader = UInt32(8).bytes[0...2] + [0]
+    let data = Data(packetHeader + payloadData)
+    let decoder = PacketDecoder()
+
+    // Then
+    XCTAssertThrowsError(try decoder.decode(Payload.self, from: data.makeIterator())) { error in
+      switch error {
+      case DecodingError.dataCorrupted(let context):
+        XCTAssertEqual(context.debugDescription, "Packet is missing payload data.")
+      default:
+        XCTFail("Unexpected error \(String(describing: error))")
+      }
+    }
+  }
+
   func testSuccess() throws {
     // Given
     let payloadData = UInt32(0x012345678).bytes + UInt8(0x00).bytes + Int32(-500).bytes
