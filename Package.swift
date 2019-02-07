@@ -34,6 +34,7 @@ let package = Package(
     .target(
       name: "MySqlConnector",
       dependencies: [
+        "CustomStringConvertible+description",
         "Data+xored",
         "FixedWidthInteger+bytes",
         "IteratorProtocol+next",
