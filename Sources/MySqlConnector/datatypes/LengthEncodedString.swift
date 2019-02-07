@@ -14,7 +14,6 @@
 
 import Foundation
 import FixedWidthInteger_bytes
-import LengthEncodedInteger
 
 /**
  A throwable length-encoded string decoding error.
