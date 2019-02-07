@@ -19,7 +19,7 @@ import CustomStringConvertible_description
 /**
  Errors that may be thrown by a PayloadReader.
  */
-enum PacketError: Error {
+public enum PacketError: Error {
 
   /**
    Indicates that the packet's end was unexpectedly reached.
@@ -32,11 +32,11 @@ enum PacketError: Error {
 
  Documentation: https://dev.mysql.com/doc/internals/en/mysql-packet.html
  */
-final class Packet<T: PayloadReader>: CustomStringConvertible {
+public final class Packet<T: PayloadReader>: CustomStringConvertible {
   /**
    The packet's size in bytes, including its header.
    */
-  let size: Int
+  public let size: Int
 
   /**
    The packet's sequence identifier.
@@ -45,12 +45,12 @@ final class Packet<T: PayloadReader>: CustomStringConvertible {
    > The sequence-id is incremented with each packet and may wrap around. It starts at 0 and is
    > reset to 0 when a new command begins in the Command Phase.
    */
-  let sequenceNumber: UInt8
+  public let sequenceNumber: UInt8
 
   /**
    A typed representation of content within the packet.
    */
-  let content: T
+  public let content: T
 
   /**
    Initializes a single packet instance from the first packet in the given data.
@@ -58,7 +58,7 @@ final class Packet<T: PayloadReader>: CustomStringConvertible {
    - Parameter data: The contents of a MySql packet.
    - Parameter capabilityFlags: The capabilities of the client.
    */
-  init<I: IteratorProtocol>(iterator: I, capabilityFlags: CapabilityFlags) throws where I.Element == UInt8 {
+  public init<I: IteratorProtocol>(iterator: I, capabilityFlags: CapabilityFlags) throws where I.Element == UInt8 {
     precondition(0x12345678.littleEndian == 0x12345678,
                  "Only little endian architectures are currently supported.")
 

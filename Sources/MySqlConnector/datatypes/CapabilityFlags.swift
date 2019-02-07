@@ -19,31 +19,34 @@ import Foundation
 
  Documentation: https://dev.mysql.com/doc/internals/en/capability-flags.html#packet-Protocol::CapabilityFlags
  */
-struct CapabilityFlags: OptionSet {
-  let rawValue: UInt32
-  static let longPassword               = CapabilityFlags(rawValue: 0x00000001)
-  static let foundRows                  = CapabilityFlags(rawValue: 0x00000002)
-  static let longFlag                   = CapabilityFlags(rawValue: 0x00000004)
-  static let connectWithDb              = CapabilityFlags(rawValue: 0x00000008)
-  static let noSchema                   = CapabilityFlags(rawValue: 0x00000010)
-  static let compress                   = CapabilityFlags(rawValue: 0x00000020)
-  static let odbc                       = CapabilityFlags(rawValue: 0x00000040)
-  static let localFiles                 = CapabilityFlags(rawValue: 0x00000080)
-  static let ignoreSpace                = CapabilityFlags(rawValue: 0x00000100)
-  static let protocol41                 = CapabilityFlags(rawValue: 0x00000200)
-  static let interactive                = CapabilityFlags(rawValue: 0x00000400)
-  static let ssl                        = CapabilityFlags(rawValue: 0x00000800)
-  static let ignoreSigpipe              = CapabilityFlags(rawValue: 0x00001000)
-  static let transactions               = CapabilityFlags(rawValue: 0x00002000)
-  static let reserved                   = CapabilityFlags(rawValue: 0x00004000)
-  static let secureConnection           = CapabilityFlags(rawValue: 0x00008000)
-  static let multiStatements            = CapabilityFlags(rawValue: 0x00010000)
-  static let multiResults               = CapabilityFlags(rawValue: 0x00020000)
-  static let psMultiResults             = CapabilityFlags(rawValue: 0x00040000)
-  static let pluginAuth                 = CapabilityFlags(rawValue: 0x00080000)
-  static let connectAttrs               = CapabilityFlags(rawValue: 0x00100000)
-  static let pluginAuthLenencClientData = CapabilityFlags(rawValue: 0x00200000)
-  static let canHandleExpiredPasswords  = CapabilityFlags(rawValue: 0x00400000)
-  static let sessionTrack               = CapabilityFlags(rawValue: 0x00800000)
-  static let deprecateEof               = CapabilityFlags(rawValue: 0x01000000)
+public struct CapabilityFlags: OptionSet {
+  public init(rawValue: UInt32) {
+    self.rawValue = rawValue
+  }
+  public let rawValue: UInt32
+  public static let longPassword               = CapabilityFlags(rawValue: 0x00000001)
+  public static let foundRows                  = CapabilityFlags(rawValue: 0x00000002)
+  public static let longFlag                   = CapabilityFlags(rawValue: 0x00000004)
+  public static let connectWithDb              = CapabilityFlags(rawValue: 0x00000008)
+  public static let noSchema                   = CapabilityFlags(rawValue: 0x00000010)
+  public static let compress                   = CapabilityFlags(rawValue: 0x00000020)
+  public static let odbc                       = CapabilityFlags(rawValue: 0x00000040)
+  public static let localFiles                 = CapabilityFlags(rawValue: 0x00000080)
+  public static let ignoreSpace                = CapabilityFlags(rawValue: 0x00000100)
+  public static let protocol41                 = CapabilityFlags(rawValue: 0x00000200)
+  public static let interactive                = CapabilityFlags(rawValue: 0x00000400)
+  public static let ssl                        = CapabilityFlags(rawValue: 0x00000800)
+  public static let ignoreSigpipe              = CapabilityFlags(rawValue: 0x00001000)
+  public static let transactions               = CapabilityFlags(rawValue: 0x00002000)
+  public static let reserved                   = CapabilityFlags(rawValue: 0x00004000)
+  public static let secureConnection           = CapabilityFlags(rawValue: 0x00008000)
+  public static let multiStatements            = CapabilityFlags(rawValue: 0x00010000)
+  public static let multiResults               = CapabilityFlags(rawValue: 0x00020000)
+  public static let psMultiResults             = CapabilityFlags(rawValue: 0x00040000)
+  public static let pluginAuth                 = CapabilityFlags(rawValue: 0x00080000)
+  public static let connectAttrs               = CapabilityFlags(rawValue: 0x00100000)
+  public static let pluginAuthLenencClientData = CapabilityFlags(rawValue: 0x00200000)
+  public static let canHandleExpiredPasswords  = CapabilityFlags(rawValue: 0x00400000)
+  public static let sessionTrack               = CapabilityFlags(rawValue: 0x00800000)
+  public static let deprecateEof               = CapabilityFlags(rawValue: 0x01000000)
 }

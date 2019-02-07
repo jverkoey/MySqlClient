@@ -17,14 +17,14 @@ import Foundation
 /**
  A PayloadWriter is able to create a Data representation of a MySql payload.
  */
-protocol PayloadWriter {
+public protocol PayloadWriter {
   /**
    Returns a MySql data representation of the payload.
    */
   func payloadData() -> Data
 }
 
-extension PayloadWriter {
+public extension PayloadWriter {
   /**
    Wraps the payload in a MySql packet header.
 

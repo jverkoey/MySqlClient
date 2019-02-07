@@ -17,7 +17,7 @@ import Foundation
 /**
  Errors that may be thrown by a PayloadReader.
  */
-enum PayloadReaderError: Error {
+public enum PayloadReaderError: Error {
 
   /**
    Indicates that the packet's payload was unexpectedly empty.
@@ -48,7 +48,7 @@ enum PayloadReaderError: Error {
 /**
  A PayloadReader is able to create a structured representation of the payload data contained within a MySql packet.
  */
-protocol PayloadReader {
+public protocol PayloadReader {
 
   /**
    Initializes the instance with the given payload data and capability flags.
