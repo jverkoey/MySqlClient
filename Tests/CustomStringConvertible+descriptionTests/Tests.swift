@@ -51,7 +51,7 @@ final class Tests: XCTestCase {
 
     // Then
     XCTAssertEqual(description, """
-<SampleObject string: "Some value", number: "123">
+<SampleObjectWithProperties string: "Some value", number: "123">
 """)
   }
 
