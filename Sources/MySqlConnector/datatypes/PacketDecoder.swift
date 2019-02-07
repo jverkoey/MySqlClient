@@ -15,20 +15,68 @@
 import Foundation
 import IteratorProtocol_next
 
+/**
+ An object that decodes instances of a data type from a byte stream.
+
+ For a type to be decodable with this instance it must override the default `init(from decoder:)` implementation and
+ use the decoder's unkeyedContainer. For example:
+
+     init(from decoder: Decoder) throws {
+       var container = try decoder.unkeyedContainer()
+       self.unsignedValue = try container.decode(type(of: unsignedValue))
+       self.enumValue = try container.decode(type(of: enumValue))
+       self.signedValue = try container.decode(type(of: signedValue))
+     }
+
+ Documentation: https://dev.mysql.com/doc/internals/en/mysql-packet.html
+ */
 public struct PacketDecoder {
   public init() {}
 
-  public func decode<T, I>(_ type: T.Type, from iterator: I) throws -> T where T : Decodable, I: IteratorProtocol, I.Element == UInt8 {
-    let decoder = try _PacketDecoder(iterator: iterator)
-    return try T.init(from: decoder)
+  /**
+   Returns a MySql packet payload type you specify, decoded from a byte iterator.
+
+   If the iterator does not represent a well-formed MySql packet, then an error will be thrown.
+
+   - Parameter type: The payload type of the instance to be decoded.
+   - Parameter iterator: A stream of bytes to decode the instance from.
+   - Returns: An instance of `type` decoded from the iterator's byte stream.
+   */
+  public func decode<T, I>(_ type: T.Type, from iterator: I) throws -> T where T: Decodable, I: IteratorProtocol, I.Element == UInt8 {
+    return try T.init(from: _PacketDecoder(iterator: iterator))
   }
 }
 
+/**
+ A shared representation of the remaining payload data for a given packet.
+
+ This type is intentionally a class type so that its storage is shared across references.
+ */
 private final class PayloadStorage {
-  var bytes: ArraySlice<UInt8>
-  init(bytes: [UInt8]) {
+  /**
+   The remaining bytes to be decoded of the payload.
+
+   Modified as values are decoded.
+   */
+  private var bytes: ArraySlice<UInt8>
+
+  /**
+   Initializes this storage instance with the packet's payload bytes.
+
+   - Parameter bytes: The payload's byte representation.
+   */
+  init(payload bytes: [UInt8]) {
     self.bytes = bytes[0...]
   }
+
+  var isAtEnd: Bool {
+    return bytes.count == 0
+  }
+  var currentIndex: Int {
+    return bytes.startIndex
+  }
+
+  // Common decoding methods
 
   func decodeNullTerminatedString() throws -> String {
     guard let length = bytes.firstIndex(of: 0) else {
@@ -59,9 +107,9 @@ private final class PayloadStorage {
 }
 
 private final class _PacketDecoder<I>: Decoder where I: IteratorProtocol, I.Element == UInt8 {
-  let length: UInt32
-  let sequenceNumber: UInt8
   let storage: PayloadStorage
+  let codingPath: [CodingKey] = []
+  let userInfo: [CodingUserInfoKey: Any] = [:]
 
   /**
    Reads the packet's header and payload data in preparation for decoding.
@@ -78,31 +126,30 @@ private final class _PacketDecoder<I>: Decoder where I: IteratorProtocol, I.Elem
     // - 3 bytes describing the length of the packet (not including the header).
     // - 1 byte describing the packet's sequence number.
 
-    // Packet length is 3 bytes.
     let lengthData = iter.next(maxLength: 3)
     guard lengthData.count == 3 else {
-      throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Unable to read packet length."))
+      throw DecodingError.dataCorrupted(.init(codingPath: [],
+                                              debugDescription: "Unable to read packet length."))
     }
-    self.length = Data(lengthData + [0]).withUnsafeBytes { (ptr: UnsafePointer<UInt32>) -> UInt32 in
+    let length = Data(lengthData + [0]).withUnsafeBytes { (ptr: UnsafePointer<UInt32>) -> UInt32 in
       return ptr.pointee
     }
 
-    // Sequence number is 1 byte.
-    guard let sequenceNumber = iter.next() else {
-      throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Unable to read packet sequence number."))
+    // Sequence number
+    guard iter.next() != nil else {
+      throw DecodingError.dataCorrupted(.init(codingPath: [],
+                                              debugDescription: "Unable to read packet sequence number."))
     }
-    self.sequenceNumber = sequenceNumber
 
-    self.storage = PayloadStorage(bytes: iter.next(maxLength: Int(length)))
-    if self.storage.bytes.count != self.length {
-      throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Unable to read packet payload."))
+    let payloadBytes = iter.next(maxLength: Int(length))
+    if payloadBytes.count < length {
+      throw DecodingError.dataCorrupted(.init(codingPath: [],
+                                              debugDescription: "Packet is missing payload data."))
     }
+    self.storage = PayloadStorage(payload: payloadBytes)
   }
 
   // MARK: Decoder
-
-  var codingPath: [CodingKey] = []
-  var userInfo: [CodingUserInfoKey: Any] = [:]
 
   func unkeyedContainer() throws -> UnkeyedDecodingContainer {
     return PacketUnkeyedDecodingContainer(storage: storage)
@@ -125,8 +172,6 @@ private final class _PayloadDecoder: Decoder {
   init(storage: PayloadStorage) throws {
     self.storage = storage
   }
-
-  // MARK: Decoder
 
   var codingPath: [CodingKey] = []
   var userInfo: [CodingUserInfoKey: Any] = [:]
@@ -151,14 +196,10 @@ private struct PacketUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     self.storage = storage
   }
 
-  var codingPath: [CodingKey] = []
-  var count: Int? = nil
-  var isAtEnd: Bool {
-    return storage.bytes.count == 0
-  }
-  var currentIndex: Int {
-    return storage.bytes.startIndex
-  }
+  let codingPath: [CodingKey] = []
+  let count: Int? = nil
+  var isAtEnd: Bool { return storage.isAtEnd }
+  var currentIndex: Int { return storage.currentIndex }
 
   mutating func decodeNil() throws -> Bool {
     preconditionFailure("Unimplemented.")
