@@ -36,6 +36,7 @@ let package = Package(
       dependencies: [
         "Data+xored",
         "FixedWidthInteger+bytes",
+        "IteratorProtocol+next",
         "LengthEncodedInteger",
         "LengthEncodedString",
         "SocketIterator"

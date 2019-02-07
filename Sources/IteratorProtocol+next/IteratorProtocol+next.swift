@@ -22,7 +22,7 @@ extension IteratorProtocol where Element == UInt8 {
 
    - Parameter maxLength: The maximum number of bytes to return. maxLength must be greater than or equal to zero.
    */
-  mutating func next(maxLength: Int) -> Data {
+  public mutating func next(maxLength: Int) -> Data {
     precondition(maxLength >= 0, "maxLength must be greater than or equal to zero. Instead, it was \(maxLength).")
 
     var data = Data(capacity: maxLength)
