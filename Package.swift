@@ -26,6 +26,10 @@ let package = Package(
       name: "SocketIterator",
       targets: ["SocketIterator"]
     ),
+    .library(
+      name: "CustomStringConvertible+description",
+      targets: ["CustomStringConvertible+description"]
+    ),
   ],
   dependencies: [
     .package(url: "https://github.com/IBM-Swift/BlueSocket.git", .upToNextMajor(from: "1.0.0")),
