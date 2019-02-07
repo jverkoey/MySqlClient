@@ -32,8 +32,8 @@ final class MySqlConnectorTests: XCTestCase {
     guard let mySqlServerHost = getEnvironmentVariable(named: "MYSQL_SERVER_HOST"),
       let mySqlServerPortString = getEnvironmentVariable(named: "MYSQL_SERVER_PORT"),
       let mySqlServerPort = Int32(mySqlServerPortString),
-      let mySqlServerUser = getEnvironmentVariable(named: "MYSQL_SERVER_USER"),
-      let mySqlServerPassword = getEnvironmentVariable(named: "MYSQL_SERVER_PASSWORD") else {
+      let _ = getEnvironmentVariable(named: "MYSQL_SERVER_USER"),
+      let _ = getEnvironmentVariable(named: "MYSQL_SERVER_PASSWORD") else {
         return
     }
 

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import Foundation
+import IteratorProtocol_next
 
 public struct PacketDecoder {
   public init() {}

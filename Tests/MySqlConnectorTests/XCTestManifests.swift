@@ -54,13 +54,9 @@ extension MySqlConnectorTests {
     ]
 }
 
-extension PacketTests {
+extension PacketDecodingTests {
     static let __allTests = [
-        ("testSucceedsWithFullPayload", testSucceedsWithFullPayload),
-        ("testThrowsPacketErrorWithEmptyPacket", testThrowsPacketErrorWithEmptyPacket),
-        ("testThrowsPacketErrorWithPartialPacketHeader", testThrowsPacketErrorWithPartialPacketHeader),
-        ("testThrowsPayloadErrorWithEmptyPayload", testThrowsPayloadErrorWithEmptyPayload),
-        ("testThrowsPayloadErrorWithPartialPayload", testThrowsPayloadErrorWithPartialPayload),
+        ("testSuccess", testSuccess),
     ]
 }
 
@@ -71,7 +67,7 @@ public func __allTests() -> [XCTestCaseEntry] {
         testCase(LengthEncodedIntegerEncodingTests.__allTests),
         testCase(LengthEncodedStringDecodingTests.__allTests),
         testCase(MySqlConnectorTests.__allTests),
-        testCase(PacketTests.__allTests),
+        testCase(PacketDecodingTests.__allTests),
     ]
 }
 #endif
