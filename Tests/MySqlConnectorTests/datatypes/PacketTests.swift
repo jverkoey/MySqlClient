@@ -102,6 +102,8 @@ class PacketTests: XCTestCase {
     }
   }
 
+  // MARK: Payload success
+
   func testSucceedsWithFullPayload() throws {
     // Given
     let packetHeader = UInt32(4).bytes[0...2] + [0]
