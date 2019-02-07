@@ -13,10 +13,9 @@
 // limitations under the License.
 
 import XCTest
-import LengthEncodedInteger
-@testable import LengthEncodedString
+@testable import MySqlConnector
 
-class DecodingTests: XCTestCase {
+class LengthEncodedStringDecodingTests: XCTestCase {
 
   func testNilWithEmptyData() throws {
     // Given
