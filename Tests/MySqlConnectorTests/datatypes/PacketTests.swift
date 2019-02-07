@@ -33,12 +33,20 @@ private struct SimplePayload: PayloadReader {
   }
 }
 
+private enum DecodableEnum: UInt8, Decodable {
+  case value1 = 0x00
+}
+
 private struct DecodablePayload: Decodable {
-  let value: UInt32
+  let unsignedValue: UInt32
+  let enumValue: DecodableEnum
+  let signedValue: Int32
 
   init(from decoder: Decoder) throws {
     var container = try decoder.unkeyedContainer()
-    self.value = try container.decode(UInt32.self)
+    self.unsignedValue = try container.decode(type(of: unsignedValue))
+    self.enumValue = try container.decode(type(of: enumValue))
+    self.signedValue = try container.decode(type(of: signedValue))
   }
 }
 
@@ -128,8 +136,8 @@ class PacketTests: XCTestCase {
 
   func testSucceedsWithDecodablePayload() throws {
     // Given
-    let packetHeader = UInt32(4).bytes[0...2] + [0]
-    let payloadData = UInt32(0x012345678).bytes
+    let payloadData = UInt32(0x012345678).bytes + UInt8(0x00).bytes + Int32(-500).bytes
+    let packetHeader = UInt32(payloadData.count).bytes[0...2] + [0]
     let data = Data(packetHeader + payloadData)
     let decoder = PacketDecoder()
 
@@ -137,6 +145,8 @@ class PacketTests: XCTestCase {
     let payload = try decoder.decode(DecodablePayload.self, from: data.makeIterator())
 
     // Then
-    XCTAssertEqual(payload.value, 0x012345678)
+    XCTAssertEqual(payload.unsignedValue, 0x012345678)
+    XCTAssertEqual(payload.enumValue, .value1)
+    XCTAssertEqual(payload.signedValue, -500)
   }
 }
