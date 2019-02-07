@@ -19,7 +19,7 @@ import FixedWidthInteger_bytes
  A throwable length-encoded integer decoding error.
  */
 public enum LengthEncodedIntegerDecodingError: Error, Equatable {
-  
+
   /**
    The length-encoded integer expected an amount of data that was not available.
    

@@ -57,6 +57,10 @@ extension MySqlConnectorTests {
 extension PacketDecodingTests {
     static let __allTests = [
         ("testSuccess", testSuccess),
+        ("testThrowsWithEmptyData", testThrowsWithEmptyData),
+        ("testThrowsWithMissingPayload", testThrowsWithMissingPayload),
+        ("testThrowsWithPartialPacketHeader", testThrowsWithPartialPacketHeader),
+        ("testThrowsWithPartialPayload", testThrowsWithPartialPayload),
     ]
 }
 

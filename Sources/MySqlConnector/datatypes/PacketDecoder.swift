@@ -92,7 +92,7 @@ private final class PayloadStorage {
     return string
   }
 
-  func decodeFixedWidthInteger<T>(_ type: T.Type) throws -> T where T : FixedWidthInteger {
+  func decodeFixedWidthInteger<T>(_ type: T.Type) throws -> T where T: FixedWidthInteger {
     let byteWidth = type.bitWidth / 8
     if bytes.count < byteWidth {
       throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Not enough data to parse a \(type)"))
@@ -261,15 +261,15 @@ private struct PacketUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     return try decodeFixedWidthInteger(type)
   }
 
-  mutating func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+  mutating func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
     return try T.init(from: _PayloadDecoder(storage: storage))
   }
 
-  mutating func decodeFixedWidthInteger<T>(_ type: T.Type) throws -> T where T : FixedWidthInteger {
+  mutating func decodeFixedWidthInteger<T>(_ type: T.Type) throws -> T where T: FixedWidthInteger {
     return try storage.decodeFixedWidthInteger(type)
   }
 
-  mutating func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
+  mutating func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
     preconditionFailure("Unimplemented.")
   }
 
@@ -350,11 +350,11 @@ private struct PacketSingleValueDecodingContainer: SingleValueDecodingContainer 
     return try decodeFixedWidthInteger(type)
   }
 
-  func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+  func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
     preconditionFailure("Unimplemented.")
   }
 
-  func decodeFixedWidthInteger<T>(_ type: T.Type) throws -> T where T : FixedWidthInteger {
+  func decodeFixedWidthInteger<T>(_ type: T.Type) throws -> T where T: FixedWidthInteger {
     return try storage.decodeFixedWidthInteger(type)
   }
 }
