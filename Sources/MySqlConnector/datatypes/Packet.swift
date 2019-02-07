@@ -17,6 +17,17 @@ import IteratorProtocol_next
 import CustomStringConvertible_description
 
 /**
+ Errors that may be thrown by a PayloadReader.
+ */
+enum PacketError: Error {
+
+  /**
+   Indicates that the packet's end was unexpectedly reached.
+   */
+  case unexpectedEndOfPacket(payloadType: PayloadReader.Type)
+}
+
+/**
  A representation of a single MySql packet.
  */
 final class Packet<T: PayloadReader>: CustomStringConvertible {
@@ -82,15 +93,4 @@ final class Packet<T: PayloadReader>: CustomStringConvertible {
     self.size = Int(headerSize + length)
     self.content = try T(payloadData: iter.next(maxLength: Int(length)), capabilityFlags: capabilityFlags)
   }
-}
-
-/**
- Errors that may be thrown by a PayloadReader.
- */
-enum PacketError: Error {
-
-  /**
-   Indicates that the packet's end was unexpectedly reached.
-   */
-  case unexpectedEndOfPacket(payloadType: PayloadReader.Type)
 }

@@ -53,6 +53,9 @@ protocol PayloadReader {
   /**
    Initializes the instance with the given payload data and capability flags.
 
+   The implementation is expected to throw an error if the packet is not parseable. The PayloadReaderError type includes
+   a variety of relevant errors that may be thrown.
+
    - Parameter payloadData: The payload's data representation. This will not include the MySql packet header.
    - Parameter capabilityFlags: The capabitility flags that should be used to parse the payload data.
    */
