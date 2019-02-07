@@ -67,6 +67,15 @@ let package = Package(
       dependencies: ["FixedWidthInteger+bytes"]
     ),
 
+    .target(
+      name: "IteratorProtocol+next",
+      dependencies: []
+    ),
+    .testTarget(
+      name: "IteratorProtocol+nextTests",
+      dependencies: ["IteratorProtocol+next"]
+    ),
+
     // Socket extensions
 
     .target(
