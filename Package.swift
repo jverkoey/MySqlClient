@@ -29,10 +29,10 @@ let package = Package(
     .library(
       name: "CustomStringConvertible+description",
       targets: ["CustomStringConvertible+description"]
-    ),
+    )
   ],
   dependencies: [
-    .package(url: "https://github.com/IBM-Swift/BlueSocket.git", .upToNextMajor(from: "1.0.0")),
+    .package(url: "https://github.com/IBM-Swift/BlueSocket.git", .upToNextMajor(from: "1.0.0"))
   ],
   targets: [
     .target(
@@ -96,6 +96,6 @@ let package = Package(
       dependencies: [
         "Socket"
       ]
-    ),
+    )
   ]
 )
