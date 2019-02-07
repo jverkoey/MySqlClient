@@ -41,9 +41,9 @@ matrix:
         - MYSQL_SERVER_USER="root"
         - MYSQL_SERVER_PASSWORD=""
       before_script:
-        - wget "https://swift.org/builds/development/ubuntu1604/swift-DEVELOPMENT-SNAPSHOT-2019-02-03-a/swift-DEVELOPMENT-SNAPSHOT-2019-02-03-a-ubuntu16.04.tar.gz" -O swift-latest.tar.gz
-        - tar xzf swift-latest.tar.gz
-        - export PATH=$(pwd)/swift-latest/usr/bin:"${PATH}"
+        - wget "https://swift.org/builds/development/ubuntu1604/swift-DEVELOPMENT-SNAPSHOT-2019-02-03-a/swift-DEVELOPMENT-SNAPSHOT-2019-02-03-a-ubuntu16.04.tar.gz"
+        - tar xzf swift-DEVELOPMENT-SNAPSHOT-2019-02-03-a-ubuntu16.04.tar.gz
+        - export PATH=$(pwd)/swift-DEVELOPMENT-SNAPSHOT-2019-02-03-a-ubuntu16.04/usr/bin:"${PATH}"
         - swift --version
       script:
         - swift test
