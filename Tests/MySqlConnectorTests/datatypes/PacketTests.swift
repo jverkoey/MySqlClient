@@ -33,6 +33,15 @@ private struct SimplePayload: PayloadReader {
   }
 }
 
+private struct DecodablePayload: Decodable {
+  let value: UInt32
+
+  init(from decoder: Decoder) throws {
+    var container = try decoder.unkeyedContainer()
+    self.value = try container.decode(UInt32.self)
+  }
+}
+
 class PacketTests: XCTestCase {
 
   // MARK: Packet errors
@@ -107,13 +116,27 @@ class PacketTests: XCTestCase {
   func testSucceedsWithFullPayload() throws {
     // Given
     let packetHeader = UInt32(4).bytes[0...2] + [0]
-    let payload = UInt32(0x012345678).bytes
-    let data = Data(packetHeader + payload)
+    let payloadData = UInt32(0x012345678).bytes
+    let data = Data(packetHeader + payloadData)
 
     // When
     let packet = try Packet<SimplePayload>(iterator: data.makeIterator(), capabilityFlags: .init(rawValue: 0))
 
     // Then
     XCTAssertEqual(packet.content.value, 0x012345678)
+  }
+
+  func testSucceedsWithDecodablePayload() throws {
+    // Given
+    let packetHeader = UInt32(4).bytes[0...2] + [0]
+    let payloadData = UInt32(0x012345678).bytes
+    let data = Data(packetHeader + payloadData)
+    let decoder = PacketDecoder()
+
+    // When
+    let payload = try decoder.decode(DecodablePayload.self, from: data.makeIterator())
+
+    // Then
+    XCTAssertEqual(payload.value, 0x012345678)
   }
 }

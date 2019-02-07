@@ -79,7 +79,7 @@ public final class Packet<T: PayloadReader>: CustomStringConvertible {
     guard lengthData.count == 3 else {
       throw PacketError.unexpectedEndOfPacket(payloadType: T.self)
     }
-    let length = (lengthData + [0]).withUnsafeBytes { (ptr: UnsafePointer<UInt32>) -> UInt32 in
+    let length = Data(lengthData + [0]).withUnsafeBytes { (ptr: UnsafePointer<UInt32>) -> UInt32 in
       return ptr.pointee
     }
 
@@ -93,6 +93,6 @@ public final class Packet<T: PayloadReader>: CustomStringConvertible {
     // The header is always 4 bytes long.
     let headerSize: UInt32 = 4
     self.size = Int(headerSize + length)
-    self.content = try T(payloadData: iter.next(maxLength: Int(length)), capabilityFlags: capabilityFlags)
+    self.content = try T(payloadData: Data(iter.next(maxLength: Int(length))), capabilityFlags: capabilityFlags)
   }
 }
