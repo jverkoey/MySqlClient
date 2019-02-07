@@ -3,14 +3,14 @@ sudo:
 
 matrix:
   include:
-    - name: "OS X"
+    - name: "OS X Xcode 10.1"
       os: osx
       osx_image: xcode10.1
       language: swift
       script:
         - swift test
 
-    - name: "Linux"
+    - name: "Linux Swift 4.2.2"
       os: linux
       dist: xenial
       language: c
@@ -25,6 +25,27 @@ matrix:
         - wget https://swift.org/builds/swift-4.2.2-release/ubuntu1604/swift-4.2.2-RELEASE/swift-4.2.2-RELEASE-ubuntu16.04.tar.gz
         - tar xzf swift-4.2.2-RELEASE-ubuntu16.04.tar.gz
         - export PATH=$(pwd)/swift-4.2.2-RELEASE-ubuntu16.04/usr/bin:"${PATH}"
+        - swift --version
+      script:
+        - swift test
+
+    - name: "Linux Swift latest"
+      os: linux
+      dist: xenial
+      language: c
+      services:
+        - mysql
+      env:
+        - MYSQL_SERVER_HOST=localhost
+        - MYSQL_SERVER_PORT=3306
+        - MYSQL_SERVER_USER="root"
+        - MYSQL_SERVER_PASSWORD=""
+      before_script:
+        - LATEST_SWIFT_URL=$(curl https://swift.org/download/ | grep DEVELOPMENT-SNAPSHOT | grep ubuntu16.04 | head -n1 | cut -d'"' -f2)
+        - wget "https://swift.org$LATEST_SWIFT_URL" -O swift-latest.tar.gz
+        - tar xzf swift-latest.tar.gz
+        - export PATH=$(pwd)/swift-latest/usr/bin:"${PATH}"
+        - swift --version
       script:
         - swift test
 
