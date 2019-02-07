@@ -29,6 +29,8 @@ enum PacketError: Error {
 
 /**
  A representation of a single MySql packet.
+
+ Documentation: https://dev.mysql.com/doc/internals/en/mysql-packet.html
  */
 final class Packet<T: PayloadReader>: CustomStringConvertible {
   /**
