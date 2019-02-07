@@ -42,12 +42,10 @@ let package = Package(
         "Data+xored",
         "FixedWidthInteger+bytes",
         "IteratorProtocol+next",
-        "LengthEncodedInteger",
-        "LengthEncodedString",
         "SocketIterator"
       ]
     ),
-    
+
     .testTarget(
       name: "MySqlConnectorTests",
       dependencies: ["MySqlConnector"]
@@ -97,36 +95,6 @@ let package = Package(
       name: "SocketIterator",
       dependencies: [
         "Socket"
-      ]
-    ),
-
-    // MySql data types
-
-    .target(
-      name: "LengthEncodedInteger",
-      dependencies: [
-        "FixedWidthInteger+bytes"
-      ]
-    ),
-    .testTarget(
-      name: "LengthEncodedIntegerTests",
-      dependencies: [
-        "LengthEncodedInteger",
-        "FixedWidthInteger+bytes"
-      ]
-    ),
-
-    .target(
-      name: "LengthEncodedString",
-      dependencies: [
-        "LengthEncodedInteger"
-      ]
-    ),
-    .testTarget(
-      name: "LengthEncodedStringTests",
-      dependencies: [
-        "LengthEncodedString",
-        "FixedWidthInteger+bytes"
       ]
     ),
   ]
