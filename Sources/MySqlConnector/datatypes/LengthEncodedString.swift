@@ -42,7 +42,7 @@ public enum LengthEncodedStringDecodingError: Error, Equatable {
 
  Documentation: https://dev.mysql.com/doc/internals/en/string.html#packet-Protocol::LengthEncodedString
  */
-public struct LengthEncodedString {
+public struct LengthEncodedString: Codable {
 
   /**
    Attempts to initialize a length-encoded string from the provided `data`. If the data does not represent a
@@ -54,39 +54,26 @@ public struct LengthEncodedString {
    - Throws: `LengthEncodedStringError.unableToCreateStringWithEncoding` If a String was not able to be initialized from
    `data` with the given `encoding`.
    */
-  public init?(data: Data, encoding: String.Encoding) throws {
-    // Empty data is not a length-encoded string.
-    if data.isEmpty {
-      return nil
-    }
+  public init(from decoder: Decoder) throws {
+    var container = try decoder.unkeyedContainer()
 
-    let integer: LengthEncodedInteger
-    do {
-      guard let integerOrNil = try LengthEncodedInteger(data: data) else {
-        return nil
-      }
-      integer = integerOrNil
-    } catch let error {
-      if let lengthEncodedError = error as? LengthEncodedIntegerDecodingError {
-        switch lengthEncodedError {
-        case .unexpectedEndOfData(let expectedAtLeast):
-          throw LengthEncodedStringDecodingError.unexpectedEndOfData(expectedAtLeast: expectedAtLeast)
-        }
-      }
-      throw error
-    }
+    let length = try container.decode(LengthEncodedInteger.self)
+    self.length = UInt64(length.length) + UInt64(length.value)
 
-    self.length = UInt64(integer.length) + UInt64(integer.value)
+    let stringData = try (0..<length.value).map { _ in try container.decode(UInt8.self) }
 
-    let remainingData = data[integer.length..<(integer.length + UInt(integer.value))]
-    if remainingData.count < integer.value {
-      throw LengthEncodedStringDecodingError.unexpectedEndOfData(expectedAtLeast: UInt(integer.value))
-    }
+    // TODO: Extract encoding to a decoder.userInfo key/value.
+    self.value = String(data: Data(stringData), encoding: .utf8)!
+  }
 
-    guard let string = String(data: remainingData, encoding: encoding) else {
-      throw LengthEncodedStringDecodingError.unableToCreateStringWithEncoding(encoding)
-    }
-    self.value = string
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.unkeyedContainer()
+
+    // TODO: Extract encoding to a decoder.userInfo key/value.
+    let stringLength = UInt(value.lengthOfBytes(using: .utf8))
+    let length = LengthEncodedInteger(value: UInt64(stringLength))
+    try container.encode(length)
+    try value.utf8.forEach { try container.encode($0) }
   }
 
   public init(value: String, encoding: String.Encoding) {
@@ -95,12 +82,6 @@ public struct LengthEncodedString {
     let stringLength = UInt64(value.lengthOfBytes(using: encoding))
     let length = LengthEncodedInteger(value: stringLength)
     self.length = UInt64(length.length) + stringLength
-  }
-
-  public func asData(encoding: String.Encoding) -> Data {
-    let stringLength = UInt(value.lengthOfBytes(using: encoding))
-    let length = LengthEncodedInteger(value: UInt64(stringLength))
-    return length.asData() + value.utf8
   }
 
   public let value: String

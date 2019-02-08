@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import Foundation
-import IteratorProtocol_next
 
 /**
  An object that decodes instances of a data type from a byte stream.
@@ -21,20 +20,20 @@ import IteratorProtocol_next
  For a type to be decodable with this instance it must override the default `init(from decoder:)` implementation and
  use the decoder's unkeyedContainer. For example:
 
-     init(from decoder: Decoder) throws {
-       var container = try decoder.unkeyedContainer()
-       self.unsignedValue = try container.decode(type(of: unsignedValue))
-       self.enumValue = try container.decode(type(of: enumValue))
-       self.signedValue = try container.decode(type(of: signedValue))
-     }
+ init(from decoder: Decoder) throws {
+ var container = try decoder.unkeyedContainer()
+ self.unsignedValue = try container.decode(type(of: unsignedValue))
+ self.enumValue = try container.decode(type(of: enumValue))
+ self.signedValue = try container.decode(type(of: signedValue))
+ }
 
  Documentation: https://dev.mysql.com/doc/internals/en/mysql-packet.html
  */
-public struct PacketDecoder {
+public struct BinaryStreamDecoder {
   public init() {}
 
   /**
-   Returns a MySql packet payload type you specify, decoded from a byte iterator.
+   Returns a type you specify, decoded from a byte iterator.
 
    If the iterator does not represent a well-formed MySql packet, then an error will be thrown.
 
@@ -43,8 +42,21 @@ public struct PacketDecoder {
    - Returns: An instance of `type` decoded from the iterator's byte stream.
    */
   public func decode<T, I>(_ type: T.Type, from iterator: I) throws -> T where T: Decodable, I: IteratorProtocol, I.Element == UInt8 {
-    return try T.init(from: _PacketDecoder(iterator: iterator))
+    let storage = BinaryStorage(iterator: iterator)
+    return try T.init(from: _BinaryStreamDecoder(storage: storage))
   }
+
+  public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable {
+    return try decode(type, from: data.makeIterator())
+  }
+}
+
+extension CodingUserInfoKey{
+  static let binaryStreamDecoderContext = CodingUserInfoKey(rawValue: "BinaryStreamDecoder.context")!
+}
+
+public class BinaryStreamDecoderContext {
+  public var remainingBytes: UInt64? = nil
 }
 
 /**
@@ -52,132 +64,77 @@ public struct PacketDecoder {
 
  This type is intentionally a class type so that its storage is shared across references.
  */
-private final class PayloadStorage {
+private final class BinaryStorage<I> where I: IteratorProtocol, I.Element == UInt8 {
   /**
    The remaining bytes to be decoded of the payload.
 
    Modified as values are decoded.
    */
-  private var bytes: ArraySlice<UInt8>
+  private var iterator: AnyIterator<UInt8>
+
+  let context = BinaryStreamDecoderContext()
 
   /**
    Initializes this storage instance with the packet's payload bytes.
 
    - Parameter bytes: The payload's byte representation.
    */
-  init(payload bytes: [UInt8]) {
-    self.bytes = bytes[0...]
-  }
+  init(iterator: I) {
+    var iter = iterator
+    let context = self.context
+    self.iterator = AnyIterator<UInt8> {
+      if let remainingBytes = context.remainingBytes {
+        if remainingBytes == 0 {
+          return nil
+        }
 
-  var isAtEnd: Bool {
-    return bytes.count == 0
-  }
-  var currentIndex: Int {
-    return bytes.startIndex
+        context.remainingBytes = remainingBytes - 1
+      }
+      return iter.next()
+    }
   }
 
   // Common decoding methods
 
   func decodeNullTerminatedString() throws -> String {
-    guard let length = bytes.firstIndex(of: 0) else {
-      throw DecodingError.dataCorrupted(.init(codingPath: [],
-                                              debugDescription: "Unable to find null terminator for string."))
+    let result = iterator.next(until: { $0 == 0 })
+    if result.didReachEnd {
+      throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Did not find null terminator for string."))
     }
     let encoding = String.Encoding.utf8
-    guard let string = String(data: Data(bytes[..<length]), encoding: encoding) else {
+    guard let string = String(data: Data(result.values), encoding: encoding) else {
       throw DecodingError.dataCorrupted(.init(codingPath: [],
                                               debugDescription: "Unable to parse string from data using \(encoding) encoding."))
     }
-    bytes = bytes[(length + 1)...]
     return string
   }
 
   func decodeFixedWidthInteger<T>(_ type: T.Type) throws -> T where T: FixedWidthInteger {
     let byteWidth = type.bitWidth / 8
+    let bytes = iterator.next(maxLength: byteWidth)
     if bytes.count < byteWidth {
-      throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Not enough data to parse a \(type)"))
+      throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Not enough data to parse a \(type)."))
     }
-    let index = (bytes.startIndex + byteWidth)
-    let value = Data(bytes[..<index]).withUnsafeBytes { (ptr: UnsafePointer<T>) -> T in
+    let value = Data(bytes).withUnsafeBytes { (ptr: UnsafePointer<T>) -> T in
       return ptr.pointee
     }
-    bytes = bytes[index...]
     return value
   }
 }
 
-private struct _PacketDecoder<I>: Decoder where I: IteratorProtocol, I.Element == UInt8 {
-  let storage: PayloadStorage
-  let codingPath: [CodingKey] = []
-  let userInfo: [CodingUserInfoKey: Any] = [:]
+private struct _BinaryStreamDecoder<I>: Decoder where I: IteratorProtocol, I.Element == UInt8 {
+  private let storage: BinaryStorage<I>
 
-  /**
-   Reads the packet's header and payload data in preparation for decoding.
-   */
-  init(iterator: I) throws {
-    var iter = iterator
-
-    // MySql documentation: https://dev.mysql.com/doc/internals/en/mysql-packet.html
-    // > If a MySQL client or server wants to send data, it:
-    // > - Splits the data into packets of size 2^24 − 1 bytes
-    // > - Prepends to each chunk a packet header
-    //
-    // The packet header is composed of:
-    // - 3 bytes describing the length of the packet (not including the header).
-    // - 1 byte describing the packet's sequence number.
-
-    let lengthData = iter.next(maxLength: 3)
-    guard lengthData.count == 3 else {
-      throw DecodingError.dataCorrupted(.init(codingPath: [],
-                                              debugDescription: "Unable to read packet length."))
-    }
-    let length = Data(lengthData + [0]).withUnsafeBytes { (ptr: UnsafePointer<UInt32>) -> UInt32 in
-      return ptr.pointee
-    }
-
-    // Sequence number
-    guard iter.next() != nil else {
-      throw DecodingError.dataCorrupted(.init(codingPath: [],
-                                              debugDescription: "Unable to read packet sequence number."))
-    }
-
-    let payloadBytes = iter.next(maxLength: Int(length))
-    if payloadBytes.count < length {
-      throw DecodingError.dataCorrupted(.init(codingPath: [],
-                                              debugDescription: "Packet is missing payload data."))
-    }
-    self.storage = PayloadStorage(payload: payloadBytes)
-  }
-
-  // MARK: Decoder
-
-  func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-    return PacketUnkeyedDecodingContainer(storage: storage)
-  }
-
-  func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
-    throw DecodingError.typeMismatch(type, .init(codingPath: codingPath,
-                                                 debugDescription: "Keyed decoding is unsupported."))
-  }
-
-  func singleValueContainer() throws -> SingleValueDecodingContainer {
-    throw DecodingError.typeMismatch(type(of: self), .init(codingPath: codingPath,
-                                                           debugDescription: "Single value decoding is unsupported."))
-  }
-}
-
-private struct _PayloadDecoder: Decoder {
-  let storage: PayloadStorage
-
-  init(storage: PayloadStorage) throws {
+  init(storage: BinaryStorage<I>) throws {
     self.storage = storage
+    self.userInfo = [.binaryStreamDecoderContext: storage.context]
   }
 
   var codingPath: [CodingKey] = []
-  var userInfo: [CodingUserInfoKey: Any] = [:]
+  var userInfo: [CodingUserInfoKey: Any]
 
   func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-    return PacketUnkeyedDecodingContainer(storage: storage)
+    return BinaryStreamUnkeyedDecodingContainer(storage: storage)
   }
 
   func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
@@ -186,20 +143,21 @@ private struct _PayloadDecoder: Decoder {
   }
 
   func singleValueContainer() throws -> SingleValueDecodingContainer {
-    return PacketSingleValueDecodingContainer(storage: storage)
+    return BinaryStreamSingleValueDecodingContainer(storage: storage)
   }
 }
 
-private struct PacketUnkeyedDecodingContainer: UnkeyedDecodingContainer {
-  private let storage: PayloadStorage
-  init(storage: PayloadStorage) {
+private struct BinaryStreamUnkeyedDecodingContainer<I>: UnkeyedDecodingContainer where I: IteratorProtocol, I.Element == UInt8 {
+  private let storage: BinaryStorage<I>
+
+  init(storage: BinaryStorage<I>) {
     self.storage = storage
   }
 
   let codingPath: [CodingKey] = []
-  let count: Int? = nil
-  var isAtEnd: Bool { return storage.isAtEnd }
-  var currentIndex: Int { return storage.currentIndex }
+  var count: Int? { return nil }
+  var isAtEnd: Bool { return false }
+  var currentIndex: Int { return 0 }
 
   mutating func decodeNil() throws -> Bool {
     preconditionFailure("Unimplemented.")
@@ -222,51 +180,47 @@ private struct PacketUnkeyedDecodingContainer: UnkeyedDecodingContainer {
   }
 
   mutating func decode(_ type: Int.Type) throws -> Int {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   mutating func decode(_ type: Int8.Type) throws -> Int8 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   mutating func decode(_ type: Int16.Type) throws -> Int16 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   mutating func decode(_ type: Int32.Type) throws -> Int32 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   mutating func decode(_ type: Int64.Type) throws -> Int64 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   mutating func decode(_ type: UInt.Type) throws -> UInt {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   mutating func decode(_ type: UInt8.Type) throws -> UInt8 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   mutating func decode(_ type: UInt16.Type) throws -> UInt16 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   mutating func decode(_ type: UInt32.Type) throws -> UInt32 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   mutating func decode(_ type: UInt64.Type) throws -> UInt64 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   mutating func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
-    return try T.init(from: _PayloadDecoder(storage: storage))
-  }
-
-  mutating func decodeFixedWidthInteger<T>(_ type: T.Type) throws -> T where T: FixedWidthInteger {
-    return try storage.decodeFixedWidthInteger(type)
+    return try T.init(from: _BinaryStreamDecoder(storage: storage))
   }
 
   mutating func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
@@ -282,9 +236,9 @@ private struct PacketUnkeyedDecodingContainer: UnkeyedDecodingContainer {
   }
 }
 
-private struct PacketSingleValueDecodingContainer: SingleValueDecodingContainer {
-  private var storage: PayloadStorage
-  init(storage: PayloadStorage) {
+private struct BinaryStreamSingleValueDecodingContainer<I>: SingleValueDecodingContainer where I: IteratorProtocol, I.Element == UInt8 {
+  private var storage: BinaryStorage<I>
+  init(storage: BinaryStorage<I>) {
     self.storage = storage
   }
 
@@ -311,50 +265,46 @@ private struct PacketSingleValueDecodingContainer: SingleValueDecodingContainer 
   }
 
   func decode(_ type: Int.Type) throws -> Int {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   func decode(_ type: Int8.Type) throws -> Int8 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   func decode(_ type: Int16.Type) throws -> Int16 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   func decode(_ type: Int32.Type) throws -> Int32 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   func decode(_ type: Int64.Type) throws -> Int64 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   func decode(_ type: UInt.Type) throws -> UInt {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   func decode(_ type: UInt8.Type) throws -> UInt8 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   func decode(_ type: UInt16.Type) throws -> UInt16 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   func decode(_ type: UInt32.Type) throws -> UInt32 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   func decode(_ type: UInt64.Type) throws -> UInt64 {
-    return try decodeFixedWidthInteger(type)
+    return try storage.decodeFixedWidthInteger(type)
   }
 
   func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
     preconditionFailure("Unimplemented.")
-  }
-
-  func decodeFixedWidthInteger<T>(_ type: T.Type) throws -> T where T: FixedWidthInteger {
-    return try storage.decodeFixedWidthInteger(type)
   }
 }
