@@ -49,7 +49,7 @@ class PacketDecodingTests: XCTestCase {
     XCTAssertThrowsError(try decoder.decode(Packet<Payload>.self, from: data.makeIterator())) { error in
       switch error {
       case DecodingError.dataCorrupted(let context):
-        XCTAssertEqual(context.debugDescription, "Not enough data to parse a UInt8.")
+        XCTAssertEqual(context.debugDescription, "Not enough data to read a byte.")
       default:
         XCTFail("Unexpected error \(String(describing: error))")
       }
@@ -66,7 +66,7 @@ class PacketDecodingTests: XCTestCase {
     XCTAssertThrowsError(try decoder.decode(Packet<Payload>.self, from: data.makeIterator())) { error in
       switch error {
       case DecodingError.dataCorrupted(let context):
-        XCTAssertEqual(context.debugDescription, "Not enough data to parse a UInt8.")
+        XCTAssertEqual(context.debugDescription, "Not enough data to read a byte.")
       default:
         XCTFail("Unexpected error \(String(describing: error))")
       }
@@ -101,7 +101,7 @@ class PacketDecodingTests: XCTestCase {
     XCTAssertThrowsError(try decoder.decode(Packet<Payload>.self, from: data.makeIterator())) { error in
       switch error {
       case DecodingError.dataCorrupted(let context):
-        XCTAssertEqual(context.debugDescription, "Not enough data to parse a UInt8.")
+        XCTAssertEqual(context.debugDescription, "Not enough data to read a byte.")
       default:
         XCTFail("Unexpected error \(String(describing: error))")
       }

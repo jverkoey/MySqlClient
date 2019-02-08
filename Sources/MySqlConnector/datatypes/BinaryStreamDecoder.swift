@@ -18,14 +18,7 @@ import Foundation
  An object that decodes instances of a data type from a byte stream.
 
  For a type to be decodable with this instance it must override the default `init(from decoder:)` implementation and
- use the decoder's unkeyedContainer. For example:
-
- init(from decoder: Decoder) throws {
- var container = try decoder.unkeyedContainer()
- self.unsignedValue = try container.decode(type(of: unsignedValue))
- self.enumValue = try container.decode(type(of: enumValue))
- self.signedValue = try container.decode(type(of: signedValue))
- }
+ use the decoder's unkeyedContainer.
 
  Documentation: https://dev.mysql.com/doc/internals/en/mysql-packet.html
  */
@@ -49,9 +42,13 @@ public struct BinaryStreamDecoder {
   public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable {
     return try decode(type, from: data.makeIterator())
   }
+
+  public func decode<T>(_ type: T.Type, from bytes: [UInt8]) throws -> T where T: Decodable {
+    return try decode(type, from: bytes.makeIterator())
+  }
 }
 
-extension CodingUserInfoKey{
+extension CodingUserInfoKey {
   static let binaryStreamDecoderContext = CodingUserInfoKey(rawValue: "BinaryStreamDecoder.context")!
 }
 
@@ -87,7 +84,6 @@ private final class BinaryStorage<I> where I: IteratorProtocol, I.Element == UIn
         if remainingBytes == 0 {
           return nil
         }
-
         context.remainingBytes = remainingBytes - 1
       }
       return iter.next()
@@ -107,6 +103,13 @@ private final class BinaryStorage<I> where I: IteratorProtocol, I.Element == UIn
                                               debugDescription: "Unable to parse string from data using \(encoding) encoding."))
     }
     return string
+  }
+
+  func decodeByte() throws -> UInt8 {
+    guard let byte = iterator.next() else {
+      throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Not enough data to read a byte."))
+    }
+    return byte
   }
 
   func decodeFixedWidthInteger<T>(_ type: T.Type) throws -> T where T: FixedWidthInteger {
@@ -204,7 +207,7 @@ private struct BinaryStreamUnkeyedDecodingContainer<I>: UnkeyedDecodingContainer
   }
 
   mutating func decode(_ type: UInt8.Type) throws -> UInt8 {
-    return try storage.decodeFixedWidthInteger(type)
+    return try storage.decodeByte()
   }
 
   mutating func decode(_ type: UInt16.Type) throws -> UInt16 {
@@ -289,7 +292,7 @@ private struct BinaryStreamSingleValueDecodingContainer<I>: SingleValueDecodingC
   }
 
   func decode(_ type: UInt8.Type) throws -> UInt8 {
-    return try storage.decodeFixedWidthInteger(type)
+    return try storage.decodeByte()
   }
 
   func decode(_ type: UInt16.Type) throws -> UInt16 {
@@ -308,3 +311,4 @@ private struct BinaryStreamSingleValueDecodingContainer<I>: SingleValueDecodingC
     preconditionFailure("Unimplemented.")
   }
 }
+

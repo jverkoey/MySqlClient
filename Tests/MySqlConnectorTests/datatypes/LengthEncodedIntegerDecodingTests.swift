@@ -26,7 +26,7 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
     XCTAssertThrowsError(try decoder.decode(LengthEncodedInteger.self, from: data)) { error in
       switch error {
       case DecodingError.dataCorrupted(let context):
-        XCTAssertEqual(context.debugDescription, "Not enough data to parse a UInt8.")
+        XCTAssertEqual(context.debugDescription, "Not enough data to read a byte.")
       default:
         XCTFail("Unexpected error \(String(describing: error))")
       }
