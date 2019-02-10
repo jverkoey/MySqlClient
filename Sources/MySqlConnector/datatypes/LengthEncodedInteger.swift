@@ -15,6 +15,8 @@
 import Foundation
 import FixedWidthInteger_bytes
 
+// TODO: Make a Binary Codable type that provides more performant implementations of large retrievals of data.
+
 /**
  A MySql length-encoded integer.
 

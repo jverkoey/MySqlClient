@@ -52,7 +52,8 @@ let package = Package(
         "Data+xored",
         "FixedWidthInteger+bytes",
         "IteratorProtocol+next",
-        "SocketIterator"
+        "SocketIterator",
+        "LazyDataStream",
       ]
     ),
 
@@ -97,6 +98,17 @@ let package = Package(
     .testTarget(
       name: "IteratorProtocol+nextTests",
       dependencies: ["IteratorProtocol+next"]
+    ),
+
+    // Binary data management
+
+    .target(
+      name: "LazyDataStream",
+      dependencies: []
+    ),
+    .testTarget(
+      name: "LazyDataStreamTests",
+      dependencies: ["LazyDataStream"]
     ),
 
     // Socket extensions
