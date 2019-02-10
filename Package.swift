@@ -54,6 +54,7 @@ let package = Package(
         "IteratorProtocol+next",
         "SocketIterator",
         "LazyDataStream",
+        "BinaryCodable",
       ]
     ),
 
@@ -102,6 +103,10 @@ let package = Package(
 
     // Binary data management
 
+    .target(
+      name: "BinaryCodable",
+      dependencies: []
+    ),
     .target(
       name: "LazyDataStream",
       dependencies: []

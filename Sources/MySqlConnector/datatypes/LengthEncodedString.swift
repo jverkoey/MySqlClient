@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import BinaryCodable
 import Foundation
 import FixedWidthInteger_bytes
 
@@ -42,7 +43,7 @@ public enum LengthEncodedStringDecodingError: Error, Equatable {
 
  Documentation: https://dev.mysql.com/doc/internals/en/string.html#packet-Protocol::LengthEncodedString
  */
-public struct LengthEncodedString: Codable {
+public struct LengthEncodedString: BinaryDecodable {
 
   /**
    Attempts to initialize a length-encoded string from the provided `data`. If the data does not represent a
@@ -54,26 +55,28 @@ public struct LengthEncodedString: Codable {
    - Throws: `LengthEncodedStringError.unableToCreateStringWithEncoding` If a String was not able to be initialized from
    `data` with the given `encoding`.
    */
-  public init(from decoder: Decoder) throws {
-    var container = try decoder.unkeyedContainer()
+  public init(from binaryDecoder: BinaryDecoder) throws {
+    var container = try binaryDecoder.container(maxLength: nil)
 
     let length = try container.decode(LengthEncodedInteger.self)
     self.length = UInt64(length.length) + UInt64(length.value)
 
-    let stringData = try (0..<length.value).map { _ in try container.decode(UInt8.self) }
-
-    // TODO: Extract encoding to a decoder.userInfo key/value.
-    self.value = String(data: Data(stringData), encoding: .utf8)!
+    let stringData = try container.decode(maxLength: Int(length.value))
+    guard let string = String(data: Data(stringData), encoding: .utf8) else {
+      throw DecodingError.dataCorrupted(.init(codingPath: [],
+                                              debugDescription: "Unable to create String representation of data"))
+    }
+    self.value = string
   }
 
   public func encode(to encoder: Encoder) throws {
-    var container = encoder.unkeyedContainer()
-
-    // TODO: Extract encoding to a decoder.userInfo key/value.
-    let stringLength = UInt(value.lengthOfBytes(using: .utf8))
-    let length = LengthEncodedInteger(value: UInt64(stringLength))
-    try container.encode(length)
-    try value.utf8.forEach { try container.encode($0) }
+//    var container = encoder.unkeyedContainer()
+//
+//    // TODO: Extract encoding to a decoder.userInfo key/value.
+//    let stringLength = UInt(value.lengthOfBytes(using: .utf8))
+//    let length = LengthEncodedInteger(value: UInt64(stringLength))
+//    try container.encode(length)
+//    try value.utf8.forEach { try container.encode($0) }
   }
 
   public init(value: String, encoding: String.Encoding) {

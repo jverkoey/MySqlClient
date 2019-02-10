@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import BinaryCodable
 import Foundation
-import IteratorProtocol_next
 
 /**
  An object that decodes instances of a data type from a byte stream.
@@ -30,13 +30,13 @@ import IteratorProtocol_next
 
  Documentation: https://dev.mysql.com/doc/internals/en/mysql-packet.html
  */
-struct Packet<T: Codable>: Codable {
+struct Packet<T: BinaryDecodable>: BinaryDecodable {
   let payload: T
   let length: UInt32
   let sequenceNumber: UInt8
 
-  public init(from decoder: Decoder) throws {
-    var container = try decoder.unkeyedContainer()
+  public init(from binaryDecoder: BinaryDecoder) throws {
+    var container = try binaryDecoder.container(maxLength: nil)
 
     // MySql documentation: https://dev.mysql.com/doc/internals/en/mysql-packet.html
     // > If a MySQL client or server wants to send data, it:
@@ -54,10 +54,7 @@ struct Packet<T: Codable>: Codable {
 
     self.sequenceNumber = try container.decode(UInt8.self)
 
-    if let context = decoder.userInfo[.binaryStreamDecoderContext] as? BinaryStreamDecoderContext {
-      context.remainingBytes = UInt64(self.length)
-    }
-
-    self.payload = try container.decode(T.self)
+    var payloadContainer = try container.nestedContainer(maxLength: Int(self.length))
+    self.payload = try payloadContainer.decode(T.self)
   }
 }

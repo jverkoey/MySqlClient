@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import BinaryCodable
 import Foundation
 import FixedWidthInteger_bytes
 
@@ -22,7 +23,7 @@ import FixedWidthInteger_bytes
 
  Documentation: https://dev.mysql.com/doc/internals/en/integer.html#length-encoded-integer
  */
-public struct LengthEncodedInteger: Codable {
+public struct LengthEncodedInteger: BinaryDecodable {
 
   /**
    Attempts to initialize a length-encoded integer from the provided `data`. If the data does not represent a
@@ -32,12 +33,13 @@ public struct LengthEncodedInteger: Codable {
    - Throws: `LengthEncodedIntegerError.unexpectedEndOfData` If `data` looks like a length-encoded integer but its
    length is less than the expected amount.
    */
-  public init(from decoder: Decoder) throws {
-    var container = try decoder.unkeyedContainer()
+  public init(from binaryDecoder: BinaryDecoder) throws {
+    var container = try binaryDecoder.container(maxLength: 9)
 
     let firstByte = try container.decode(UInt8.self)
     guard let type = LengthEncodedIntegerType(firstByte: firstByte) else {
-      throw DecodingError.dataCorruptedError(in: container, debugDescription: "Not a length-encoded integer.")
+      // TODO: Convert to binary coding error.
+      throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Not a length-encoded integer."))
     }
     self.type = type
 
@@ -58,23 +60,23 @@ public struct LengthEncodedInteger: Codable {
   }
 
   public func encode(to encoder: Encoder) throws {
-    var container = encoder.unkeyedContainer()
-
-    switch storage {
-    case .one(let value):
-      try container.encode(value)
-    case .two(let value):
-      try container.encode(UInt8(0xfc))
-      try container.encode(value)
-    case .three(let value):
-      try container.encode(UInt8(0xfd))
-      try value.bytes[0...2].forEach {
-        try container.encode($0)
-      }
-    case .eight(let value):
-      try container.encode(UInt8(0xfe))
-      try container.encode(value)
-    }
+//    var container = encoder.unkeyedContainer()
+//
+//    switch storage {
+//    case .one(let value):
+//      try container.encode(value)
+//    case .two(let value):
+//      try container.encode(UInt8(0xfc))
+//      try container.encode(value)
+//    case .three(let value):
+//      try container.encode(UInt8(0xfd))
+//      try value.bytes[0...2].forEach {
+//        try container.encode($0)
+//      }
+//    case .eight(let value):
+//      try container.encode(UInt8(0xfe))
+//      try container.encode(value)
+//    }
   }
 
   /**

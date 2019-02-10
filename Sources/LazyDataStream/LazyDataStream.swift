@@ -23,12 +23,12 @@ public final class LazyDataStream<Cursor> {
   var cursor: Cursor
 
   /**
-   - Parameter reader: A closure that accepts an suggested number of bytes and returns new Data to be added to the
+   - Parameter reader: A closure that accepts a suggested number of bytes and returns Data to be added to the
    buffer. The reader may return more or less data that what is suggested. If no more data is available, then nil
    should be returned.
    */
-  public init(cursor: Cursor, reader: @escaping (inout Cursor, Int) throws -> Data?) {
-    self.buffer = Data(capacity: 1024)
+  public init(cursor: Cursor, capacity: Int = 1024, reader: @escaping (inout Cursor, Int) throws -> Data?) {
+    self.buffer = Data(capacity: capacity)
     self.cursor = cursor
     self.reader = reader
   }
@@ -37,8 +37,8 @@ public final class LazyDataStream<Cursor> {
     while buffer.count < maxBytes, let data = try reader(&cursor, maxBytes - buffer.count) {
       buffer.append(data)
     }
-    // TODO: I think the original buffer may never decrease in size because of how this is implemented.
-    // This can be optimized with a ring buffer implementation.
+    // TODO: The original buffer may never decrease in size because of how this is implemented.
+    // This can likely be optimized with a ring buffer implementation.
     // Example implementation in Swift's Sequence:
     // https://github.com/apple/swift/blob/b0fbbb3342c1c2df0753a0fc9b469e9d951adf43/stdlib/public/core/Sequence.swift#L898
     let data = buffer.prefix(maxBytes)

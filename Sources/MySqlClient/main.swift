@@ -16,9 +16,9 @@ import MySqlConnector
 
 let string = String(repeating: "A", count: 0x1000000)
 let data = [0xfe] + UInt64(string.lengthOfBytes(using: .utf8)).bytes + string.utf8
-let decoder = BinaryStreamDecoder()
+//let decoder = BinaryStreamDecoder()
+//
+//// When
+//let lengthEncodedString = try decoder.decode(LengthEncodedString.self, from: data)
 
-// When
-let lengthEncodedString = try decoder.decode(LengthEncodedString.self, from: data)
-
-print(lengthEncodedString)
+//print(lengthEncodedString)
