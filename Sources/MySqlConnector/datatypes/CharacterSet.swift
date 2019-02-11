@@ -63,14 +63,4 @@ enum CharacterSet: UInt8, BinaryDecodable {
   case utf8mb4_vietnamese_ci = 247
   case gb18030  = 248
   case utf8mb4  = 255
-
-  init(from binaryDecoder: BinaryDecoder) throws {
-    var container = binaryDecoder.container(maxLength: nil)
-    let rawValue = try container.decode(CharacterSet.RawValue.self)
-    guard let value = CharacterSet(rawValue: rawValue) else {
-      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
-        "Raw value \(rawValue) is not a valid case for \(type(of: self))."))
-    }
-    self = value
-  }
 }
