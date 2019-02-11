@@ -60,6 +60,7 @@ enum CharacterSet: UInt8, BinaryDecodable {
   case geostd8  = 92
   case cp932    = 95
   case eucjpms  = 97
+  case utf8mb4_vietnamese_ci = 247
   case gb18030  = 248
   case utf8mb4  = 255
 

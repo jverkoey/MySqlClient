@@ -49,7 +49,7 @@ final class Handshake: BinaryDecodable, CustomStringConvertible {
   let characterSet: CharacterSet?
 
   init(from binaryDecoder: BinaryDecoder) throws {
-    var container = binaryDecoder.container(maxLength: 0)
+    var container = binaryDecoder.container(maxLength: nil)
 
     self.protocolVersion = try container.decode(ProtocolVersion.self)
 
