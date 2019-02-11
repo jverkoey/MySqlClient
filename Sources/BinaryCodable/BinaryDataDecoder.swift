@@ -179,7 +179,7 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
   }
 
   var isAtEnd: Bool {
-    return remainingLength > 0
+    return remainingLength == 0
   }
 
   func decode(_ type: String.Type, encoding: String.Encoding, terminator: UInt8) throws -> String {

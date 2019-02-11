@@ -87,7 +87,36 @@ final class MySqlConnectorTests: XCTestCase {
 
     let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
 
+    XCTAssertEqual(handshake.sequenceNumber, 0)
     XCTAssertEqual(handshake.payload.protocolVersion, .v10)
+    XCTAssertEqual(handshake.payload.serverCapabilityFlags, [
+      .longPassword,
+      .foundRows,
+      .longFlag,
+      .connectWithDb,
+      .noSchema,
+      .compress,
+      .odbc,
+      .localFiles,
+      .ignoreSpace,
+      .protocol41,
+      .interactive,
+//      .ssl,
+      .ignoreSigpipe,
+      .transactions,
+      .reserved,
+      .secureConnection,
+      .multiStatements,
+      .multiResults,
+      .psMultiResults,
+      .pluginAuth,
+      .connectAttrs,
+      .pluginAuthLenencClientData,
+      .canHandleExpiredPasswords,
+      .sessionTrack,
+      .deprecateEof,
+      .mystery
+    ])
     print(handshake)
   }
 }

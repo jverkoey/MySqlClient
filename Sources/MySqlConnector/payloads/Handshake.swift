@@ -43,10 +43,13 @@ enum HandshakeError: Error {
  */
 final class Handshake: BinaryDecodable, CustomStringConvertible {
   let protocolVersion: ProtocolVersion
+  let serverVersion: String
+  let connectionIdentifier: UInt32
   let authPluginData: Data
-  let plugin: Data?
+  let authPluginName: String?
   let serverCapabilityFlags: CapabilityFlags
   let characterSet: CharacterSet?
+  let statusFlags: UInt16?
 
   init(from binaryDecoder: BinaryDecoder) throws {
     var container = binaryDecoder.container(maxLength: nil)
@@ -57,13 +60,9 @@ final class Handshake: BinaryDecodable, CustomStringConvertible {
       throw HandshakeError.unsupportedProtocol
     }
 
-    // Human-readable server version
-    _ = try container.decode(String.self, encoding: .utf8, terminator: 0)
-
-    // Connection identifier
-    _ = try container.decode(UInt32.self)
-
-    let firstAuthPluginData = try (0..<8).map { _ in try container.decode(UInt8.self) }
+    self.serverVersion = try container.decode(String.self, encoding: .utf8, terminator: 0)
+    self.connectionIdentifier = try container.decode(UInt32.self)
+    let firstAuthPluginData = try container.decode(maxLength: 8)
 
     // Filler
     _ = try container.decode(UInt8.self)
@@ -79,43 +78,40 @@ final class Handshake: BinaryDecodable, CustomStringConvertible {
       self.characterSet = nil
       self.authPluginData = Data(firstAuthPluginData)
       self.serverCapabilityFlags = CapabilityFlags(rawValue: lowerCapabilityFlags)
-      self.plugin = nil
+      self.authPluginName = nil
+      self.statusFlags = nil
       return
     }
 
     self.characterSet = try container.decode(CharacterSet.self)
-
-    // Status flags
-    _ = try container.decode(UInt16.self)
+    self.statusFlags = try container.decode(UInt16.self)
 
     let upperCapabilityFlags = UInt32(try container.decode(UInt16.self)) << 16
     self.serverCapabilityFlags = CapabilityFlags(rawValue: upperCapabilityFlags | lowerCapabilityFlags)
 
-    // Auth plugin data length (ignored; is always 20)
-    _ = try container.decode(UInt8.self)
+    let pluginDataLength: UInt8
+    if self.serverCapabilityFlags.contains(.pluginAuth) {
+      pluginDataLength = try container.decode(UInt8.self)
+    } else {
+      pluginDataLength = 0
+      // Filler
+      _ = try container.decode(UInt8.self)
+    }
 
     // Reserved
-    _ = try (0..<10).map { _ in try container.decode(UInt8.self) }
+    _ = try container.decode(maxLength: 10)
 
-    // From https://github.com/go-sql-driver/mysql/blob/master/packets.go
-    //
-    // > second part of the password cipher [mininum 13 bytes],
-    // > where len=MAX(13, length of auth-plugin-data - 8)
-    // >
-    // > The web documentation is ambiguous about the length. However,
-    // > according to mysql-5.7/sql/auth/sql_authentication.cc line 538,
-    // > the 13th byte is "\0 byte, terminating the second part of
-    // > a scramble". So the second part of the password cipher is
-    // > a NULL terminated string that's at least 13 bytes with the
-    // > last byte being NULL.
-    // >
-    // > The official Python library uses the fixed length 12
-    // > which seems to work but technically could have a hidden bug.
-    let secondAuthPluginData = try (0..<12).map { _ in try container.decode(UInt8.self) }
+    if self.serverCapabilityFlags.contains(.secureConnection) {
+      let secondAuthPluginData = try container.decode(maxLength: Int(max(13, pluginDataLength - 8)) + -1)
+      self.authPluginData = Data(firstAuthPluginData + secondAuthPluginData)
+    } else {
+      self.authPluginData = firstAuthPluginData
+    }
 
-    self.authPluginData = Data(firstAuthPluginData + secondAuthPluginData)
-
-    let plugin = try container.decode(String.self, encoding: .utf8, terminator: 0)
-    self.plugin = plugin.data(using: .utf8)
+    if self.serverCapabilityFlags.contains(.pluginAuth) {
+      self.authPluginName = try container.decode(String.self, encoding: .utf8, terminator: 0)
+    } else {
+      self.authPluginName = nil
+    }
   }
 }

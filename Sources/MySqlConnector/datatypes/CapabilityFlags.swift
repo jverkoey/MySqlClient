@@ -49,4 +49,5 @@ struct CapabilityFlags: OptionSet {
   static let canHandleExpiredPasswords  = CapabilityFlags(rawValue: 0x00400000)
   static let sessionTrack               = CapabilityFlags(rawValue: 0x00800000)
   static let deprecateEof               = CapabilityFlags(rawValue: 0x01000000)
+  static let mystery                    = CapabilityFlags(rawValue: 0x80000000)
 }
