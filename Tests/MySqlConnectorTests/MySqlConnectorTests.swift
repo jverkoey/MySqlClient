@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import XCTest
+import BinaryCodable
+import LazyDataStream
 import Socket
 @testable import MySqlConnector
+import XCTest
 
 func getEnvironmentVariable(named name: String) -> String? {
   if let environmentValue = getenv(name) {
@@ -65,5 +67,26 @@ final class MySqlConnectorTests: XCTestCase {
     var buffer = Data(capacity: socket.readBufferSize)
     _ = try socket.read(into: &buffer)
     XCTAssertGreaterThan(buffer.count, 0, "Did not receive any data from the server.")
+  }
+
+  func testHandshake() throws {
+    guard let socket = socket else {
+      return
+    }
+
+    let decoder = BinaryDataDecoder()
+    let buffer = Data(capacity: socket.readBufferSize)
+    let socketDataStream = LazyDataStream(cursor: buffer) { cursor, suggestedCount in
+      if cursor.count == 0 {
+        _ = try socket.read(into: &cursor)
+      }
+      let pulledData = cursor.prefix(suggestedCount)
+      cursor = cursor.dropFirst(suggestedCount)
+      return pulledData
+    }
+
+    let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
+
+    XCTAssertEqual(handshake.payload.protocolVersion, .v10)
   }
 }

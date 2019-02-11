@@ -21,7 +21,7 @@ import FixedWidthInteger_bytes
 
  Documentation: https://dev.mysql.com/doc/internals/en/integer.html#length-encoded-integer
  */
-public struct LengthEncodedInteger: BinaryDecodable {
+struct LengthEncodedInteger: BinaryDecodable {
 
   /**
    Attempts to initialize a length-encoded integer from the provided `data`. If the data does not represent a
@@ -29,7 +29,7 @@ public struct LengthEncodedInteger: BinaryDecodable {
 
    - Parameter data: The data from which the length-encoded integer should be parsed.
    */
-  public init(from binaryDecoder: BinaryDecoder) throws {
+  init(from binaryDecoder: BinaryDecoder) throws {
     var container = binaryDecoder.container(maxLength: 9)
 
     let firstByte = try container.decode(UInt8.self)
@@ -57,7 +57,7 @@ public struct LengthEncodedInteger: BinaryDecodable {
   /**
    Initializes the length-encoded integer with the given value.
    */
-  public init(value: UInt64) {
+  init(value: UInt64) {
     self.type = LengthEncodedIntegerType(value: value)
     switch type {
     case .one:
@@ -74,7 +74,7 @@ public struct LengthEncodedInteger: BinaryDecodable {
   /**
    A 64 bit representation of this length-encoded integer's value.
    */
-  public var value: UInt64 {
+  var value: UInt64 {
     switch storage {
     case .one(let value):
       return UInt64(value)
@@ -90,7 +90,7 @@ public struct LengthEncodedInteger: BinaryDecodable {
   /**
    The number of bytes required to represent this length-encoded integer.
    */
-  public var length: UInt {
+  var length: UInt {
     return type.length
   }
 

@@ -25,7 +25,7 @@ struct Packet<T: BinaryDecodable>: BinaryDecodable {
   let length: UInt32
   let sequenceNumber: UInt8
 
-  public init(from binaryDecoder: BinaryDecoder) throws {
+  init(from binaryDecoder: BinaryDecoder) throws {
     var container = binaryDecoder.container(maxLength: nil)
 
     // From the MySql documentation:
