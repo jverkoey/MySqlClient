@@ -74,7 +74,7 @@ public final class LazyDataStream<Cursor>: StreamableDataProvider {
         break
       }
       if let subIndex = data.firstIndex(of: delimiter) {
-        indexOfDelimiter = buffer.count + (subIndex - data.startIndex)
+        indexOfDelimiter = buffer.startIndex + buffer.count + (subIndex - data.startIndex)
       }
       buffer.append(data)
     }
