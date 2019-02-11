@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import BinaryCodable
 import MySqlConnector
 
 let string = String(repeating: "A", count: 0x1000000)
 let data = [0xfe] + UInt64(string.lengthOfBytes(using: .utf8)).bytes + string.utf8
-//let decoder = BinaryStreamDecoder()
-//
-//// When
-//let lengthEncodedString = try decoder.decode(LengthEncodedString.self, from: data)
+let decoder = BinaryDataDecoder()
 
-//print(lengthEncodedString)
+// When
+let lengthEncodedString = try decoder.decode(LengthEncodedString.self, from: data)
+
+print(lengthEncodedString.length)

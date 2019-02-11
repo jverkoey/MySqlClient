@@ -12,21 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import XCTest
+import BinaryCodable
 @testable import MySqlConnector
+import XCTest
 
 class LengthEncodedIntegerDecodingTests: XCTestCase {
 
   func testThrowsWithEmptyData() throws {
     // Given
     let data = Data()
-    let decoder = BinaryStreamDecoder()
+    let decoder = BinaryDataDecoder()
 
     // Then
     XCTAssertThrowsError(try decoder.decode(LengthEncodedInteger.self, from: data)) { error in
       switch error {
-      case DecodingError.dataCorrupted(let context):
-        XCTAssertEqual(context.debugDescription, "Not enough data to read a byte.")
+      case BinaryDecodingError.dataCorrupted(let context):
+        XCTAssertEqual(context.debugDescription,
+                       "Not enough data to create a a type of UInt8. Needed: 1. Received: 0.")
       default:
         XCTFail("Unexpected error \(String(describing: error))")
       }
@@ -37,7 +39,7 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
     for byte: UInt8 in 0x00...0xfb {
       // Given
       let data = Data([byte])
-      let decoder = BinaryStreamDecoder()
+      let decoder = BinaryDataDecoder()
 
       // When
       let integer = try decoder.decode(LengthEncodedInteger.self, from: data)
@@ -53,7 +55,7 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
       // Given
       let value = UInt16(1) << bit
       let data = Data([0xfc] + value.bytes)
-      let decoder = BinaryStreamDecoder()
+      let decoder = BinaryDataDecoder()
 
       // When
       let integer = try decoder.decode(LengthEncodedInteger.self, from: data)
@@ -69,7 +71,7 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
       // Given
       let value = UInt32(1) << bit
       let data = Data([0xfd] + value.bytes[0...2])
-      let decoder = BinaryStreamDecoder()
+      let decoder = BinaryDataDecoder()
 
       // When
       let integer = try decoder.decode(LengthEncodedInteger.self, from: data)
@@ -85,7 +87,7 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
       // Given
       let value = UInt64(1) << bit
       let data = Data([0xfe] + value.bytes)
-      let decoder = BinaryStreamDecoder()
+      let decoder = BinaryDataDecoder()
 
       // When
       let integer = try decoder.decode(LengthEncodedInteger.self, from: data)
@@ -101,14 +103,14 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
   func test0xffThrows() throws {
     // Given
     let data = Data([0xff])
-    let decoder = BinaryStreamDecoder()
+    let decoder = BinaryDataDecoder()
 
     // Then
     // Is likely an error packet
     // https://dev.mysql.com/doc/internals/en/integer.html#packet-Protocol::LengthEncodedInteger
     XCTAssertThrowsError(try decoder.decode(LengthEncodedInteger.self, from: data)) { error in
       switch error {
-      case DecodingError.dataCorrupted(let context):
+      case BinaryDecodingError.dataCorrupted(let context):
         XCTAssertEqual(context.debugDescription, "Not a length-encoded integer.")
       default:
         XCTFail("Unexpected error \(String(describing: error))")
@@ -120,15 +122,16 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
     for extraBytes in 0...7 {
       // Given
       let data = Data([0xfe] + [UInt8](repeating: 0, count: extraBytes))
-      let decoder = BinaryStreamDecoder()
+      let decoder = BinaryDataDecoder()
 
       // Then
       // Is more likely an EOF packet.
       // https://dev.mysql.com/doc/internals/en/integer.html#packet-Protocol::LengthEncodedInteger
       XCTAssertThrowsError(try decoder.decode(LengthEncodedInteger.self, from: data)) { error in
         switch error {
-        case DecodingError.dataCorrupted(let context):
-          XCTAssertEqual(context.debugDescription, "Not enough data to parse a UInt64.")
+        case BinaryDecodingError.dataCorrupted(let context):
+          XCTAssertEqual(context.debugDescription,
+                         "Not enough data to create a a type of UInt64. Needed: 8. Received: \(extraBytes).")
         default:
           XCTFail("Unexpected error \(String(describing: error))")
         }

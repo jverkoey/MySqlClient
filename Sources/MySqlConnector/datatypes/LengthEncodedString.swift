@@ -17,26 +17,6 @@ import Foundation
 import FixedWidthInteger_bytes
 
 /**
- A throwable length-encoded string decoding error.
- */
-public enum LengthEncodedStringDecodingError: Error, Equatable {
-
-  /**
-   The length-encoded string expected an amount of data that was not available.
-
-   - Parameter expectedAtLeast: The number of expected bytes.
-   */
-  case unexpectedEndOfData(expectedAtLeast: UInt)
-
-  /**
-   The length-encoded string expected an amount of data that was not available.
-
-   - Parameter expectedAtLeast: The number of expected bytes.
-   */
-  case unableToCreateStringWithEncoding(_ encoding: String.Encoding)
-}
-
-/**
  A MySql length-encoded string.
 
  This implementation is limited to the maximum length of Foundation's String implementation, i.e. Int.max.
@@ -56,27 +36,17 @@ public struct LengthEncodedString: BinaryDecodable {
    `data` with the given `encoding`.
    */
   public init(from binaryDecoder: BinaryDecoder) throws {
-    var container = try binaryDecoder.container(maxLength: nil)
+    var container = binaryDecoder.container(maxLength: nil)
 
     let length = try container.decode(LengthEncodedInteger.self)
     self.length = UInt64(length.length) + UInt64(length.value)
 
     let stringData = try container.decode(maxLength: Int(length.value))
     guard let string = String(data: Data(stringData), encoding: .utf8) else {
-      throw DecodingError.dataCorrupted(.init(codingPath: [],
-                                              debugDescription: "Unable to create String representation of data"))
+      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
+        "Unable to create String representation of data"))
     }
     self.value = string
-  }
-
-  public func encode(to encoder: Encoder) throws {
-//    var container = encoder.unkeyedContainer()
-//
-//    // TODO: Extract encoding to a decoder.userInfo key/value.
-//    let stringLength = UInt(value.lengthOfBytes(using: .utf8))
-//    let length = LengthEncodedInteger(value: UInt64(stringLength))
-//    try container.encode(length)
-//    try value.utf8.forEach { try container.encode($0) }
   }
 
   public init(value: String, encoding: String.Encoding) {

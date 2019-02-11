@@ -36,7 +36,7 @@ struct Packet<T: BinaryDecodable>: BinaryDecodable {
   let sequenceNumber: UInt8
 
   public init(from binaryDecoder: BinaryDecoder) throws {
-    var container = try binaryDecoder.container(maxLength: nil)
+    var container = binaryDecoder.container(maxLength: nil)
 
     // MySql documentation: https://dev.mysql.com/doc/internals/en/mysql-packet.html
     // > If a MySQL client or server wants to send data, it:
@@ -47,14 +47,14 @@ struct Packet<T: BinaryDecodable>: BinaryDecodable {
     // - 3 bytes describing the length of the packet (not including the header).
     // - 1 byte describing the packet's sequence number.
 
-    let lengthBytes = try (0..<3).map { _ in try container.decode(UInt8.self) }
+    let lengthBytes = try container.decode(maxLength: 3)
     self.length = Data(lengthBytes + [0]).withUnsafeBytes { (ptr: UnsafePointer<UInt32>) -> UInt32 in
       return ptr.pointee
     }
 
     self.sequenceNumber = try container.decode(UInt8.self)
 
-    var payloadContainer = try container.nestedContainer(maxLength: Int(self.length))
+    var payloadContainer = container.nestedContainer(maxLength: Int(self.length))
     self.payload = try payloadContainer.decode(T.self)
   }
 }

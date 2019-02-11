@@ -20,14 +20,7 @@ final class Tests: XCTestCase {
   func testInitiallyPullsFromStart() throws {
     // Given
     let data = Data([UInt8](0..<255))
-    let lazyData = LazyDataStream(cursor: data) { cursor, suggestedCount in
-      guard cursor.count > 0 else {
-        return nil
-      }
-      let pulledData = cursor.prefix(suggestedCount)
-      cursor = cursor.dropFirst(suggestedCount)
-      return pulledData
-    }
+    let lazyData = lazyDataStream(from: data)
 
     // When
     let readData = try lazyData.pull(maxBytes: 100)
@@ -39,14 +32,7 @@ final class Tests: XCTestCase {
   func testSuccessivePullsUseCursor() throws {
     // Given
     let data = Data([UInt8](0..<255))
-    let lazyData = LazyDataStream(cursor: data) { cursor, suggestedCount in
-      guard cursor.count > 0 else {
-        return nil
-      }
-      let pulledData = cursor.prefix(suggestedCount)
-      cursor = cursor.dropFirst(suggestedCount)
-      return pulledData
-    }
+    let lazyData = lazyDataStream(from: data)
 
     // When
     let readData1 = try lazyData.pull(maxBytes: 25)
@@ -62,14 +48,7 @@ final class Tests: XCTestCase {
   func testPullingMoreThanAvailableOnlyPullsWhatsAvailable() throws {
     // Given
     let data = Data([UInt8](0..<255))
-    let lazyData = LazyDataStream(cursor: data) { cursor, suggestedCount in
-      guard cursor.count > 0 else {
-        return nil
-      }
-      let pulledData = cursor.prefix(suggestedCount)
-      cursor = cursor.dropFirst(suggestedCount)
-      return pulledData
-    }
+    let lazyData = lazyDataStream(from: data)
 
     // When
     let readData = try lazyData.pull(maxBytes: 1000)

@@ -16,8 +16,6 @@ import BinaryCodable
 import Foundation
 import FixedWidthInteger_bytes
 
-// TODO: Make a Binary Codable type that provides more performant implementations of large retrievals of data.
-
 /**
  A MySql length-encoded integer.
 
@@ -34,12 +32,12 @@ public struct LengthEncodedInteger: BinaryDecodable {
    length is less than the expected amount.
    */
   public init(from binaryDecoder: BinaryDecoder) throws {
-    var container = try binaryDecoder.container(maxLength: 9)
+    var container = binaryDecoder.container(maxLength: 9)
 
     let firstByte = try container.decode(UInt8.self)
     guard let type = LengthEncodedIntegerType(firstByte: firstByte) else {
       // TODO: Convert to binary coding error.
-      throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Not a length-encoded integer."))
+      throw BinaryDecodingError.dataCorrupted(.init(debugDescription: "Not a length-encoded integer."))
     }
     self.type = type
 
@@ -57,26 +55,6 @@ public struct LengthEncodedInteger: BinaryDecodable {
     case .eight:
       self.storage = try .eight(value: container.decode(UInt64.self))
     }
-  }
-
-  public func encode(to encoder: Encoder) throws {
-//    var container = encoder.unkeyedContainer()
-//
-//    switch storage {
-//    case .one(let value):
-//      try container.encode(value)
-//    case .two(let value):
-//      try container.encode(UInt8(0xfc))
-//      try container.encode(value)
-//    case .three(let value):
-//      try container.encode(UInt8(0xfd))
-//      try value.bytes[0...2].forEach {
-//        try container.encode($0)
-//      }
-//    case .eight(let value):
-//      try container.encode(UInt8(0xfe))
-//      try container.encode(value)
-//    }
   }
 
   /**

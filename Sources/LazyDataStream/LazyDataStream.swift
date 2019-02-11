@@ -14,10 +14,29 @@
 
 import Foundation
 
+public func lazyDataStream(from data: Data) -> LazyDataStream<Data> {
+  return LazyDataStream<Data>(cursor: data) { cursor, suggestedCount in
+    guard cursor.count > 0 else {
+      return nil
+    }
+    let pulledData = cursor.prefix(suggestedCount)
+    cursor = cursor.dropFirst(suggestedCount)
+    return pulledData
+  }
+}
+
 /**
  An interface for lazily reading data.
  */
-public final class LazyDataStream<Cursor> {
+public protocol StreamableDataProvider {
+  mutating func pull(maxBytes: Int) throws -> Data
+  mutating func pull(until delimiter: UInt8) throws -> (data: Data, didFindDelimiter: Bool)
+}
+
+/**
+ An interface for lazily reading data.
+ */
+public final class LazyDataStream<Cursor>: StreamableDataProvider {
   var buffer: Data
   let reader: (inout Cursor, Int) throws -> Data?
   var cursor: Cursor
@@ -44,5 +63,29 @@ public final class LazyDataStream<Cursor> {
     let data = buffer.prefix(maxBytes)
     buffer = buffer[(buffer.startIndex + data.count)...]
     return data
+  }
+
+  public func pull(until delimiter: UInt8) throws -> (data: Data, didFindDelimiter: Bool) {
+    var indexOfDelimiter = buffer.firstIndex(of: delimiter)
+    // TODO: Explore strategies for optimizing page fetching when we're not sure how far ahead a value is.
+    let pageSize = 1024
+    while indexOfDelimiter == nil {
+      guard let data = try reader(&cursor, pageSize) else {
+        break
+      }
+      if let subIndex = data.firstIndex(of: delimiter) {
+        indexOfDelimiter = buffer.count + (subIndex - data.startIndex)
+      }
+      buffer.append(data)
+    }
+    if let indexOfDelimiter = indexOfDelimiter {
+      let data = buffer.prefix(indexOfDelimiter)
+      buffer = buffer[(buffer.startIndex + data.count + 1)...]
+      return (data: data, didFindDelimiter: true)
+    } else {
+      let data = buffer
+      buffer = buffer[(buffer.startIndex + data.count)...]
+      return (data: data, didFindDelimiter: false)
+    }
   }
 }
