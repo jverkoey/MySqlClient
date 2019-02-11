@@ -88,5 +88,6 @@ final class MySqlConnectorTests: XCTestCase {
     let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
 
     XCTAssertEqual(handshake.payload.protocolVersion, .v10)
+    print(handshake)
   }
 }
