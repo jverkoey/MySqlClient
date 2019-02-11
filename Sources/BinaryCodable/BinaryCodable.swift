@@ -214,3 +214,16 @@ public protocol BinaryDecodingContainer {
   mutating func nestedContainer(maxLength: Int?) -> BinaryDecodingContainer
 }
 
+// MARK: RawRepresentable extensions
+
+extension RawRepresentable where RawValue == UInt8, Self : BinaryDecodable {
+  public init(from binaryDecoder: BinaryDecoder) throws {
+    var container = binaryDecoder.container(maxLength: 1)
+    let decoded = try container.decode(RawValue.self)
+    guard let value = Self(rawValue: decoded) else {
+      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
+        "Cannot initialize \(Self.self) from invalid \(RawValue.self) value \(decoded)"))
+    }
+    self = value
+  }
+}

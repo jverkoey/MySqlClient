@@ -22,16 +22,6 @@ import CustomStringConvertible_description
 enum ProtocolVersion: UInt8, BinaryDecodable {
   case v10 = 0x0a
   case v9  = 0x09
-
-  init(from binaryDecoder: BinaryDecoder) throws {
-    var container = binaryDecoder.container(maxLength: 1)
-    let rawValue = try container.decode(type(of: self).RawValue.self)
-    guard let value = type(of: self).init(rawValue: rawValue) else {
-      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
-        "Raw value \(rawValue) is not a valid case for \(type(of: self))."))
-    }
-    self = value
-  }
 }
 
 enum HandshakeError: Error {
