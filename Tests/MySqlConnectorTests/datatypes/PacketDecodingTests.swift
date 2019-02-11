@@ -23,8 +23,8 @@ private enum SomeEnum: UInt8, BinaryDecodable {
     var container = binaryDecoder.container(maxLength: nil)
     let rawValue = try container.decode(SomeEnum.RawValue.self)
     guard let value = SomeEnum(rawValue: rawValue) else {
-      throw DecodingError.dataCorrupted(.init(codingPath: [],
-        debugDescription: "Raw value \(rawValue) is not a valid case for \(type(of: self))."))
+      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
+        "Raw value \(rawValue) is not a valid case for \(type(of: self))."))
     }
     self = value
   }

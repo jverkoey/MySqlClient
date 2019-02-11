@@ -43,7 +43,7 @@ public struct BinaryDataDecoder {
     return try decode(type, from: lazyDataStream(from: Data(bytes)))
   }
 
-  private func decode<T, S>(_ type: T.Type, from dataStream: S) throws -> T where T: BinaryDecodable, S: StreamableDataProvider {
+  public func decode<T, S>(_ type: T.Type, from dataStream: S) throws -> T where T: BinaryDecodable, S: StreamableDataProvider {
     return try T.init(from: _BinaryDataDecoder(dataStream: dataStream))
   }
 }
@@ -179,7 +179,7 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
   }
 
   var isAtEnd: Bool {
-    return remainingLength > 0
+    return remainingLength == 0
   }
 
   func decode(_ type: String.Type, encoding: String.Encoding, terminator: UInt8) throws -> String {

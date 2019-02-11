@@ -25,7 +25,7 @@ struct Packet<T: BinaryDecodable>: BinaryDecodable {
   let length: UInt32
   let sequenceNumber: UInt8
 
-  public init(from binaryDecoder: BinaryDecoder) throws {
+  init(from binaryDecoder: BinaryDecoder) throws {
     var container = binaryDecoder.container(maxLength: nil)
 
     // From the MySql documentation:
@@ -45,5 +45,8 @@ struct Packet<T: BinaryDecodable>: BinaryDecodable {
 
     var payloadContainer = container.nestedContainer(maxLength: Int(self.length))
     self.payload = try payloadContainer.decode(T.self)
+
+    // Sanity-check to ensure that the payload consumed all of its content.
+    assert(payloadContainer.isAtEnd, "Payload did not parse all of its content.")
   }
 }

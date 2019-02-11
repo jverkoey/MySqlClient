@@ -23,7 +23,7 @@ import FixedWidthInteger_bytes
 
  Documentation: https://dev.mysql.com/doc/internals/en/string.html#packet-Protocol::LengthEncodedString
  */
-public struct LengthEncodedString: BinaryDecodable {
+struct LengthEncodedString: BinaryDecodable {
 
   /**
    Attempts to initialize a length-encoded string from the provided `data`. If the data does not represent a
@@ -35,7 +35,7 @@ public struct LengthEncodedString: BinaryDecodable {
    - Throws: `LengthEncodedStringError.unableToCreateStringWithEncoding` If a String was not able to be initialized from
    `data` with the given `encoding`.
    */
-  public init(from binaryDecoder: BinaryDecoder) throws {
+  init(from binaryDecoder: BinaryDecoder) throws {
     var container = binaryDecoder.container(maxLength: nil)
 
     let length = try container.decode(LengthEncodedInteger.self)
@@ -49,7 +49,7 @@ public struct LengthEncodedString: BinaryDecodable {
     self.value = string
   }
 
-  public init(value: String, encoding: String.Encoding) {
+  init(value: String, encoding: String.Encoding) {
     self.value = value
 
     let stringLength = UInt64(value.lengthOfBytes(using: encoding))
@@ -57,10 +57,10 @@ public struct LengthEncodedString: BinaryDecodable {
     self.length = UInt64(length.length) + stringLength
   }
 
-  public let value: String
+  let value: String
 
   /**
    The number of bytes required to represent this length-encoded string.
    */
-  public let length: UInt64
+  let length: UInt64
 }
