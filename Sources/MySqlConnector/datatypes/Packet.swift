@@ -16,17 +16,7 @@ import BinaryCodable
 import Foundation
 
 /**
- An object that decodes instances of a data type from a byte stream.
-
- For a type to be decodable with this instance it must override the default `init(from decoder:)` implementation and
- use the decoder's unkeyedContainer. For example:
-
-     init(from decoder: Decoder) throws {
-       var container = try decoder.unkeyedContainer()
-       self.unsignedValue = try container.decode(type(of: unsignedValue))
-       self.enumValue = try container.decode(type(of: enumValue))
-       self.signedValue = try container.decode(type(of: signedValue))
-     }
+ A representation of a MySql packet + payload.
 
  Documentation: https://dev.mysql.com/doc/internals/en/mysql-packet.html
  */
@@ -38,10 +28,9 @@ struct Packet<T: BinaryDecodable>: BinaryDecodable {
   public init(from binaryDecoder: BinaryDecoder) throws {
     var container = binaryDecoder.container(maxLength: nil)
 
-    // MySql documentation: https://dev.mysql.com/doc/internals/en/mysql-packet.html
-    // > If a MySQL client or server wants to send data, it:
-    // > - Splits the data into packets of size 2^24 − 1 bytes
-    // > - Prepends to each chunk a packet header
+    // From the MySql documentation:
+    // > If a MySQL client or server wants to send data, it prepends to each chunk a packet header.
+    // > - https://dev.mysql.com/doc/internals/en/mysql-packet.html
     //
     // The packet header is composed of:
     // - 3 bytes describing the length of the packet (not including the header).

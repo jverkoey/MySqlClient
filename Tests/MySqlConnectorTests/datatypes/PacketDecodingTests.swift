@@ -43,10 +43,6 @@ private struct Payload: BinaryDecodable {
     self.stringValue = try container.decode(type(of: stringValue), encoding: .utf8, terminator: 0)
     self.signedValue = try container.decode(type(of: signedValue))
   }
-
-  func encode(to encoder: Encoder) throws {
-    preconditionFailure("Unimplemented")
-  }
 }
 
 class PacketDecodingTests: XCTestCase {
