@@ -95,7 +95,9 @@ let package = Package(
 
     .target(
       name: "BinaryCodable",
-      dependencies: []
+      dependencies: [
+        "LazyDataStream"
+      ]
     ),
     .target(
       name: "LazyDataStream",

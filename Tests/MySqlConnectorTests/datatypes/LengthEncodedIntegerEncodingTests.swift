@@ -19,6 +19,10 @@ class LengthEncodedIntegerEncodingTests: XCTestCase {
 
 // Disabled until a BinaryStreamEncoder is implemented.
 
+  func testNothing() {
+    
+  }
+
 //  func testOneByteEncodingAsData() throws {
 //    for byte: UInt8 in 0x00...0xfb {
 //      // Given
