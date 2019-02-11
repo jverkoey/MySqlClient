@@ -28,15 +28,12 @@ public struct LengthEncodedInteger: BinaryDecodable {
    length-encoded integer, then nil is returned.
 
    - Parameter data: The data from which the length-encoded integer should be parsed.
-   - Throws: `LengthEncodedIntegerError.unexpectedEndOfData` If `data` looks like a length-encoded integer but its
-   length is less than the expected amount.
    */
   public init(from binaryDecoder: BinaryDecoder) throws {
     var container = binaryDecoder.container(maxLength: 9)
 
     let firstByte = try container.decode(UInt8.self)
     guard let type = LengthEncodedIntegerType(firstByte: firstByte) else {
-      // TODO: Convert to binary coding error.
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription: "Not a length-encoded integer."))
     }
     self.type = type
