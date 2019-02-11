@@ -12,82 +12,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import BinaryCodable
 import Foundation
 import FixedWidthInteger_bytes
-
-/**
- A throwable length-encoded integer decoding error.
- */
-public enum LengthEncodedIntegerDecodingError: Error, Equatable {
-
-  /**
-   The length-encoded integer expected an amount of data that was not available.
-   
-   - Parameter expectedAtLeast: The number of expected bytes.
-   */
-  case unexpectedEndOfData(expectedAtLeast: UInt)
-}
 
 /**
  A MySql length-encoded integer.
 
  Documentation: https://dev.mysql.com/doc/internals/en/integer.html#length-encoded-integer
  */
-public struct LengthEncodedInteger {
+public struct LengthEncodedInteger: BinaryDecodable {
 
   /**
    Attempts to initialize a length-encoded integer from the provided `data`. If the data does not represent a
    length-encoded integer, then nil is returned.
 
    - Parameter data: The data from which the length-encoded integer should be parsed.
-   - Throws: `LengthEncodedIntegerError.unexpectedEndOfData` If `data` looks like a length-encoded integer but its
-   length is less than the expected amount.
    */
-  public init?(data: Data) throws {
-    // Empty data is not a length-encoded integer.
-    if data.isEmpty {
-      return nil
-    }
+  public init(from binaryDecoder: BinaryDecoder) throws {
+    var container = binaryDecoder.container(maxLength: 9)
 
-    guard let type = LengthEncodedIntegerType(firstByte: data[0]) else {
-      return nil
+    let firstByte = try container.decode(UInt8.self)
+    guard let type = LengthEncodedIntegerType(firstByte: firstByte) else {
+      throw BinaryDecodingError.dataCorrupted(.init(debugDescription: "Not a length-encoded integer."))
     }
-
-    // The MySql documentation says to verify eight-byte integers by checking the amount of available data:
-    // > The EOF packet may appear in places where a Protocol::LengthEncodedInteger may appear. You must check whether
-    // > the packet length is less than 9 to make sure that it is a EOF packet.
-    // > https://dev.mysql.com/doc/internals/en/packet-EOF_Packet.html
-    // > https://dev.mysql.com/doc/internals/en/integer.html
-    if type == .eight && data.count < type.length {
-      return nil
-    }
-
     self.type = type
-
-    // For all other known types, missing data is a runtime error.
-    if data.count < type.length {
-      throw LengthEncodedIntegerDecodingError.unexpectedEndOfData(expectedAtLeast: UInt(type.length))
-    }
 
     // Parse the data into the relevant storage.
     switch type {
     case .one:
-      self.storage = .one(value: data[0])
+      self.storage = .one(value: firstByte)
     case .two:
-      let value = data[1...2].withUnsafeBytes { (ptr: UnsafePointer<UInt16>) -> UInt16 in
-        return ptr.pointee
-      }
-      self.storage = .two(value: value)
+      self.storage = try .two(value: container.decode(UInt16.self))
     case .three:
-      let value = (data[1...3] + [0x00]).withUnsafeBytes { (ptr: UnsafePointer<UInt32>) -> UInt32 in
+      let data = try (0..<3).map { _ in try container.decode(UInt8.self) }
+      self.storage = .three(value: Data(data + [0x00]).withUnsafeBytes { (ptr: UnsafePointer<UInt32>) -> UInt32 in
         return ptr.pointee
-      }
-      self.storage = .three(value: value)
+      })
     case .eight:
-      let value = (data[1...7]).withUnsafeBytes { (ptr: UnsafePointer<UInt64>) -> UInt64 in
-        return ptr.pointee
-      }
-      self.storage = .eight(value: value)
+      self.storage = try .eight(value: container.decode(UInt64.self))
     }
   }
 
@@ -105,22 +68,6 @@ public struct LengthEncodedInteger {
       self.storage = .three(value: UInt32(value))
     case .eight:
       self.storage = .eight(value: UInt64(value))
-    }
-  }
-
-  /**
-   Returns a Data representation of this length-encoded integer.
-   */
-  public func asData() -> Data {
-    switch storage {
-    case .one(let value):
-      return Data([value])
-    case .two(let value):
-      return Data([0xfc] + value.bytes)
-    case .three(let value):
-      return Data([0xfd] + value.bytes[0...2])
-    case .eight(let value):
-      return Data([0xfe] + value.bytes)
     }
   }
 
@@ -149,4 +96,67 @@ public struct LengthEncodedInteger {
 
   private let type: LengthEncodedIntegerType
   private let storage: LengthEncodedIntegerStorage
+
+  /**
+   Typed storage for a MySql length-encoded integer.
+
+   Documentation: https://dev.mysql.com/doc/internals/en/integer.html#length-encoded-integer
+   */
+  private enum LengthEncodedIntegerStorage {
+    case one(value: UInt8)
+    case two(value: UInt16)
+    case three(value: UInt32)
+    case eight(value: UInt64)
+  }
+
+  /**
+   Length-encoded integer type parsing.
+   */
+  private enum LengthEncodedIntegerType {
+    case one
+    case two
+    case three
+    case eight
+
+    init?(firstByte: UInt8) {
+      switch firstByte {
+      case 0xff: return nil // Error packet / undefined.
+      case 0xfc: self = .two
+      case 0xfd: self = .three
+      case 0xfe: self = .eight // May be an EOF packet. See LengthEncodedInteger implementation for details.
+      default: self = .one
+      }
+    }
+
+    /**
+     Determines the length-encoded integer type required to represent the given value.
+
+     https://dev.mysql.com/doc/internals/en/integer.html
+     */
+    init(value: UInt64) {
+      if value < 0xfc {
+        self = .one
+      } else if value <= 0xFFFF {
+        self = .two
+      } else if value <= 0xFFFFFF {
+        self = .three
+      } else {
+        self = .eight
+      }
+    }
+
+    var length: UInt {
+      switch self {
+      case .one:
+        return 1
+      case .two:
+        return 3
+      case .three:
+        return 4
+      case .eight:
+        return 9
+      }
+    }
+  }
+
 }

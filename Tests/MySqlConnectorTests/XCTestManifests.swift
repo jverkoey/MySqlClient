@@ -6,38 +6,36 @@ extension LengthEncodedIntegerDecodingTests {
         ("test0xfcIsTwoByteInteger", test0xfcIsTwoByteInteger),
         ("test0xfdIsThreeByteInteger", test0xfdIsThreeByteInteger),
         ("test0xfeIsEightByteInteger", test0xfeIsEightByteInteger),
-        ("test0xfeIsNilWithLessThanNineBytesOfData", test0xfeIsNilWithLessThanNineBytesOfData),
-        ("test0xffIsNil", test0xffIsNil),
-        ("testNilWithEmptyData", testNilWithEmptyData),
+        ("test0xfeThrowsWithLessThanNineBytesOfData", test0xfeThrowsWithLessThanNineBytesOfData),
+        ("test0xffThrows", test0xffThrows),
+        ("testThrowsWithEmptyData", testThrowsWithEmptyData),
     ]
 }
 
 extension LengthEncodedIntegerEncodingTests {
     static let __allTests = [
+        ("testNothing", testNothing),
+    ]
+}
+
+extension LengthEncodedIntegerInitializationTests {
+    static let __allTests = [
         ("test0xfcTwoByteEncoding", test0xfcTwoByteEncoding),
-        ("test0xfcTwoByteEncodingAsData", test0xfcTwoByteEncodingAsData),
         ("test0xfdTwoByteEncoding", test0xfdTwoByteEncoding),
-        ("test0xfdTwoByteEncodingAsData", test0xfdTwoByteEncodingAsData),
         ("test0xfeTwoByteEncoding", test0xfeTwoByteEncoding),
-        ("test0xfeTwoByteEncodingAsData", test0xfeTwoByteEncodingAsData),
         ("testEightByteEncodingMax", testEightByteEncodingMax),
-        ("testEightByteEncodingMaxAsData", testEightByteEncodingMaxAsData),
         ("testEightByteEncodingMin", testEightByteEncodingMin),
-        ("testEightByteEncodingMinAsData", testEightByteEncodingMinAsData),
         ("testOneByteEncoding", testOneByteEncoding),
-        ("testOneByteEncodingAsData", testOneByteEncodingAsData),
         ("testThreeByteEncodingMax", testThreeByteEncodingMax),
-        ("testThreeByteEncodingMaxAsData", testThreeByteEncodingMaxAsData),
         ("testThreeByteEncodingMin", testThreeByteEncodingMin),
-        ("testThreeByteEncodingMinAsData", testThreeByteEncodingMinAsData),
         ("testTwoByteEncodingMax", testTwoByteEncodingMax),
-        ("testTwoByteEncodingMaxAsData", testTwoByteEncodingMaxAsData),
     ]
 }
 
 extension LengthEncodedStringDecodingTests {
     static let __allTests = [
         ("testEightByteStringMin", testEightByteStringMin),
+        ("testEightByteStringPerformance", testEightByteStringPerformance),
         ("testEmptyString", testEmptyString),
         ("testNilWithEmptyData", testNilWithEmptyData),
         ("testOneByteString", testOneByteString),
@@ -57,10 +55,13 @@ extension MySqlConnectorTests {
 extension PacketDecodingTests {
     static let __allTests = [
         ("testSuccess", testSuccess),
+        ("testThrowsWithDataMissingFromPayload", testThrowsWithDataMissingFromPayload),
         ("testThrowsWithEmptyData", testThrowsWithEmptyData),
         ("testThrowsWithMissingPayload", testThrowsWithMissingPayload),
+        ("testThrowsWithNoNullTerminatorEvenIfNullTerminatorIsInFollowingPacket", testThrowsWithNoNullTerminatorEvenIfNullTerminatorIsInFollowingPacket),
         ("testThrowsWithPartialPacketHeader", testThrowsWithPartialPacketHeader),
         ("testThrowsWithPartialPayload", testThrowsWithPartialPayload),
+        ("testThrowsWithPartialPayloadSize", testThrowsWithPartialPayloadSize),
     ]
 }
 
@@ -69,6 +70,7 @@ public func __allTests() -> [XCTestCaseEntry] {
     return [
         testCase(LengthEncodedIntegerDecodingTests.__allTests),
         testCase(LengthEncodedIntegerEncodingTests.__allTests),
+        testCase(LengthEncodedIntegerInitializationTests.__allTests),
         testCase(LengthEncodedStringDecodingTests.__allTests),
         testCase(MySqlConnectorTests.__allTests),
         testCase(PacketDecodingTests.__allTests),

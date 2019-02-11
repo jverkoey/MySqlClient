@@ -12,32 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import XCTest
+import BinaryCodable
 @testable import MySqlConnector
+import XCTest
 
 class LengthEncodedIntegerDecodingTests: XCTestCase {
 
-  func testNilWithEmptyData() throws {
+  func testThrowsWithEmptyData() throws {
     // Given
     let data = Data()
+    let decoder = BinaryDataDecoder()
 
     // Then
-    XCTAssertNil(try LengthEncodedInteger(data: data))
+    XCTAssertThrowsError(try decoder.decode(LengthEncodedInteger.self, from: data)) { error in
+      switch error {
+      case BinaryDecodingError.dataCorrupted(let context):
+        XCTAssertEqual(context.debugDescription,
+                       "Not enough data to create a a type of UInt8. Needed: 1. Received: 0.")
+      default:
+        XCTFail("Unexpected error \(String(describing: error))")
+      }
+    }
   }
 
   func test0x00Through0xfbIsOneByteInteger() throws {
     for byte: UInt8 in 0x00...0xfb {
       // Given
       let data = Data([byte])
+      let decoder = BinaryDataDecoder()
 
       // When
-      let integerOrNil = try LengthEncodedInteger(data: data)
+      let integer = try decoder.decode(LengthEncodedInteger.self, from: data)
 
       // Then
-      XCTAssertNotNil(integerOrNil)
-      guard let integer = integerOrNil else {
-        return
-      }
       XCTAssertEqual(integer.value, UInt64(byte))
       XCTAssertEqual(integer.length, 1)
     }
@@ -48,15 +55,12 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
       // Given
       let value = UInt16(1) << bit
       let data = Data([0xfc] + value.bytes)
+      let decoder = BinaryDataDecoder()
 
       // When
-      let integerOrNil = try LengthEncodedInteger(data: data)
+      let integer = try decoder.decode(LengthEncodedInteger.self, from: data)
 
       // Then
-      XCTAssertNotNil(integerOrNil)
-      guard let integer = integerOrNil else {
-        return
-      }
       XCTAssertEqual(integer.value, UInt64(value))
       XCTAssertEqual(integer.length, 3)
     }
@@ -67,15 +71,12 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
       // Given
       let value = UInt32(1) << bit
       let data = Data([0xfd] + value.bytes[0...2])
+      let decoder = BinaryDataDecoder()
 
       // When
-      let integerOrNil = try LengthEncodedInteger(data: data)
+      let integer = try decoder.decode(LengthEncodedInteger.self, from: data)
 
       // Then
-      XCTAssertNotNil(integerOrNil)
-      guard let integer = integerOrNil else {
-        return
-      }
       XCTAssertEqual(integer.value, UInt64(value))
       XCTAssertEqual(integer.length, 4)
     }
@@ -86,15 +87,12 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
       // Given
       let value = UInt64(1) << bit
       let data = Data([0xfe] + value.bytes)
+      let decoder = BinaryDataDecoder()
 
       // When
-      let integerOrNil = try LengthEncodedInteger(data: data)
+      let integer = try decoder.decode(LengthEncodedInteger.self, from: data)
 
       // Then
-      XCTAssertNotNil(integerOrNil)
-      guard let integer = integerOrNil else {
-        return
-      }
       XCTAssertEqual(integer.value, value)
       XCTAssertEqual(integer.length, 9)
     }
@@ -102,31 +100,42 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
 
   // MARK: Values that look like length-encoded integers, but aren't
 
-  func test0xffIsNil() throws {
+  func test0xffThrows() throws {
     // Given
     let data = Data([0xff])
-
-    // When
-    let integerOrNil = try LengthEncodedInteger(data: data)
+    let decoder = BinaryDataDecoder()
 
     // Then
-    // Is more likely an error packet
+    // Is likely an error packet
     // https://dev.mysql.com/doc/internals/en/integer.html#packet-Protocol::LengthEncodedInteger
-    XCTAssertNil(integerOrNil)
+    XCTAssertThrowsError(try decoder.decode(LengthEncodedInteger.self, from: data)) { error in
+      switch error {
+      case BinaryDecodingError.dataCorrupted(let context):
+        XCTAssertEqual(context.debugDescription, "Not a length-encoded integer.")
+      default:
+        XCTFail("Unexpected error \(String(describing: error))")
+      }
+    }
   }
 
-  func test0xfeIsNilWithLessThanNineBytesOfData() throws {
+  func test0xfeThrowsWithLessThanNineBytesOfData() throws {
     for extraBytes in 0...7 {
       // Given
       let data = Data([0xfe] + [UInt8](repeating: 0, count: extraBytes))
-
-      // When
-      let integerOrNil = try LengthEncodedInteger(data: data)
+      let decoder = BinaryDataDecoder()
 
       // Then
       // Is more likely an EOF packet.
       // https://dev.mysql.com/doc/internals/en/integer.html#packet-Protocol::LengthEncodedInteger
-      XCTAssertNil(integerOrNil, "Expected an eight byte integer with \(extraBytes) extra bytes to be nil.")
+      XCTAssertThrowsError(try decoder.decode(LengthEncodedInteger.self, from: data)) { error in
+        switch error {
+        case BinaryDecodingError.dataCorrupted(let context):
+          XCTAssertEqual(context.debugDescription,
+                         "Not enough data to create a a type of UInt64. Needed: 8. Received: \(extraBytes).")
+        default:
+          XCTFail("Unexpected error \(String(describing: error))")
+        }
+      }
     }
   }
 }
