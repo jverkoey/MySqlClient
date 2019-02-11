@@ -18,10 +18,6 @@ import PackageDescription
 let package = Package(
   name: "MySqlConnector",
   products: [
-    .executable(
-      name: "MySqlClient",
-      targets: ["MySqlClient"]
-    ),
     .library(
       name: "MySqlConnector",
       targets: ["MySqlConnector"]
@@ -39,12 +35,6 @@ let package = Package(
     .package(url: "https://github.com/IBM-Swift/BlueSocket.git", .upToNextMajor(from: "1.0.0"))
   ],
   targets: [
-    .target(
-      name: "MySqlClient",
-      dependencies: [
-        "MySqlConnector"
-      ]
-    ),
     .target(
       name: "MySqlConnector",
       dependencies: [
