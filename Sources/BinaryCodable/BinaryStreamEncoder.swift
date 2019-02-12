@@ -53,10 +53,6 @@ private struct UnboundedDataStreamEncodingContainer: BinaryEncodingContainer {
     self.encoder = encoder
   }
 
-  var count: Int {
-    return encoder.storage.data.count
-  }
-
   func encode(_ value: String, encoding: String.Encoding, terminator: UInt8) throws {
     guard let data = value.data(using: encoding) else {
       throw BinaryEncodingError.incompatibleStringEncoding(.init(debugDescription:
