@@ -77,6 +77,7 @@ extension PacketDecodingTests {
 extension PacketEncodingTests {
     static let __allTests = [
         ("testSucceeds", testSucceeds),
+        ("testSucceedsAsPacket", testSucceedsAsPacket),
     ]
 }
 
