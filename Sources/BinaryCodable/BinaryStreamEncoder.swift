@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import Foundation
-import LazyDataStream
 import FixedWidthInteger_bytes
 
 /**
