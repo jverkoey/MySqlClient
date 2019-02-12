@@ -21,7 +21,7 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
   func testThrowsWithEmptyData() throws {
     // Given
     let data = Data()
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // Then
     XCTAssertThrowsError(try decoder.decode(LengthEncodedInteger.self, from: data)) { error in
@@ -39,7 +39,7 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
     for byte: UInt8 in 0x00...0xfb {
       // Given
       let data = Data([byte])
-      let decoder = BinaryDataDecoder()
+      let decoder = BinaryStreamDecoder()
 
       // When
       let integer = try decoder.decode(LengthEncodedInteger.self, from: data)
@@ -55,7 +55,7 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
       // Given
       let value = UInt16(1) << bit
       let data = Data([0xfc] + value.bytes)
-      let decoder = BinaryDataDecoder()
+      let decoder = BinaryStreamDecoder()
 
       // When
       let integer = try decoder.decode(LengthEncodedInteger.self, from: data)
@@ -71,7 +71,7 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
       // Given
       let value = UInt32(1) << bit
       let data = Data([0xfd] + value.bytes[0...2])
-      let decoder = BinaryDataDecoder()
+      let decoder = BinaryStreamDecoder()
 
       // When
       let integer = try decoder.decode(LengthEncodedInteger.self, from: data)
@@ -87,7 +87,7 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
       // Given
       let value = UInt64(1) << bit
       let data = Data([0xfe] + value.bytes)
-      let decoder = BinaryDataDecoder()
+      let decoder = BinaryStreamDecoder()
 
       // When
       let integer = try decoder.decode(LengthEncodedInteger.self, from: data)
@@ -103,7 +103,7 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
   func test0xffThrows() throws {
     // Given
     let data = Data([0xff])
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // Then
     // Is likely an error packet
@@ -122,7 +122,7 @@ class LengthEncodedIntegerDecodingTests: XCTestCase {
     for extraBytes in 0...7 {
       // Given
       let data = Data([0xfe] + [UInt8](repeating: 0, count: extraBytes))
-      let decoder = BinaryDataDecoder()
+      let decoder = BinaryStreamDecoder()
 
       // Then
       // Is more likely an EOF packet.

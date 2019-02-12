@@ -21,7 +21,7 @@ class LengthEncodedStringDecodingTests: XCTestCase {
   func testNilWithEmptyData() throws {
     // Given
     let data = Data()
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // Then
     XCTAssertThrowsError(try decoder.decode(LengthEncodedString.self, from: data)) { error in
@@ -38,7 +38,7 @@ class LengthEncodedStringDecodingTests: XCTestCase {
   func testEmptyString() throws {
     // Given
     let data = Data([0x00])
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // When
     let lengthEncodedString = try decoder.decode(LengthEncodedString.self, from: data)
@@ -51,7 +51,7 @@ class LengthEncodedStringDecodingTests: XCTestCase {
     // Given
     let string = String(repeating: "A", count: 0xfb)
     let data = [UInt8(string.lengthOfBytes(using: .utf8))] + string.utf8
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // When
     let lengthEncodedString = try decoder.decode(LengthEncodedString.self, from: data)
@@ -65,7 +65,7 @@ class LengthEncodedStringDecodingTests: XCTestCase {
     // Given
     let string = String(repeating: "A", count: 0xfc)
     let data = [0xfc] + UInt16(string.lengthOfBytes(using: .utf8)).bytes + string.utf8
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // When
     let lengthEncodedString = try decoder.decode(LengthEncodedString.self, from: data)
@@ -79,7 +79,7 @@ class LengthEncodedStringDecodingTests: XCTestCase {
     // Given
     let string = String(repeating: "A", count: 0xFFFF)
     let data = [0xfc] + UInt16(string.lengthOfBytes(using: .utf8)).bytes + string.utf8
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // When
     let lengthEncodedString = try decoder.decode(LengthEncodedString.self, from: data)
@@ -93,7 +93,7 @@ class LengthEncodedStringDecodingTests: XCTestCase {
     // Given
     let string = String(repeating: "A", count: 0x10000)
     let data = [0xfd] + UInt32(string.lengthOfBytes(using: .utf8)).bytes[0...2] + string.utf8
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // When
     let lengthEncodedString = try decoder.decode(LengthEncodedString.self, from: data)
@@ -107,7 +107,7 @@ class LengthEncodedStringDecodingTests: XCTestCase {
     // Given
     let string = String(repeating: "A", count: 0xFFFFFF)
     let data = [0xfd] + UInt32(string.lengthOfBytes(using: .utf8)).bytes[0...2] + string.utf8
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // When
     let lengthEncodedString = try decoder.decode(LengthEncodedString.self, from: data)
@@ -121,7 +121,7 @@ class LengthEncodedStringDecodingTests: XCTestCase {
     // Given
     let string = String(repeating: "A", count: 0x1000000)
     let data = [0xfe] + UInt64(string.lengthOfBytes(using: .utf8)).bytes + string.utf8
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // When
     let lengthEncodedString = try decoder.decode(LengthEncodedString.self, from: data)
@@ -135,7 +135,7 @@ class LengthEncodedStringDecodingTests: XCTestCase {
     // Given
     let string = String(repeating: "A", count: 0x1000000)
     let data = [0xfe] + UInt64(string.lengthOfBytes(using: .utf8)).bytes + string.utf8
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // When
     measure {

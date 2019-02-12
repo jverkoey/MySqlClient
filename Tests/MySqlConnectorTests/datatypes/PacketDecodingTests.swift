@@ -50,7 +50,7 @@ class PacketDecodingTests: XCTestCase {
   func testThrowsWithEmptyData() throws {
     // Given
     let data = Data()
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // Then
     XCTAssertThrowsError(try decoder.decode(Packet<Payload>.self, from: data)) { error in
@@ -67,7 +67,7 @@ class PacketDecodingTests: XCTestCase {
     // Given
     let packetHeader = UInt32(4).bytes[0...2]
     let data = Data(packetHeader)
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // Then
     XCTAssertThrowsError(try decoder.decode(Packet<Payload>.self, from: data)) { error in
@@ -84,7 +84,7 @@ class PacketDecodingTests: XCTestCase {
     // Given
     let packetHeader = UInt32(4).bytes[0...2] + [0]
     let data = Data(packetHeader)
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // Then
     XCTAssertThrowsError(try decoder.decode(Packet<Payload>.self, from: data)) { error in
@@ -102,7 +102,7 @@ class PacketDecodingTests: XCTestCase {
     let payloadData = UInt32(0x012345678).bytes
     let packetHeader = UInt32(4).bytes[0...2] + [0]
     let data = Data(packetHeader + payloadData)
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // Then
     XCTAssertThrowsError(try decoder.decode(Packet<Payload>.self, from: data)) { error in
@@ -125,7 +125,7 @@ class PacketDecodingTests: XCTestCase {
     let packetHeaderSize: UInt32 = 2
     let packetHeader = packetHeaderSize.bytes[0...2] + [0]
     let data = Data(packetHeader + payloadData)
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // Then
     XCTAssertThrowsError(try decoder.decode(Packet<Payload>.self, from: data)) { error in
@@ -147,7 +147,7 @@ class PacketDecodingTests: XCTestCase {
     let payloadData = value1 + value2 + value3 + value4
     let packetHeader = UInt32(payloadData.count).bytes[0...2] + [0]
     let data = Data(packetHeader + payloadData) + Data([0x00])
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // Then
     XCTAssertThrowsError(try decoder.decode(Packet<Payload>.self, from: data)) { error in
@@ -169,7 +169,7 @@ class PacketDecodingTests: XCTestCase {
     let payloadData = value1 + value2 + value3
     let packetHeader = UInt32(payloadData.count).bytes[0...2] + [0]
     let data = Data(packetHeader + payloadData) + Data(value4)
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // Then
     XCTAssertThrowsError(try decoder.decode(Packet<Payload>.self, from: data)) { error in
@@ -191,7 +191,7 @@ class PacketDecodingTests: XCTestCase {
     let payloadData = value1 + value2 + value3 + value4
     let packetHeader = UInt32(payloadData.count).bytes[0...2] + [0]
     let data = Data(packetHeader + payloadData)
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
 
     // When
     let packet = try decoder.decode(Packet<Payload>.self, from: data)

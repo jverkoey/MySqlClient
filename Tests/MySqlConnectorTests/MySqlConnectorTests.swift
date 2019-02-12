@@ -74,7 +74,7 @@ final class MySqlConnectorTests: XCTestCase {
       return
     }
 
-    let decoder = BinaryDataDecoder()
+    let decoder = BinaryStreamDecoder()
     var buffer = Data(capacity: socket.readBufferSize)
     let socketDataStream = LazyDataStream(reader: AnyReader(read: { recommendedAmount in
       if buffer.count == 0 {

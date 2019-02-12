@@ -18,7 +18,7 @@ import LazyDataStream
 /**
  An object that decodes instances of a type from binary data.
  */
-public struct BinaryDataDecoder {
+public struct BinaryStreamDecoder {
   public init() {}
 
   /**
@@ -44,11 +44,11 @@ public struct BinaryDataDecoder {
   }
 
   public func decode<T, S>(_ type: T.Type, from dataStream: S) throws -> T where T: BinaryDecodable, S: StreamableDataProvider {
-    return try T.init(from: _BinaryDataDecoder(dataStream: dataStream))
+    return try T.init(from: _BinaryStreamDecoder(dataStream: dataStream))
   }
 }
 
-private struct _BinaryDataDecoder<S: StreamableDataProvider>: BinaryDecoder {
+private struct _BinaryStreamDecoder<S: StreamableDataProvider>: BinaryDecoder {
   var dataStream: S
   let container: BinaryDecodingContainer?
 
@@ -143,7 +143,7 @@ private struct UnboundedDataStreamDecodingContainer<S: StreamableDataProvider>: 
   }
 
   mutating func decode<T>(_ type: T.Type) throws -> T where T : BinaryDecodable {
-    return try T.init(from: _BinaryDataDecoder(dataStream: dataStream, container: self))
+    return try T.init(from: _BinaryStreamDecoder(dataStream: dataStream, container: self))
   }
 
   mutating func decode(maxLength: Int) throws -> Data {
@@ -245,7 +245,7 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
     }, isAtEnd: {
       return self.dataStream.isAtEnd
     }))
-    return try T.init(from: _BinaryDataDecoder(dataStream: containedDataStream, container: self))
+    return try T.init(from: _BinaryStreamDecoder(dataStream: containedDataStream, container: self))
   }
 
   func decode(maxLength: Int) throws -> Data {
