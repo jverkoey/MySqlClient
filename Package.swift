@@ -21,14 +21,6 @@ let package = Package(
     .library(
       name: "MySqlConnector",
       targets: ["MySqlConnector"]
-    ),
-    .library(
-      name: "SocketIterator",
-      targets: ["SocketIterator"]
-    ),
-    .library(
-      name: "CustomStringConvertible+description",
-      targets: ["CustomStringConvertible+description"]
     )
   ],
   dependencies: [
@@ -41,10 +33,9 @@ let package = Package(
         "CustomStringConvertible+description",
         "Data+xored",
         "FixedWidthInteger+bytes",
-        "IteratorProtocol+next",
-        "SocketIterator",
         "LazyDataStream",
         "BinaryCodable",
+        "Socket",
       ]
     ),
 
@@ -82,15 +73,6 @@ let package = Package(
       dependencies: ["FixedWidthInteger+bytes"]
     ),
 
-    .target(
-      name: "IteratorProtocol+next",
-      dependencies: []
-    ),
-    .testTarget(
-      name: "IteratorProtocol+nextTests",
-      dependencies: ["IteratorProtocol+next"]
-    ),
-
     // Binary data management
 
     .target(
@@ -107,14 +89,5 @@ let package = Package(
       name: "LazyDataStreamTests",
       dependencies: ["LazyDataStream"]
     ),
-
-    // Socket extensions
-
-    .target(
-      name: "SocketIterator",
-      dependencies: [
-        "Socket"
-      ]
-    )
   ]
 )
