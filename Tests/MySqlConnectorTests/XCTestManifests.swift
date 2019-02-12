@@ -74,6 +74,12 @@ extension PacketDecodingTests {
     ]
 }
 
+extension PacketEncodingTests {
+    static let __allTests = [
+        ("testSucceeds", testSucceeds),
+    ]
+}
+
 #if !os(macOS)
 public func __allTests() -> [XCTestCaseEntry] {
     return [
@@ -84,6 +90,7 @@ public func __allTests() -> [XCTestCaseEntry] {
         testCase(LengthEncodedStringDecodingTests.__allTests),
         testCase(MySqlConnectorTests.__allTests),
         testCase(PacketDecodingTests.__allTests),
+        testCase(PacketEncodingTests.__allTests),
     ]
 }
 #endif

@@ -18,16 +18,6 @@ import XCTest
 
 private enum SomeEnum: UInt8, BinaryDecodable {
   case value1 = 0x00
-
-  init(from binaryDecoder: BinaryDecoder) throws {
-    var container = binaryDecoder.container(maxLength: nil)
-    let rawValue = try container.decode(SomeEnum.RawValue.self)
-    guard let value = SomeEnum(rawValue: rawValue) else {
-      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
-        "Raw value \(rawValue) is not a valid case for \(type(of: self))."))
-    }
-    self = value
-  }
 }
 
 private struct Payload: BinaryDecodable {
