@@ -24,8 +24,18 @@ enum ProtocolVersion: UInt8, BinaryDecodable {
   case v9  = 0x09
 }
 
-enum HandshakeError: Error {
-  case unsupportedProtocol
+/**
+ An error that occurs during the binary decoding of a Handshake.
+ */
+enum HandshakeDecodingError: Error {
+
+  /**
+   An indication that an unsupported protocol was encountered.
+
+   As an associated value, this case contains the context for debugging that includes details about the unsupported
+   protocol.
+   */
+  case unsupportedProtocol(context: BinaryDecodingError.Context)
 }
 
 /**
@@ -47,7 +57,8 @@ final class Handshake: BinaryDecodable, CustomStringConvertible {
     self.protocolVersion = try container.decode(ProtocolVersion.self)
 
     if protocolVersion != .v10 {
-      throw HandshakeError.unsupportedProtocol
+      throw HandshakeDecodingError.unsupportedProtocol(context: .init(debugDescription:
+        "Only protocol \(ProtocolVersion.v10) is presently supported, but \(protocolVersion) was found instead."))
     }
 
     self.serverVersion = try container.decode(String.self, encoding: .utf8, terminator: 0)
@@ -61,7 +72,8 @@ final class Handshake: BinaryDecodable, CustomStringConvertible {
     let lowerCapabilityFlags = UInt32(try container.decode(UInt16.self))
 
     guard CapabilityFlags(rawValue: lowerCapabilityFlags).contains(.protocol41) else {
-      throw HandshakeError.unsupportedProtocol
+      throw HandshakeDecodingError.unsupportedProtocol(context: .init(debugDescription:
+        "Only protocol \(CapabilityFlags.protocol41) is presently supported, but this capability was not found on the server."))
     }
 
     if container.isAtEnd {

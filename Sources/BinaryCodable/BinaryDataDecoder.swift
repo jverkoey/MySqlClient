@@ -85,7 +85,9 @@ private struct UnboundedDataStreamDecodingContainer<S: StreamableDataProvider>: 
     self.dataStream = dataStream
   }
 
-  let isAtEnd = false
+  var isAtEnd: Bool {
+    return dataStream.isAtEnd
+  }
 
   mutating func decode(_ type: String.Type, encoding: String.Encoding, terminator: UInt8) throws -> String {
     let result = try dataStream.pull(until: terminator)
@@ -188,7 +190,7 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Unable to find delimiter for string."))
     }
-    self.remainingLength = remainingLength - result.data.count
+    self.remainingLength = remainingLength - (result.data.count + 1)
     guard let string = String(data: result.data, encoding: encoding) else {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Unable to create string from data with \(encoding) encoding."))
@@ -237,10 +239,12 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
   }
 
   func decode<T>(_ type: T.Type) throws -> T where T : BinaryDecodable {
-    let containedDataStream = LazyDataStream(cursor: 0) { cursor, suggestedCount in
-      let data = try self.pullData(maxLength: suggestedCount)
+    let containedDataStream = LazyDataStream(reader: AnyReader(read: { recommendedAmount -> Data? in
+      let data = try self.pullData(maxLength: recommendedAmount)
       return data.count > 0 ? data : nil
-    }
+    }, isAtEnd: {
+      return self.dataStream.isAtEnd
+    }))
     return try T.init(from: _BinaryDataDecoder(dataStream: containedDataStream, container: self))
   }
 
