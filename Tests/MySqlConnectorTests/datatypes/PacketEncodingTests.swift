@@ -53,4 +53,20 @@ class PacketEncodingTests: XCTestCase {
                     + payload.signedValue.bytes
     )
   }
+
+  func testSucceedsAsPacket() throws {
+    // Given
+    let payload = Payload(unsignedValue: 1234, enumValue: .value1, stringValue: "Some string", signedValue: -123)
+
+    // When
+    let data = try payload.encodedAsPacket(sequenceNumber: 0)
+
+    // Then
+    let packetHeader = UInt32(21).bytes[0...2] + [0]
+    let payloadData = payload.unsignedValue.bytes
+      + payload.enumValue.rawValue.bytes
+      + payload.stringValue.utf8 + [0]
+      + payload.signedValue.bytes
+    XCTAssertEqual([UInt8](data), packetHeader + payloadData)
+  }
 }

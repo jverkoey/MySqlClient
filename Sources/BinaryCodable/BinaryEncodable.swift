@@ -90,6 +90,11 @@ public enum BinaryEncodingError : Error {
 public protocol BinaryEncodingContainer {
 
   /**
+   The number of bytes encoded into the container.
+   */
+  var count: Int { get }
+
+  /**
    Encodes a String value using the given encoding and with a terminator at the end.
 
    - parameter value: The value to encode.
