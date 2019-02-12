@@ -92,7 +92,7 @@ public protocol BinaryEncodingContainer {
   /**
    Encodes a String value using the given encoding and with a terminator at the end.
 
-   - parameter value: The type of value to encode.
+   - parameter value: The value to encode.
    - parameter encoding: The string encoding to use when creating the data representation of the string.
    - parameter terminator: Typically 0. This will be encoded after the string has been encoded.
    */
@@ -101,84 +101,84 @@ public protocol BinaryEncodingContainer {
   /**
    Encodes a value of the given type.
 
-   - parameter value: The type of value to encode.
+   - parameter value: The value to encode.
    */
   mutating func encode(_ value: Int) throws
 
   /**
    Encodes a value of the given type.
 
-   - parameter value: The type of value to encode.
+   - parameter value: The value to encode.
    */
   mutating func encode(_ value: Int8) throws
 
   /**
    Encodes a value of the given type.
 
-   - parameter value: The type of value to encode.
+   - parameter value: The value to encode.
    */
   mutating func encode(_ value: Int16) throws
 
   /**
    Encodes a value of the given type.
 
-   - parameter value: The type of value to encode.
+   - parameter value: The value to encode.
    */
   mutating func encode(_ value: Int32) throws
 
   /**
    Encodes a value of the given type.
 
-   - parameter value: The type of value to encode.
+   - parameter value: The value to encode.
    */
   mutating func encode(_ value: Int64) throws
 
   /**
    Encodes a value of the given type.
 
-   - parameter value: The type of value to encode.
+   - parameter value: The value to encode.
    */
   mutating func encode(_ value: UInt) throws
 
   /**
    Encodes a value of the given type.
 
-   - parameter value: The type of value to encode.
+   - parameter value: The value to encode.
    */
   mutating func encode(_ value: UInt8) throws
 
   /**
    Encodes a value of the given type.
 
-   - parameter value: The type of value to encode.
+   - parameter value: The value to encode.
    */
   mutating func encode(_ value: UInt16) throws
 
   /**
    Encodes a value of the given type.
 
-   - parameter value: The type of value to encode.
+   - parameter value: The value to encode.
    */
   mutating func encode(_ value: UInt32) throws
 
   /**
    Encodes a value of the given type.
 
-   - parameter value: The type of value to encode.
+   - parameter value: The value to encode.
    */
   mutating func encode(_ value: UInt64) throws
 
   /**
    Encodes a value of the given type.
 
-   - parameter value: The type of value to encode.
+   - parameter value: The value to encode.
    */
   mutating func encode<T>(_ value: T) throws where T : BinaryEncodable
 
   /**
    Encodes a value of the given type.
 
-   - parameter value: The type of value to encode.
+   - parameter value: The value to encode.
    */
   mutating func encode(maxLength: Int) throws
 }
