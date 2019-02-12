@@ -75,15 +75,21 @@ final class MySqlConnectorTests: XCTestCase {
     }
 
     let decoder = BinaryDataDecoder()
-    let buffer = Data(capacity: socket.readBufferSize)
-    let socketDataStream = LazyDataStream(cursor: buffer) { cursor, suggestedCount in
-      if cursor.count == 0 {
-        _ = try socket.read(into: &cursor)
+    var buffer = Data(capacity: socket.readBufferSize)
+    let socketDataStream = LazyDataStream(reader: AnyReader(read: { recommendedAmount in
+      if buffer.count == 0 {
+        _ = try socket.read(into: &buffer)
       }
-      let pulledData = cursor.prefix(suggestedCount)
-      cursor = cursor.dropFirst(suggestedCount)
+      let pulledData = buffer.prefix(recommendedAmount)
+      buffer = buffer.dropFirst(recommendedAmount)
       return pulledData
-    }
+    }, isAtEnd: {
+      do {
+        return try buffer.isEmpty && !socket.isReadableOrWritable(waitForever: false, timeout: 0).readable
+      } catch {
+        return true
+      }
+    }))
 
     let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
 

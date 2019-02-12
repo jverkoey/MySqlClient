@@ -1,5 +1,13 @@
 import XCTest
 
+extension HandshakeDecodingTests {
+    static let __allTests = [
+        ("testShortv10HandshakeSucceeds", testShortv10HandshakeSucceeds),
+        ("testThrowsWithEmptyData", testThrowsWithEmptyData),
+        ("testThrowsWithUnsupportedProtocol", testThrowsWithUnsupportedProtocol),
+    ]
+}
+
 extension LengthEncodedIntegerDecodingTests {
     static let __allTests = [
         ("test0x00Through0xfbIsOneByteInteger", test0x00Through0xfbIsOneByteInteger),
@@ -69,6 +77,7 @@ extension PacketDecodingTests {
 #if !os(macOS)
 public func __allTests() -> [XCTestCaseEntry] {
     return [
+        testCase(HandshakeDecodingTests.__allTests),
         testCase(LengthEncodedIntegerDecodingTests.__allTests),
         testCase(LengthEncodedIntegerEncodingTests.__allTests),
         testCase(LengthEncodedIntegerInitializationTests.__allTests),

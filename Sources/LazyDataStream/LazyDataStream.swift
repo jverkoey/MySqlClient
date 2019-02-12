@@ -14,46 +14,82 @@
 
 import Foundation
 
-public func lazyDataStream(from data: Data) -> LazyDataStream<Data> {
-  return LazyDataStream<Data>(cursor: data) { cursor, suggestedCount in
-    guard cursor.count > 0 else {
-      return nil
-    }
-    let pulledData = cursor.prefix(suggestedCount)
-    cursor = cursor.dropFirst(suggestedCount)
-    return pulledData
-  }
+public func lazyDataStream(from data: Data) -> LazyDataStream {
+  return LazyDataStream(reader: DataReader(data: data))
 }
 
 /**
  An interface for lazily reading data.
  */
 public protocol StreamableDataProvider {
+  var isAtEnd: Bool { get }
   mutating func pull(maxBytes: Int) throws -> Data
   mutating func pull(until delimiter: UInt8) throws -> (data: Data, didFindDelimiter: Bool)
+}
+
+public protocol Reader {
+  func read(recommendedAmount: Int) throws -> Data?
+  var isAtEnd: Bool { get }
+}
+
+public final class AnyReader: Reader {
+  let readCallback: (Int) throws -> Data?
+  let isAtEndCallback: () -> Bool
+  public init(read: @escaping (Int) throws -> Data?, isAtEnd: @escaping () -> Bool) {
+    self.readCallback = read
+    self.isAtEndCallback = isAtEnd
+  }
+
+  public func read(recommendedAmount: Int) throws -> Data? {
+    return try readCallback(recommendedAmount)
+  }
+
+  public var isAtEnd: Bool { return isAtEndCallback() }
+}
+
+public final class DataReader: Reader {
+  var data: Data
+  init(data: Data) {
+    self.data = data
+  }
+
+  public func read(recommendedAmount: Int) throws -> Data? {
+    guard !isAtEnd else {
+      return nil
+    }
+    let pulledData = data.prefix(recommendedAmount)
+    data = data.dropFirst(recommendedAmount)
+    return pulledData
+  }
+
+  public var isAtEnd: Bool { return data.isEmpty }
 }
 
 /**
  An interface for lazily reading data.
  */
-public final class LazyDataStream<Cursor>: StreamableDataProvider {
+public final class LazyDataStream: StreamableDataProvider {
+  public var isAtEnd: Bool = false
+
   var buffer: Data
-  let reader: (inout Cursor, Int) throws -> Data?
-  var cursor: Cursor
+  let reader: Reader
 
   /**
    - Parameter reader: A closure that accepts a suggested number of bytes and returns Data to be added to the
    buffer. The reader may return more or less data that what is suggested. If no more data is available, then nil
    should be returned.
    */
-  public init(cursor: Cursor, capacity: Int = 1024, reader: @escaping (inout Cursor, Int) throws -> Data?) {
-    self.buffer = Data(capacity: capacity)
-    self.cursor = cursor
+  public init(reader: Reader, bufferCapacity: Int = 1024) {
+    self.buffer = Data(capacity: bufferCapacity)
     self.reader = reader
   }
 
   public func pull(maxBytes: Int) throws -> Data {
-    while buffer.count < maxBytes, let data = try reader(&cursor, maxBytes - buffer.count) {
+    while buffer.count < maxBytes {
+      guard let data = try reader.read(recommendedAmount: maxBytes - buffer.count) else {
+        isAtEnd = true
+        break
+      }
       buffer.append(data)
     }
     // TODO: The original buffer may never decrease in size because of how this is implemented.
@@ -70,7 +106,8 @@ public final class LazyDataStream<Cursor>: StreamableDataProvider {
     // TODO: Explore strategies for optimizing page fetching when we're not sure how far ahead a value is.
     let pageSize = 1024
     while indexOfDelimiter == nil {
-      guard let data = try reader(&cursor, pageSize) else {
+      guard let data = try reader.read(recommendedAmount: pageSize) else {
+        isAtEnd = true
         break
       }
       if let subIndex = data.firstIndex(of: delimiter) {
