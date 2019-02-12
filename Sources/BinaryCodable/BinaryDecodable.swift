@@ -42,7 +42,7 @@ public protocol BinaryDecoder {
 
    - parameter maxLength: The maximum number of bytes that this container is allowed to decode up to. If nil, then
    this container is able to read an infinite number of bytes.
-   - returns: An unkeyed container view into this decoder.
+   - returns: A container view into this decoder.
    */
   func container(maxLength: Int?) -> BinaryDecodingContainer
 }
