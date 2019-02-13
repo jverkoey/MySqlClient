@@ -201,6 +201,8 @@ final class MySqlConnectorTests: XCTestCase {
     let capabilityFlags = clientCapabilityFlags.intersection(handshake.payload.serverCapabilityFlags)
     decoder.userInfo[.capabilityFlags] = capabilityFlags
 
+    print("Username '\(username)' Password '\(password)'")
+
     // When
     let handshakeResponse = try HandshakeResponse(username: username,
                                                   password: password,
