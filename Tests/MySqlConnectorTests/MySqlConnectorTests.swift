@@ -133,7 +133,6 @@ final class MySqlConnectorTests: XCTestCase {
       .deprecateEof,
       .mystery
     ])
-    print(handshake)
   }
 
   func testAuthFailsWithInvalidPassword() throws {

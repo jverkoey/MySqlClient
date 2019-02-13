@@ -44,16 +44,19 @@ struct HandshakeResponse: BinaryEncodable, CustomStringConvertible {
     try container.encode(username, encoding: .utf8, terminator: 0)
 
     if capabilityFlags.contains(.secureConnection) {
-      // Secure authentication is one byte of length and then the auth data.
-      // Docs: https://dev.mysql.com/doc/internals/en/secure-password-authentication.html#packet-Authentication::Native41
-      if !password.isEmpty {
+      if password.isEmpty {
+        // The server implementation treats empty passwords as a special case:
+        // https://github.com/mysql/mysql-server/blob/8e797a5d6eb3a87f16498edcb7261a75897babae/sql/auth/sql_authentication.cc#L3753-L3756
+        // In essence: empty passwords aren't sent back in the response.
+        try container.encode(UInt8(0))
+      } else {
+        // Secure authentication is one byte of length and then the auth data.
+        // Docs: https://dev.mysql.com/doc/internals/en/secure-password-authentication.html#packet-Authentication::Native41
         let authDataPart1: Data = CryptoUtils.data(fromHex: password.sha1)
         let authDataPart2: Data = (authPluginData + authDataPart1.sha1).sha1
         let authData = authDataPart1.xored(with: authDataPart2)
         try container.encode(UInt8(authData.count))
         try container.encode(sequence: authData)
-      } else {
-        try container.encode(UInt8(0))
       }
     }
 
