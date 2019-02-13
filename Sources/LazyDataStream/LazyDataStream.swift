@@ -23,6 +23,7 @@ public func lazyDataStream(from data: Data) -> LazyDataStream {
  */
 public protocol StreamableDataProvider {
   var isAtEnd: Bool { get }
+  func hasAtLeast(minBytes: Int) throws -> Bool
   mutating func pull(maxBytes: Int) throws -> Data
   mutating func pull(until delimiter: UInt8) throws -> (data: Data, didFindDelimiter: Bool)
 }
@@ -84,6 +85,17 @@ public final class LazyDataStream: StreamableDataProvider {
     self.reader = reader
   }
 
+  public func hasAtLeast(minBytes: Int) throws -> Bool {
+    while buffer.count < minBytes {
+      guard let data = try reader.read(recommendedAmount: minBytes - buffer.count) else {
+        isAtEnd = true
+        break
+      }
+      buffer.append(data)
+    }
+    return buffer.count >= minBytes
+  }
+
   public func pull(maxBytes: Int) throws -> Data {
     while buffer.count < maxBytes {
       guard let data = try reader.read(recommendedAmount: maxBytes - buffer.count) else {
@@ -103,10 +115,8 @@ public final class LazyDataStream: StreamableDataProvider {
 
   public func pull(until delimiter: UInt8) throws -> (data: Data, didFindDelimiter: Bool) {
     var indexOfDelimiter = buffer.firstIndex(of: delimiter)
-    // TODO: Explore strategies for optimizing page fetching when we're not sure how far ahead a value is.
-    let pageSize = 1024
     while indexOfDelimiter == nil {
-      guard let data = try reader.read(recommendedAmount: pageSize) else {
+      guard let data = try reader.read(recommendedAmount: 1) else {
         isAtEnd = true
         break
       }

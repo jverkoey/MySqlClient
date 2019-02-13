@@ -106,7 +106,7 @@ private struct UnboundedDataStreamEncodingContainer: BinaryEncodingContainer {
     try value.encode(to: encoder)
   }
 
-  func encode(maxLength: Int) throws {
-    preconditionFailure("Unimplemented")
+  func encode<S>(sequence: S) throws where S: Sequence, S.Element == UInt8 {
+    encoder.storage.data.append(contentsOf: sequence)
   }
 }

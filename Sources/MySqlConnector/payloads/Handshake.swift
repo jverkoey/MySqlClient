@@ -41,7 +41,7 @@ enum HandshakeDecodingError: Error {
 /**
  Documentation: https://dev.mysql.com/doc/internals/en/connection-phase-packets.html
  */
-final class Handshake: BinaryDecodable, CustomStringConvertible {
+struct Handshake: BinaryDecodable, CustomStringConvertible {
   let protocolVersion: ProtocolVersion
   let serverVersion: String
   let connectionIdentifier: UInt32
@@ -66,7 +66,10 @@ final class Handshake: BinaryDecodable, CustomStringConvertible {
     let firstAuthPluginData = try container.decode(maxLength: 8)
 
     // Filler
-    _ = try container.decode(UInt8.self)
+    guard try container.decode(UInt8.self) == 0 else {
+      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
+        "Unexpected filler content."))
+    }
 
     // Lower capability flags are 2 bytes.
     let lowerCapabilityFlags = UInt32(try container.decode(UInt16.self))
@@ -101,11 +104,20 @@ final class Handshake: BinaryDecodable, CustomStringConvertible {
     }
 
     // Reserved
-    _ = try container.decode(maxLength: 10)
+    guard try container.decode(maxLength: 10) == Data(repeating: 0, count: 10) else {
+      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
+        "Unexpected filler content."))
+    }
 
     if self.serverCapabilityFlags.contains(.secureConnection) {
-      let secondAuthPluginData = try container.decode(maxLength: Int(max(13, pluginDataLength - 8)) + -1)
+      let secondAuthPluginData = try container.decode(maxLength: Int(max(13, pluginDataLength - 8)) - 1)
       self.authPluginData = Data(firstAuthPluginData + secondAuthPluginData)
+
+      guard try container.decode(UInt8.self) == 0 else {
+        throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
+          "Missing terminator for auth plugin data."))
+      }
+
     } else {
       self.authPluginData = firstAuthPluginData
     }

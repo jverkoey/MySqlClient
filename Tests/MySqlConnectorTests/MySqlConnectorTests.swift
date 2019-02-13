@@ -27,74 +27,84 @@ func getEnvironmentVariable(named name: String) -> String? {
 }
 
 final class MySqlConnectorTests: XCTestCase {
+  var connected = false
   var socket: Socket!
+  var socketDataStream: LazyDataStream!
+  var host: String!
+  var username: String!
+  var password: String!
   override func setUp() {
     super.setUp()
 
-    guard let mySqlServerHost = getEnvironmentVariable(named: "MYSQL_SERVER_HOST"),
+    guard let host = getEnvironmentVariable(named: "MYSQL_SERVER_HOST"),
       let mySqlServerPortString = getEnvironmentVariable(named: "MYSQL_SERVER_PORT"),
       let mySqlServerPort = Int32(mySqlServerPortString),
-      let _ = getEnvironmentVariable(named: "MYSQL_SERVER_USER"),
-      let _ = getEnvironmentVariable(named: "MYSQL_SERVER_PASSWORD") else {
-        return
+      let username = getEnvironmentVariable(named: "MYSQL_SERVER_USER"),
+      let password = getEnvironmentVariable(named: "MYSQL_SERVER_PASSWORD") else {
+      connected = false
+      return
     }
+    connected = true
+    self.host = host
+    self.username = username
+    self.password = password
 
     do {
       socket = try Socket.create()
-      try socket.connect(to: mySqlServerHost, port: mySqlServerPort)
+      try socket.connect(to: host, port: mySqlServerPort)
       guard socket.isConnected else {
         preconditionFailure("Unable to connect to server.")
       }
     } catch let error {
       preconditionFailure("Unable to connect to server: \(String(describing: error))")
     }
-  }
-
-  override func tearDown() {
-    if socket != nil {
-      socket.close()
-      socket = nil
-    }
-
-    super.tearDown()
-  }
-
-  func testConnectToServer() throws {
-    guard let socket = socket else {
-      return
-    }
 
     var buffer = Data(capacity: socket.readBufferSize)
-    _ = try socket.read(into: &buffer)
-    XCTAssertGreaterThan(buffer.count, 0, "Did not receive any data from the server.")
-  }
-
-  func testHandshake() throws {
-    guard let socket = socket else {
-      return
-    }
-
-    let decoder = BinaryStreamDecoder()
-    var buffer = Data(capacity: socket.readBufferSize)
-    let socketDataStream = LazyDataStream(reader: AnyReader(read: { recommendedAmount in
+    socketDataStream = LazyDataStream(reader: AnyReader(read: { recommendedAmount in
       if buffer.count == 0 {
-        _ = try socket.read(into: &buffer)
+        _ = try self.socket.read(into: &buffer)
       }
       let pulledData = buffer.prefix(recommendedAmount)
       buffer = buffer.dropFirst(recommendedAmount)
       return pulledData
     }, isAtEnd: {
       do {
-        return try buffer.isEmpty && !socket.isReadableOrWritable(waitForever: false, timeout: 0).readable
+        return try buffer.isEmpty && !self.socket.isReadableOrWritable(waitForever: false, timeout: 0).readable
       } catch {
         return true
       }
     }))
+  }
 
+  override func tearDown() {
+    connected = false
+    if socket != nil {
+      socket.close()
+      socket = nil
+    }
+    socketDataStream = nil
+    host = nil
+    username = nil
+    password = nil
+
+    super.tearDown()
+  }
+
+  func testHandshake() throws {
+    guard connected else {
+      return
+    }
+
+    // Given
+    let decoder = BinaryStreamDecoder()
+
+    // When
     let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
 
+    // Then
     XCTAssertEqual(handshake.sequenceNumber, 0)
     XCTAssertEqual(handshake.payload.protocolVersion, .v10)
+    XCTAssertEqual(handshake.payload.authPluginName, "mysql_native_password")
     XCTAssertEqual(handshake.payload.serverCapabilityFlags, [
       .longPassword,
       .foundRows,
@@ -123,6 +133,98 @@ final class MySqlConnectorTests: XCTestCase {
       .deprecateEof,
       .mystery
     ])
-    print(handshake)
+  }
+
+  func testAuthFailsWithInvalidPassword() throws {
+    guard connected else {
+      return
+    }
+
+    // Given
+    var decoder = BinaryStreamDecoder()
+    let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
+    let clientCapabilityFlags: CapabilityFlags = [
+      .connectWithDb,
+      .deprecateEof,
+      .protocol41,
+      .secureConnection,
+      .sessionTrack,
+      .pluginAuth
+    ]
+    let capabilityFlags = clientCapabilityFlags.intersection(handshake.payload.serverCapabilityFlags)
+    decoder.userInfo[.capabilityFlags] = capabilityFlags
+
+    // When
+    let handshakeResponse = try HandshakeResponse(username: username,
+                                                  password: password + "bogus",
+                                                  database: nil,
+                                                  capabilityFlags: capabilityFlags,
+                                                  authPluginData: handshake.payload.authPluginData,
+                                                  authPluginName: handshake.payload.authPluginName)
+      .encodedAsPacket(sequenceNumber: 1)
+    try socket.write(from: handshakeResponse)
+    let response: Packet<GenericResponse>
+    do {
+      response = try decoder.decode(Packet<GenericResponse>.self, from: socketDataStream)
+    } catch let error {
+      XCTFail(String(describing: error))
+      return
+    }
+
+    // Then
+    switch response.payload {
+    case .ERR(let errorCode, let errorMessage):
+      XCTAssertEqual(errorCode, .ER_ACCESS_DENIED_ERROR)
+      XCTAssertEqual(errorMessage, "Access denied for user \'\(username!)\'@\'\(host!)\' (using password: YES)")
+    default:
+      XCTFail("Unexpected response \(response)")
+    }
+  }
+
+  func testAuthSucceedsWithValidPassword() throws {
+    guard connected else {
+      return
+    }
+
+    // Given
+    var decoder = BinaryStreamDecoder()
+    let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
+    let clientCapabilityFlags: CapabilityFlags = [
+      .connectWithDb,
+      .deprecateEof,
+      .protocol41,
+      .secureConnection,
+      .sessionTrack,
+      .pluginAuth
+    ]
+    let capabilityFlags = clientCapabilityFlags.intersection(handshake.payload.serverCapabilityFlags)
+    decoder.userInfo[.capabilityFlags] = capabilityFlags
+
+    // When
+    let handshakeResponse = try HandshakeResponse(username: username,
+                                                  password: password,
+                                                  database: nil,
+                                                  capabilityFlags: capabilityFlags,
+                                                  authPluginData: handshake.payload.authPluginData,
+                                                  authPluginName: handshake.payload.authPluginName)
+      .encodedAsPacket(sequenceNumber: 1)
+    try socket.write(from: handshakeResponse)
+    let response: Packet<GenericResponse>
+    do {
+      response = try decoder.decode(Packet<GenericResponse>.self, from: socketDataStream)
+    } catch let error {
+      XCTFail(String(describing: error))
+      return
+    }
+
+    // Then
+    switch response.payload {
+    case .OK(let response):
+      XCTAssertEqual(response.lastInsertId, 0)
+      XCTAssertEqual(response.numberOfAffectedRows, 0)
+      XCTAssertNil(response.info)
+    default:
+      XCTFail("Unexpected response \(response)")
+    }
   }
 }

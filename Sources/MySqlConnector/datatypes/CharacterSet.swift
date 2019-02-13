@@ -20,7 +20,7 @@ import Foundation
 
  Documentation: https://dev.mysql.com/doc/internals/en/character-set.html#packet-Protocol::CharacterSet
  */
-enum CharacterSet: UInt8, BinaryDecodable {
+enum CharacterSet: UInt8, BinaryCodable {
   case big5     = 1
   case dec8     = 3
   case cp850    = 4

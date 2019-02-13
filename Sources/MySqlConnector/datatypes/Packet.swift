@@ -47,7 +47,7 @@ struct Packet<T: BinaryDecodable>: BinaryDecodable {
     self.payload = try payloadContainer.decode(T.self)
 
     // Sanity-check to ensure that the payload consumed all of its content.
-    assert(payloadContainer.isAtEnd, "Payload did not parse all of its content.")
+    assert(payloadContainer.isAtEnd, "Payload \(T.self) did not parse all of its content.")
   }
 }
 
