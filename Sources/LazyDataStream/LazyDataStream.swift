@@ -85,19 +85,6 @@ public final class LazyDataStream: StreamableDataProvider {
     self.reader = reader
   }
 
-  public func pull() throws -> Data {
-    if buffer.isEmpty {
-      if let data = try reader.read(recommendedAmount: .max) {
-        buffer.append(data)
-      } else {
-        isAtEnd = true
-      }
-    }
-    let data = buffer
-    buffer = buffer[(buffer.startIndex + data.count)...]
-    return data
-  }
-
   public func hasAtLeast(minBytes: Int) throws -> Bool {
     while buffer.count < minBytes {
       guard let data = try reader.read(recommendedAmount: minBytes - buffer.count) else {
