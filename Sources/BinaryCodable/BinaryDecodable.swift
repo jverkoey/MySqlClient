@@ -30,10 +30,17 @@ public protocol BinaryDecodable {
   init(from binaryDecoder: BinaryDecoder) throws
 }
 
+public typealias BinaryCodingUserInfoKey = String
+
 /**
  A type that can decode values from a native format into in-memory representations.
  */
 public protocol BinaryDecoder {
+  /**
+   Any contextual information set by the user for encoding.
+   */
+  var userInfo: [BinaryCodingUserInfoKey : Any] { get }
+
   /**
    Returns the data stored in this decoder as represented in a container with an optional maximum length.
 
@@ -99,7 +106,12 @@ public protocol BinaryDecodingContainer {
   var isAtEnd: Bool { get }
 
   /**
-   Decodes a String value using the given encoding and up until a given delimiter is encountered.
+   Returns a Boolean value indicating whether there are at least `minBytes` remaining to be decoded.
+   */
+  func hasAtLeast(minBytes: Int) throws -> Bool
+
+  /**
+   Decodes a String value using the given encoding up until a given delimiter is encountered.
 
    - parameter type: The type of value to decode.
    - parameter encoding: The string encoding to use when creating the string representation from data.
@@ -107,6 +119,15 @@ public protocol BinaryDecodingContainer {
    - returns: A value of the requested type.
    */
   mutating func decode(_ type: String.Type, encoding: String.Encoding, terminator: UInt8) throws -> String
+
+  /**
+   Decodes a String value using the given encoding up until the end of the available data.
+
+   - parameter type: The type of value to decode.
+   - parameter encoding: The string encoding to use when creating the string representation from data.
+   - returns: A value of the requested type.
+   */
+  mutating func decodeToEnd(_ type: String.Type, encoding: String.Encoding) throws -> String
 
   /**
    Decodes a value of the given type.
@@ -218,7 +239,21 @@ public protocol BinaryDecodingContainer {
 
 extension RawRepresentable where RawValue == UInt8, Self : BinaryDecodable {
   public init(from binaryDecoder: BinaryDecoder) throws {
-    var container = binaryDecoder.container(maxLength: 1)
+    let byteWidth = RawValue.bitWidth / 8
+    var container = binaryDecoder.container(maxLength: byteWidth)
+    let decoded = try container.decode(RawValue.self)
+    guard let value = Self(rawValue: decoded) else {
+      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
+        "Cannot initialize \(Self.self) from invalid \(RawValue.self) value \(decoded)"))
+    }
+    self = value
+  }
+}
+
+extension RawRepresentable where RawValue == UInt16, Self : BinaryDecodable {
+  public init(from binaryDecoder: BinaryDecoder) throws {
+    let byteWidth = RawValue.bitWidth / 8
+    var container = binaryDecoder.container(maxLength: byteWidth)
     let decoded = try container.decode(RawValue.self)
     guard let value = Self(rawValue: decoded) else {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:

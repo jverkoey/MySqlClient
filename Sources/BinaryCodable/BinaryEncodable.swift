@@ -176,16 +176,30 @@ public protocol BinaryEncodingContainer {
   mutating func encode<T>(_ value: T) throws where T : BinaryEncodable
 
   /**
-   Encodes a value of the given type.
+   Encodes a sequence of bytes.
 
-   - parameter value: The value to encode.
+   - parameter sequence: The sequence of bytes to encode.
    */
-  mutating func encode(maxLength: Int) throws
+  mutating func encode<S>(sequence: S) throws where S: Sequence, S.Element == UInt8
 }
 
 // MARK: RawRepresentable extensions
 
 extension RawRepresentable where RawValue == UInt8, Self : BinaryEncodable {
+  public func encode(to binaryEncoder: BinaryEncoder) throws {
+    var container = binaryEncoder.container()
+    try container.encode(self.rawValue)
+  }
+}
+
+extension RawRepresentable where RawValue == UInt16, Self : BinaryEncodable {
+  public func encode(to binaryEncoder: BinaryEncoder) throws {
+    var container = binaryEncoder.container()
+    try container.encode(self.rawValue)
+  }
+}
+
+extension RawRepresentable where RawValue == UInt32, Self : BinaryEncodable {
   public func encode(to binaryEncoder: BinaryEncoder) throws {
     var container = binaryEncoder.container()
     try container.encode(self.rawValue)

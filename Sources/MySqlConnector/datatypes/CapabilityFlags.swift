@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import BinaryCodable
 import Foundation
 
 /**
@@ -19,7 +20,7 @@ import Foundation
 
  Documentation: https://dev.mysql.com/doc/internals/en/capability-flags.html#packet-Protocol::CapabilityFlags
  */
-struct CapabilityFlags: OptionSet {
+struct CapabilityFlags: OptionSet, BinaryEncodable {
   init(rawValue: UInt32) {
     self.rawValue = rawValue
   }

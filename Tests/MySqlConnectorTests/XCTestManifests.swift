@@ -56,7 +56,6 @@ extension LengthEncodedStringDecodingTests {
 
 extension MySqlConnectorTests {
     static let __allTests = [
-        ("testConnectToServer", testConnectToServer),
         ("testHandshake", testHandshake),
     ]
 }
