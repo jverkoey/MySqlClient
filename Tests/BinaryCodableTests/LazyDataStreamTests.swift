@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import BinaryCodable
 import XCTest
-import LazyDataStream
 
-final class Tests: XCTestCase {
+final class LazyDataStreamTests: XCTestCase {
 
   func testInitiallyPullsFromStart() throws {
     // Given

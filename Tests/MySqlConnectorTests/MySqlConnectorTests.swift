@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import BinaryCodable
-import LazyDataStream
 import Socket
 @testable import MySqlConnector
 import XCTest

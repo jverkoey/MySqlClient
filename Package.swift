@@ -35,7 +35,6 @@ let package = Package(
         "CustomStringConvertible+description",
         "Data+xored",
         "FixedWidthInteger+bytes",
-        "LazyDataStream",
         "BinaryCodable",
         "Socket",
       ]
@@ -79,17 +78,11 @@ let package = Package(
 
     .target(
       name: "BinaryCodable",
-      dependencies: [
-        "LazyDataStream"
-      ]
-    ),
-    .target(
-      name: "LazyDataStream",
       dependencies: []
     ),
     .testTarget(
-      name: "LazyDataStreamTests",
-      dependencies: ["LazyDataStream"]
+      name: "BinaryCodableTests",
+      dependencies: ["BinaryCodable"]
     ),
   ]
 )
