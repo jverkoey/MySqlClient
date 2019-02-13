@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import Foundation
-import LazyDataStream
 
 /**
  An object that decodes instances of a type from binary data.
