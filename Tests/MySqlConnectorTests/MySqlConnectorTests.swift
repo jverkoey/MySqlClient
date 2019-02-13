@@ -104,6 +104,7 @@ final class MySqlConnectorTests: XCTestCase {
     // Then
     XCTAssertEqual(handshake.sequenceNumber, 0)
     XCTAssertEqual(handshake.payload.protocolVersion, .v10)
+    XCTAssertEqual(handshake.payload.authPluginName, "mysql_native_password")
     XCTAssertEqual(handshake.payload.serverCapabilityFlags, [
       .longPassword,
       .foundRows,
