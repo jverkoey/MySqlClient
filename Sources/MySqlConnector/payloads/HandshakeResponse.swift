@@ -46,11 +46,15 @@ struct HandshakeResponse: BinaryEncodable, CustomStringConvertible {
     if capabilityFlags.contains(.secureConnection) {
       // Secure authentication is one byte of length and then the auth data.
       // Docs: https://dev.mysql.com/doc/internals/en/secure-password-authentication.html#packet-Authentication::Native41
-      let authDataPart1: Data = CryptoUtils.data(fromHex: password.sha1)
-      let authDataPart2: Data = (authPluginData + authDataPart1.sha1).sha1
-      let authData = authDataPart1.xored(with: authDataPart2)
-      try container.encode(UInt8(authData.count))
-      try container.encode(sequence: authData)
+      if !password.isEmpty {
+        let authDataPart1: Data = CryptoUtils.data(fromHex: password.sha1)
+        let authDataPart2: Data = (authPluginData + authDataPart1.sha1).sha1
+        let authData = authDataPart1.xored(with: authDataPart2)
+        try container.encode(UInt8(authData.count))
+        try container.encode(sequence: authData)
+      } else {
+        try container.encode(UInt8(0))
+      }
     }
 
     if capabilityFlags.contains(.connectWithDb) {
