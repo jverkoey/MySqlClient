@@ -79,14 +79,6 @@ extension LengthEncodedStringDecodingTests {
     ]
 }
 
-extension MySqlConnectorTests {
-    static let __allTests = [
-        ("testAuthFailsWithInvalidPassword", testAuthFailsWithInvalidPassword),
-        ("testAuthSucceedsWithValidPassword", testAuthSucceedsWithValidPassword),
-        ("testHandshake", testHandshake),
-    ]
-}
-
 extension PacketDecodingTests {
     static let __allTests = [
         ("testSuccess", testSuccess),
