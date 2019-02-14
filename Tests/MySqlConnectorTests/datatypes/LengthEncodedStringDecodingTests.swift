@@ -58,7 +58,6 @@ class LengthEncodedStringDecodingTests: XCTestCase {
 
     // Then
     XCTAssertEqual(lengthEncodedString.value, string)
-    XCTAssertEqual(lengthEncodedString.length, UInt64(string.lengthOfBytes(using: .utf8)) + 1)
   }
 
   func testTwoByteStringMin() throws {
@@ -72,7 +71,6 @@ class LengthEncodedStringDecodingTests: XCTestCase {
 
     // Then
     XCTAssertEqual(lengthEncodedString.value, string)
-    XCTAssertEqual(lengthEncodedString.length, UInt64(string.lengthOfBytes(using: .utf8)) + 3)
   }
 
   func testTwoByteStringMax() throws {
@@ -86,7 +84,6 @@ class LengthEncodedStringDecodingTests: XCTestCase {
 
     // Then
     XCTAssertEqual(lengthEncodedString.value, string)
-    XCTAssertEqual(lengthEncodedString.length, UInt64(string.lengthOfBytes(using: .utf8)) + 3)
   }
 
   func testThreeByteStringMin() throws {
@@ -100,7 +97,6 @@ class LengthEncodedStringDecodingTests: XCTestCase {
 
     // Then
     XCTAssertEqual(lengthEncodedString.value, string)
-    XCTAssertEqual(lengthEncodedString.length, UInt64(string.lengthOfBytes(using: .utf8)) + 4)
   }
 
   func testThreeByteStringMax() throws {
@@ -114,7 +110,6 @@ class LengthEncodedStringDecodingTests: XCTestCase {
 
     // Then
     XCTAssertEqual(lengthEncodedString.value, string)
-    XCTAssertEqual(lengthEncodedString.length, UInt64(string.lengthOfBytes(using: .utf8)) + 4)
   }
 
   func testEightByteStringMin() throws {
@@ -128,7 +123,6 @@ class LengthEncodedStringDecodingTests: XCTestCase {
 
     // Then
     XCTAssertEqual(lengthEncodedString.value, string)
-    XCTAssertEqual(lengthEncodedString.length, UInt64(string.lengthOfBytes(using: .utf8)) + 9)
   }
 
   func testEightByteStringPerformance() throws {
