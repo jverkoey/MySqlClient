@@ -1,6 +1,11 @@
 sudo:
   - false
 
+branches:
+  only:
+    - develop
+    - stable
+
 matrix:
   include:
     - name: "OS X Xcode 10.1"
