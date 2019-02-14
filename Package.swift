@@ -32,9 +32,6 @@ let package = Package(
       name: "MySqlConnector",
       dependencies: [
         "Cryptor",
-        "CustomStringConvertible+description",
-        "Data+xored",
-        "FixedWidthInteger+bytes",
         "BinaryCodable",
         "Socket",
       ]
@@ -43,35 +40,6 @@ let package = Package(
     .testTarget(
       name: "MySqlConnectorTests",
       dependencies: ["MySqlConnector"]
-    ),
-
-    // Foundation extensions
-
-    .target(
-      name: "CustomStringConvertible+description",
-      dependencies: []
-    ),
-    .testTarget(
-      name: "CustomStringConvertible+descriptionTests",
-      dependencies: ["CustomStringConvertible+description"]
-    ),
-
-    .target(
-      name: "Data+xored",
-      dependencies: []
-    ),
-    .testTarget(
-      name: "Data+xoredTests",
-      dependencies: ["Data+xored"]
-    ),
-
-    .target(
-      name: "FixedWidthInteger+bytes",
-      dependencies: []
-    ),
-    .testTarget(
-      name: "FixedWidthInteger+bytesTests",
-      dependencies: ["FixedWidthInteger+bytes"]
     ),
 
     // Binary data management

@@ -1,5 +1,23 @@
 import XCTest
 
+extension CustomStringConvertibleDescriptionTests {
+    static let __allTests = [
+        ("testObject", testObject),
+        ("testObjectWithNestedObjects", testObjectWithNestedObjects),
+        ("testObjectWithProperties", testObjectWithProperties),
+    ]
+}
+
+extension DataXoredTests {
+    static let __allTests = [
+        ("testXorsEmptyData", testXorsEmptyData),
+        ("testXorsMultipleBytes", testXorsMultipleBytes),
+        ("testXorsOneByte", testXorsOneByte),
+        ("testXorsUpToSmallerOfBothValuesLeftHandSide", testXorsUpToSmallerOfBothValuesLeftHandSide),
+        ("testXorsUpToSmallerOfBothValuesRightHandSide", testXorsUpToSmallerOfBothValuesRightHandSide),
+    ]
+}
+
 extension HandshakeDecodingTests {
     static let __allTests = [
         ("testShortv10HandshakeSucceeds", testShortv10HandshakeSucceeds),
@@ -92,6 +110,8 @@ extension PacketEncodingTests {
 #if !os(macOS)
 public func __allTests() -> [XCTestCaseEntry] {
     return [
+        testCase(CustomStringConvertibleDescriptionTests.__allTests),
+        testCase(DataXoredTests.__allTests),
         testCase(HandshakeDecodingTests.__allTests),
         testCase(HandshakeResponseEncodingTests.__allTests),
         testCase(LengthEncodedIntegerDecodingTests.__allTests),

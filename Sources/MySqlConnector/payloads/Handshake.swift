@@ -14,7 +14,6 @@
 
 import BinaryCodable
 import Foundation
-import CustomStringConvertible_description
 
 /**
  Documentation: https://dev.mysql.com/doc/internals/en/capability-flags.html#packet-Protocol::CapabilityFlags

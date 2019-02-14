@@ -14,7 +14,6 @@
 
 import BinaryCodable
 import Foundation
-import FixedWidthInteger_bytes
 
 /**
  A MySql length-encoded integer.
