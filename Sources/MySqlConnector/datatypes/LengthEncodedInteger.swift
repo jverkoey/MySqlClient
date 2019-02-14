@@ -28,8 +28,8 @@ struct LengthEncodedInteger: BinaryDecodable {
 
    - Parameter data: The data from which the length-encoded integer should be parsed.
    */
-  init(from binaryDecoder: BinaryDecoder) throws {
-    var container = binaryDecoder.container(maxLength: 9)
+  init(from decoder: BinaryDecoder) throws {
+    var container = decoder.container(maxLength: 9)
 
     let firstByte = try container.decode(UInt8.self)
     guard let type = LengthEncodedIntegerType(firstByte: firstByte) else {

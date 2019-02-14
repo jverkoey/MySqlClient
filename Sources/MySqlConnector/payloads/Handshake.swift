@@ -50,8 +50,8 @@ struct Handshake: BinaryDecodable, CustomStringConvertible {
   let characterSet: CharacterSet?
   let statusFlags: UInt16?
 
-  init(from binaryDecoder: BinaryDecoder) throws {
-    var container = binaryDecoder.container(maxLength: nil)
+  init(from decoder: BinaryDecoder) throws {
+    var container = decoder.container(maxLength: nil)
 
     self.protocolVersion = try container.decode(ProtocolVersion.self)
 

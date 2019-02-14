@@ -26,8 +26,8 @@ private struct Payload: BinaryDecodable {
   let stringValue: String
   let signedValue: Int32
 
-  init(from binaryDecoder: BinaryDecoder) throws {
-    var container = binaryDecoder.container(maxLength: nil)
+  init(from decoder: BinaryDecoder) throws {
+    var container = decoder.container(maxLength: nil)
     self.unsignedValue = try container.decode(type(of: unsignedValue))
     self.enumValue = try container.decode(type(of: enumValue))
     self.stringValue = try container.decode(type(of: stringValue), encoding: .utf8, terminator: 0)
