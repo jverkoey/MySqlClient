@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import XCTest
-@testable import FixedWidthInteger_bytes
+@testable import BinaryCodable
 
 final class Tests: XCTestCase {
 

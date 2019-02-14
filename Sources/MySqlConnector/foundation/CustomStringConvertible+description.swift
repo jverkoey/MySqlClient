@@ -18,7 +18,7 @@ extension CustomStringConvertible {
   /**
    Returns a String representation of self and its child properties.
    */
-  public var description: String {
+  var description: String {
     var description: [String] = []
     description.append("<\(type(of: self))")
 

@@ -18,7 +18,7 @@ extension Data {
   /**
    Returns the result of xor'ing self with the given Data.
    */
-  public func xored(with rhs: Data) -> Data {
+  func xored(with rhs: Data) -> Data {
     return Data(zip(self, rhs).map { $0 ^ $1 })
   }
 }

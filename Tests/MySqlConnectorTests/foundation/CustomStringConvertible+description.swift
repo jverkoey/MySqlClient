@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+@testable import MySqlConnector
 import XCTest
-@testable import CustomStringConvertible_description
 
 private struct SampleObject: CustomStringConvertible {
 }
@@ -27,7 +27,7 @@ private struct SampleObjectWithNestedObject: CustomStringConvertible {
   let child: SampleObjectWithProperties
 }
 
-final class Tests: XCTestCase {
+final class CustomStringConvertibleDescriptionTests: XCTestCase {
 
   func testObject() {
     // Given

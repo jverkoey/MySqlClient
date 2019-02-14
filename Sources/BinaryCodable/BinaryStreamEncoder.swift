@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import Foundation
-import FixedWidthInteger_bytes
 
 /**
  An object that encodes instances of a type to binary data.

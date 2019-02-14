@@ -14,7 +14,6 @@
 
 import BinaryCodable
 import Cryptor
-import Data_xored
 import Foundation
 
 /**

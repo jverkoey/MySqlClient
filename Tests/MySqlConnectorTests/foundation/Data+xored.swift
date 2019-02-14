@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+@testable import MySqlConnector
 import XCTest
-@testable import Data_xored
 
-final class Tests: XCTestCase {
+final class DataXoredTests: XCTestCase {
 
   func testXorsEmptyData() {
     // Given
