@@ -38,8 +38,6 @@ struct LengthEncodedString: BinaryDecodable {
     var container = decoder.container(maxLength: nil)
 
     let length = try container.decode(LengthEncodedInteger.self)
-    self.length = UInt64(length.length) + UInt64(length.value)
-
     let stringData = try container.decode(maxLength: Int(length.value))
     guard let string = String(data: Data(stringData), encoding: .utf8) else {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
@@ -48,18 +46,5 @@ struct LengthEncodedString: BinaryDecodable {
     self.value = string
   }
 
-  init(value: String, encoding: String.Encoding) {
-    self.value = value
-
-    let stringLength = UInt64(value.lengthOfBytes(using: encoding))
-    let length = LengthEncodedInteger(value: stringLength)
-    self.length = UInt64(length.length) + stringLength
-  }
-
   let value: String
-
-  /**
-   The number of bytes required to represent this length-encoded string.
-   */
-  let length: UInt64
 }
