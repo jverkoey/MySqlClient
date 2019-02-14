@@ -34,8 +34,8 @@ struct LengthEncodedString: BinaryDecodable {
    - Throws: `LengthEncodedStringError.unableToCreateStringWithEncoding` If a String was not able to be initialized from
    `data` with the given `encoding`.
    */
-  init(from binaryDecoder: BinaryDecoder) throws {
-    var container = binaryDecoder.container(maxLength: nil)
+  init(from decoder: BinaryDecoder) throws {
+    var container = decoder.container(maxLength: nil)
 
     let length = try container.decode(LengthEncodedInteger.self)
     self.length = UInt64(length.length) + UInt64(length.value)

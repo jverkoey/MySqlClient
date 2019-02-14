@@ -28,7 +28,7 @@ public protocol BinaryEncodable {
 
    - parameter encoder: The encoder to write data to.
    */
-  func encode(to binaryEncoder: BinaryEncoder) throws
+  func encode(to encoder: BinaryEncoder) throws
 }
 
 /**
@@ -186,22 +186,22 @@ public protocol BinaryEncodingContainer {
 // MARK: RawRepresentable extensions
 
 extension RawRepresentable where RawValue == UInt8, Self : BinaryEncodable {
-  public func encode(to binaryEncoder: BinaryEncoder) throws {
-    var container = binaryEncoder.container()
+  public func encode(to encoder: BinaryEncoder) throws {
+    var container = encoder.container()
     try container.encode(self.rawValue)
   }
 }
 
 extension RawRepresentable where RawValue == UInt16, Self : BinaryEncodable {
-  public func encode(to binaryEncoder: BinaryEncoder) throws {
-    var container = binaryEncoder.container()
+  public func encode(to encoder: BinaryEncoder) throws {
+    var container = encoder.container()
     try container.encode(self.rawValue)
   }
 }
 
 extension RawRepresentable where RawValue == UInt32, Self : BinaryEncodable {
-  public func encode(to binaryEncoder: BinaryEncoder) throws {
-    var container = binaryEncoder.container()
+  public func encode(to encoder: BinaryEncoder) throws {
+    var container = encoder.container()
     try container.encode(self.rawValue)
   }
 }

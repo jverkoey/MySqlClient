@@ -27,8 +27,8 @@ private enum GenericResponseHeader: BinaryDecodable {
   case ERR
   case ResultSet
 
-  init(from binaryDecoder: BinaryDecoder) throws {
-    var container = binaryDecoder.container(maxLength: 1)
+  init(from decoder: BinaryDecoder) throws {
+    var container = decoder.container(maxLength: 1)
     let decoded = try container.decode(UInt8.self)
     switch decoded {
     case 0x00:
@@ -56,8 +56,8 @@ enum GenericResponse: BinaryDecodable {
   case ERR(errorCode: ErrorCode, errorMessage: String)
   case ResultSetColumnCount(columnCount: UInt64)
 
-  init(from binaryDecoder: BinaryDecoder) throws {
-    var container = binaryDecoder.container(maxLength: nil)
+  init(from decoder: BinaryDecoder) throws {
+    var container = decoder.container(maxLength: nil)
 
     // Packet header is 1 byte.
     var packetHeader = try container.decode(GenericResponseHeader.self)
@@ -72,9 +72,9 @@ enum GenericResponse: BinaryDecodable {
 
       var info: String? = nil
 
-      guard let capabilityFlags = binaryDecoder.userInfo[.capabilityFlags] as? CapabilityFlags else {
+      guard let capabilityFlags = decoder.userInfo[.capabilityFlags] as? CapabilityFlags else {
         throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
-          "Missing capability flags userInfo on the decoder. User info: \(binaryDecoder.userInfo)"))
+          "Missing capability flags userInfo on the decoder. User info: \(decoder.userInfo)"))
       }
 
       if capabilityFlags.contains(.protocol41) {
@@ -104,9 +104,9 @@ enum GenericResponse: BinaryDecodable {
                                  info: info))
 
     case .EOF:
-      guard let capabilityFlags = binaryDecoder.userInfo[.capabilityFlags] as? CapabilityFlags else {
+      guard let capabilityFlags = decoder.userInfo[.capabilityFlags] as? CapabilityFlags else {
         throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
-          "Missing capability flags userInfo on the decoder. User info: \(binaryDecoder.userInfo)"))
+          "Missing capability flags userInfo on the decoder. User info: \(decoder.userInfo)"))
       }
 
       let numberOfWarnings: UInt16?
@@ -125,9 +125,9 @@ enum GenericResponse: BinaryDecodable {
       // Error code is 2 bytes.
       let errorCode = try container.decode(ErrorCode.self)
 
-      guard let capabilityFlags = binaryDecoder.userInfo[.capabilityFlags] as? CapabilityFlags else {
+      guard let capabilityFlags = decoder.userInfo[.capabilityFlags] as? CapabilityFlags else {
         throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
-          "Missing capability flags userInfo on the decoder. User info: \(binaryDecoder.userInfo)"))
+          "Missing capability flags userInfo on the decoder. User info: \(decoder.userInfo)"))
       }
 
       if capabilityFlags.contains(.protocol41) {

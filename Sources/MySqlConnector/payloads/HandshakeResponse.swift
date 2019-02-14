@@ -27,8 +27,8 @@ struct HandshakeResponse: BinaryEncodable, CustomStringConvertible {
   let authPluginData: Data
   let authPluginName: String?
 
-  func encode(to binaryEncoder: BinaryEncoder) throws {
-    var container = binaryEncoder.container()
+  func encode(to encoder: BinaryEncoder) throws {
+    var container = encoder.container()
 
     try container.encode(capabilityFlags)
 

@@ -24,10 +24,10 @@ public protocol BinaryDecodable {
   /**
    Creates a new instance by decoding from the given binary decoder.
 
-   - parameter binaryDecoder: The binary decoder to decode the type from.
+   - parameter decoder: The binary decoder to decode the type from.
    - throws: if reading from the binary decoder fails, or if the data read is corrupted or otherwise invalid.
    */
-  init(from binaryDecoder: BinaryDecoder) throws
+  init(from decoder: BinaryDecoder) throws
 }
 
 public typealias BinaryCodingUserInfoKey = String
@@ -238,9 +238,9 @@ public protocol BinaryDecodingContainer {
 // MARK: RawRepresentable extensions
 
 extension RawRepresentable where RawValue == UInt8, Self : BinaryDecodable {
-  public init(from binaryDecoder: BinaryDecoder) throws {
+  public init(from decoder: BinaryDecoder) throws {
     let byteWidth = RawValue.bitWidth / 8
-    var container = binaryDecoder.container(maxLength: byteWidth)
+    var container = decoder.container(maxLength: byteWidth)
     let decoded = try container.decode(RawValue.self)
     guard let value = Self(rawValue: decoded) else {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
@@ -251,9 +251,9 @@ extension RawRepresentable where RawValue == UInt8, Self : BinaryDecodable {
 }
 
 extension RawRepresentable where RawValue == UInt16, Self : BinaryDecodable {
-  public init(from binaryDecoder: BinaryDecoder) throws {
+  public init(from decoder: BinaryDecoder) throws {
     let byteWidth = RawValue.bitWidth / 8
-    var container = binaryDecoder.container(maxLength: byteWidth)
+    var container = decoder.container(maxLength: byteWidth)
     let decoded = try container.decode(RawValue.self)
     guard let value = Self(rawValue: decoded) else {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:

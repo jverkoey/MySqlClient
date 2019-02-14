@@ -25,8 +25,8 @@ struct Packet<T: BinaryDecodable>: BinaryDecodable {
   let length: UInt32
   let sequenceNumber: UInt8
 
-  init(from binaryDecoder: BinaryDecoder) throws {
-    var container = binaryDecoder.container(maxLength: nil)
+  init(from decoder: BinaryDecoder) throws {
+    var container = decoder.container(maxLength: nil)
 
     // From the MySql documentation:
     // > If a MySQL client or server wants to send data, it prepends to each chunk a packet header.
