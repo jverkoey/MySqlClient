@@ -33,6 +33,14 @@ extension HandshakeResponseEncodingTests {
     ]
 }
 
+extension HandshakeTests {
+    static let __allTests = [
+        ("testAuthFailsWithInvalidPassword", testAuthFailsWithInvalidPassword),
+        ("testAuthSucceedsWithValidPassword", testAuthSucceedsWithValidPassword),
+        ("testHandshake", testHandshake),
+    ]
+}
+
 extension LengthEncodedIntegerDecodingTests {
     static let __allTests = [
         ("test0x00Through0xfbIsOneByteInteger", test0x00Through0xfbIsOneByteInteger),
@@ -79,11 +87,10 @@ extension LengthEncodedStringDecodingTests {
     ]
 }
 
-extension MySqlConnectorTests {
+extension MySqlClientTests {
     static let __allTests = [
-        ("testAuthFailsWithInvalidPassword", testAuthFailsWithInvalidPassword),
-        ("testAuthSucceedsWithValidPassword", testAuthSucceedsWithValidPassword),
-        ("testHandshake", testHandshake),
+        ("testConnects", testConnects),
+        ("testReusesIdleConnection", testReusesIdleConnection),
     ]
 }
 
@@ -114,11 +121,12 @@ public func __allTests() -> [XCTestCaseEntry] {
         testCase(DataXoredTests.__allTests),
         testCase(HandshakeDecodingTests.__allTests),
         testCase(HandshakeResponseEncodingTests.__allTests),
+        testCase(HandshakeTests.__allTests),
         testCase(LengthEncodedIntegerDecodingTests.__allTests),
         testCase(LengthEncodedIntegerEncodingTests.__allTests),
         testCase(LengthEncodedIntegerInitializationTests.__allTests),
         testCase(LengthEncodedStringDecodingTests.__allTests),
-        testCase(MySqlConnectorTests.__allTests),
+        testCase(MySqlClientTests.__allTests),
         testCase(PacketDecodingTests.__allTests),
         testCase(PacketEncodingTests.__allTests),
     ]

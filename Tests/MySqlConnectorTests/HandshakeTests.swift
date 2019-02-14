@@ -25,7 +25,7 @@ func getEnvironmentVariable(named name: String) -> String? {
   }
 }
 
-final class MySqlConnectorTests: XCTestCase {
+final class HandshakeTests: XCTestCase {
   var connected = false
   var socket: Socket!
   var socketDataStream: LazyDataStream!
