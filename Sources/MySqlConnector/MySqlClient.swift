@@ -152,17 +152,15 @@ final class Connection {
     self.socketDataStream = socketDataStream
   }
 
-  // Whether or not this connection is able to send data.
+  // Indicates whether or not this connection is able to send data.
   var isIdle = true
 
   func send<Payload: BinaryEncodable>(payload: Payload) throws {
-    guard isIdle else {
-      throw ClientError.connectionIsNotIdle
-    }
+    guard isIdle else { throw ClientError.connectionIsNotIdle }
     try socket.write(from: payload.encodedAsPacket(sequenceNumber: 0))
   }
 
-  func read<Payload: BinaryDecodable>() throws -> Payload {
+  func read<Payload: BinaryDecodable>(payloadType: Payload.Type) throws -> Payload {
     return try decoder.decode(Packet<Payload>.self, from: socketDataStream).payload
   }
 }
