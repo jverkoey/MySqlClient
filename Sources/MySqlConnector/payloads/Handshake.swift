@@ -62,7 +62,7 @@ struct Handshake: BinaryDecodable, CustomStringConvertible {
 
     self.serverVersion = try container.decode(String.self, encoding: .utf8, terminator: 0)
     self.connectionIdentifier = try container.decode(UInt32.self)
-    let firstAuthPluginData = try container.decode(maxLength: 8)
+    let firstAuthPluginData = try container.decode(length: 8)
 
     // Filler
     guard try container.decode(UInt8.self) == 0 else {
@@ -103,13 +103,13 @@ struct Handshake: BinaryDecodable, CustomStringConvertible {
     }
 
     // Reserved
-    guard try container.decode(maxLength: 10) == Data(repeating: 0, count: 10) else {
+    guard try container.decode(length: 10) == Data(repeating: 0, count: 10) else {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Unexpected filler content."))
     }
 
     if self.serverCapabilityFlags.contains(.secureConnection) {
-      let secondAuthPluginData = try container.decode(maxLength: Int(max(13, pluginDataLength - 8)) - 1)
+      let secondAuthPluginData = try container.decode(length: Int(max(13, pluginDataLength - 8)) - 1)
       self.authPluginData = Data(firstAuthPluginData + secondAuthPluginData)
 
       guard try container.decode(UInt8.self) == 0 else {

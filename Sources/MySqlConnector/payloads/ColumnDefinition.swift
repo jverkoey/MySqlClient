@@ -52,6 +52,6 @@ struct ColumnDefinition: BinaryDecodable, CustomStringConvertible {
     maxShownDecimals = try container.decode(UInt8.self)
 
     // Filler
-    _ = try container.decode(maxLength: 2)
+    _ = try container.decode(length: 2)
   }
 }

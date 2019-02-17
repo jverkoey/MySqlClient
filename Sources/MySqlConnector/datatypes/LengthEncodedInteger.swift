@@ -43,7 +43,7 @@ struct LengthEncodedInteger: BinaryDecodable {
     case .two:
       self.storage = try .two(value: container.decode(UInt16.self))
     case .three:
-      let data = try container.decode(maxLength: 3)
+      let data = try container.decode(length: 3)
       self.storage = .three(value: Data(data + [0x00]).withUnsafeBytes { (ptr: UnsafePointer<UInt32>) -> UInt32 in
         return ptr.pointee
       })

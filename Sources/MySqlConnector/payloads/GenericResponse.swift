@@ -58,7 +58,7 @@ enum GenericResponse: BinaryDecodable {
     var container = decoder.container(maxLength: nil)
 
     // Packet header is 1 byte.
-    var packetHeaderByte = try container.peek(maxLength: 1)
+    var packetHeaderByte = try container.peek(length: 1)
     var packetHeader = GenericResponseHeader(from: packetHeaderByte[0])
 
     guard let capabilityFlags = decoder.userInfo[.capabilityFlags] as? CapabilityFlags else {
@@ -74,7 +74,7 @@ enum GenericResponse: BinaryDecodable {
     switch packetHeader {
     case .OK:
       // Consume the header.
-      _ = try container.decode(maxLength: 1)
+      _ = try container.decode(length: 1)
 
       let numberOfAffectedRows = try container.decode(LengthEncodedInteger.self)
       let lastInsertId = try container.decode(LengthEncodedInteger.self)
@@ -109,7 +109,7 @@ enum GenericResponse: BinaryDecodable {
 
     case .EOF:
       // Consume the header.
-      _ = try container.decode(maxLength: 1)
+      _ = try container.decode(length: 1)
 
       guard let capabilityFlags = decoder.userInfo[.capabilityFlags] as? CapabilityFlags else {
         throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
@@ -134,7 +134,7 @@ enum GenericResponse: BinaryDecodable {
 
     case .ERR:
       // Consume the header.
-      _ = try container.decode(maxLength: 1)
+      _ = try container.decode(length: 1)
 
       // Error code is 2 bytes.
       let errorCode = try container.decode(ErrorCode.self)
@@ -146,9 +146,9 @@ enum GenericResponse: BinaryDecodable {
 
       if capabilityFlags.contains(.protocol41) {
         // State marker
-        let _ = try container.decode(maxLength: 1)
+        let _ = try container.decode(length: 1)
         // State
-        let _ = try container.decode(maxLength: 5)
+        let _ = try container.decode(length: 5)
       }
       let errorMessage = try container.decodeToEnd(String.self, encoding: .utf8)
 
