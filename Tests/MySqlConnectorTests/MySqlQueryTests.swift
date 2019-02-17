@@ -33,7 +33,7 @@ final class MySqlQueryTests: XCTestCase {
 
     // Then
     XCTAssertEqual(query, """
-INSERT INTO some_table (`name`,`age`) VALUES (\"tests\",\"123\") ON DUPLICATE KEY UPDATE `name`=VALUES(`name`),`age`=VALUES(`age`)
+INSERT INTO some_table (`age`,`name`) VALUES ("123","tests") ON DUPLICATE KEY UPDATE `age`=VALUES(`age`),`name`=VALUES(`name`)
 """)
   }
 
