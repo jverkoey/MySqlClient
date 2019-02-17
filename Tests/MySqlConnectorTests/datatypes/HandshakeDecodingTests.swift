@@ -27,7 +27,7 @@ class HandshakeDecodingTests: XCTestCase {
     XCTAssertThrowsError(try decoder.decode(Packet<Handshake>.self, from: data)) { error in
       switch error {
       case BinaryDecodingError.dataCorrupted(let context):
-        XCTAssertEqual(context.debugDescription, "Not enough data to create a a type of UInt8. Needed: 1. Received: 0.")
+        XCTAssertEqual(context.debugDescription, "Not enough bytes available to decode. Requested 3, but received 0.")
       default:
         XCTFail("Unexpected error \(String(describing: error))")
       }
