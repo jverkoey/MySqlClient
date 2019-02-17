@@ -18,6 +18,12 @@ extension DataXoredTests {
     ]
 }
 
+extension DatabaseManagementTests {
+    static let __allTests = [
+        ("testCreatesAndDeletesDatabase", testCreatesAndDeletesDatabase),
+    ]
+}
+
 extension HandshakeDecodingTests {
     static let __allTests = [
         ("testShortv10HandshakeSucceeds", testShortv10HandshakeSucceeds),
@@ -117,6 +123,7 @@ extension PacketEncodingTests {
 extension QueryTests {
     static let __allTests = [
         ("testShowVariablesAsDictionaries", testShowVariablesAsDictionaries),
+        ("testShowVariablesObjects", testShowVariablesObjects),
     ]
 }
 
@@ -125,6 +132,7 @@ public func __allTests() -> [XCTestCaseEntry] {
     return [
         testCase(CustomStringConvertibleDescriptionTests.__allTests),
         testCase(DataXoredTests.__allTests),
+        testCase(DatabaseManagementTests.__allTests),
         testCase(HandshakeDecodingTests.__allTests),
         testCase(HandshakeResponseEncodingTests.__allTests),
         testCase(HandshakeTests.__allTests),
