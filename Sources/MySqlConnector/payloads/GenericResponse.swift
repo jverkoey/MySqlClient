@@ -21,16 +21,14 @@ struct OkResponse {
   let info: String?
 }
 
-private enum GenericResponseHeader: BinaryDecodable {
+private enum GenericResponseHeader {
   case OK
   case EOF
   case ERR
   case ResultSet
 
-  init(from decoder: BinaryDecoder) throws {
-    var container = decoder.container(maxLength: 1)
-    let decoded = try container.decode(UInt8.self)
-    switch decoded {
+  init(from byte: UInt8) {
+    switch byte {
     case 0x00:
       self = .OK
     case 0xFE:
@@ -60,22 +58,28 @@ enum GenericResponse: BinaryDecodable {
     var container = decoder.container(maxLength: nil)
 
     // Packet header is 1 byte.
-    var packetHeader = try container.decode(GenericResponseHeader.self)
-    if try packetHeader == .EOF && container.hasAtLeast(minBytes: 8) {
+    var packetHeaderByte = try container.peek(maxLength: 1)
+    var packetHeader = GenericResponseHeader(from: packetHeaderByte[0])
+
+    guard let capabilityFlags = decoder.userInfo[.capabilityFlags] as? CapabilityFlags else {
+      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
+        "Missing capability flags userInfo on the decoder. User info: \(decoder.userInfo)"))
+    }
+
+    if capabilityFlags.contains(.deprecateEof), case .EOF = packetHeader {
+      // EOF is deprecated and will not be sent by the server.
       packetHeader = .OK
     }
 
     switch packetHeader {
     case .OK:
+      // Consume the header.
+      _ = try container.decode(maxLength: 1)
+
       let numberOfAffectedRows = try container.decode(LengthEncodedInteger.self)
       let lastInsertId = try container.decode(LengthEncodedInteger.self)
 
       var info: String? = nil
-
-      guard let capabilityFlags = decoder.userInfo[.capabilityFlags] as? CapabilityFlags else {
-        throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
-          "Missing capability flags userInfo on the decoder. User info: \(decoder.userInfo)"))
-      }
 
       if capabilityFlags.contains(.protocol41) {
         // TODO: Turn this into an enum
@@ -104,6 +108,9 @@ enum GenericResponse: BinaryDecodable {
                                  info: info))
 
     case .EOF:
+      // Consume the header.
+      _ = try container.decode(maxLength: 1)
+
       guard let capabilityFlags = decoder.userInfo[.capabilityFlags] as? CapabilityFlags else {
         throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
           "Missing capability flags userInfo on the decoder. User info: \(decoder.userInfo)"))
@@ -113,7 +120,11 @@ enum GenericResponse: BinaryDecodable {
       let statusFlags: UInt16?
       if capabilityFlags.contains(.protocol41) {
         numberOfWarnings = try container.decode(UInt16.self)
-        statusFlags = try container.decode(UInt16.self)
+        let statusFlagsValue = try container.decode(UInt16.self)
+        if (statusFlagsValue & UInt16(0x0008)) == UInt16(0x0008) {
+          print("More results exist")
+        }
+        statusFlags = statusFlagsValue
       } else {
         numberOfWarnings = nil
         statusFlags = nil
@@ -122,6 +133,9 @@ enum GenericResponse: BinaryDecodable {
       self = .EOF(numberOfWarnings: numberOfWarnings, statusFlags: statusFlags)
 
     case .ERR:
+      // Consume the header.
+      _ = try container.decode(maxLength: 1)
+
       // Error code is 2 bytes.
       let errorCode = try container.decode(ErrorCode.self)
 
@@ -141,8 +155,7 @@ enum GenericResponse: BinaryDecodable {
       self = .ERR(errorCode: errorCode, errorMessage: errorMessage)
 
     case .ResultSet:
-      let columnCount = try container.decode(LengthEncodedInteger.self)
-      self = .ResultSetColumnCount(columnCount: columnCount.value)
+      self = .ResultSetColumnCount(columnCount: try container.decode(LengthEncodedInteger.self).value)
     }
   }
 }

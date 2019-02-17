@@ -168,6 +168,10 @@ private struct UnboundedDataStreamDecodingContainer<S: StreamableDataProvider>: 
     return try dataStream.pull(maxBytes: maxLength)
   }
 
+  mutating func peek(maxLength: Int) throws -> Data {
+    return try dataStream.peek(maxBytes: maxLength)
+  }
+
   mutating func nestedContainer(maxLength: Int?) -> BinaryDecodingContainer {
     if let maxLength = maxLength {
       return BoundedDataStreamDecodingContainer(dataStream: dataStream, maxLength: maxLength, userInfo: userInfo)
@@ -279,6 +283,9 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
     let containedDataStream = LazyDataStream(reader: AnyReader(read: { recommendedAmount -> Data? in
       let data = try self.pullData(maxLength: recommendedAmount)
       return data.count > 0 ? data : nil
+    }, peek: { recommendedAmount -> Data? in
+      let data = try self.peek(maxLength: recommendedAmount)
+      return data.count > 0 ? data : nil
     }, isAtEnd: {
       return self.dataStream.isAtEnd
     }))
@@ -301,6 +308,10 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
     let data = try dataStream.pull(maxBytes: min(remainingLength, maxLength))
     self.remainingLength = remainingLength - data.count
     return data
+  }
+
+  func peek(maxLength: Int) throws -> Data {
+    return try dataStream.peek(maxBytes: min(remainingLength, maxLength))
   }
 
   func decodeFixedWidthInteger<T>(_ type: T.Type) throws -> T where T: FixedWidthInteger {
