@@ -55,21 +55,22 @@ private final class InsertQueryEncoder: Encoder {
 
     let keys = arrayStorage.map { $0.keys }.reduce(Set<String>()) { $0.union($1) }.subtracting(self.ignoredFields).sorted()
 
-    let values = arrayStorage.map { row in
+    let values = arrayStorage.map { row -> [String] in
       keys.map { row[$0] }.map {
-        // http://php.net/manual/en/function.mysql-real-escape-string.php
-        $0?
-          .replacingOccurrences(of: "\\", with: "\\\\")
-          .replacingOccurrences(of: "\n", with: "\\\n")
-          .replacingOccurrences(of: "\r", with: "\\\r")
-          .replacingOccurrences(of: "'", with: "\\'")
-          .replacingOccurrences(of: "\"", with: "\\\"")
-        }.map { if let string = $0 {
-          return "\"\(string)\""
-        } else {
-          preconditionFailure("Couldn't find value")
+          // http://php.net/manual/en/function.mysql-real-escape-string.php
+          $0?
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\n", with: "\\\n")
+            .replacingOccurrences(of: "\r", with: "\\\r")
+            .replacingOccurrences(of: "'", with: "\\'")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+        }.map {
+          if let string = $0 {
+            return "\"\(string)\""
+          } else {
+            preconditionFailure("Couldn't find value")
           }
-      }
+        }
       }.map { "(\($0.joined(separator: ",")))" }
     let updates: [String] = keys.map { key in
       switch duplicateKeyBehaviors[key] {
