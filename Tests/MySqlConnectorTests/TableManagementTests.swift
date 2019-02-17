@@ -24,13 +24,13 @@ final class TableManagementTests: XCTestCase {
 
     client = MySqlClient(to: config.host, port: config.port, username: config.user, password: config.pass, database: nil)
 
-    if client.isConnected {
+    if config.testAgainstSqlServer {
       try! client.query("create database \(type(of: self))")
     }
   }
 
   override func tearDown() {
-    if client.isConnected {
+    if config.testAgainstSqlServer {
       try! client.query("drop database \(type(of: self))")
     }
 
