@@ -114,6 +114,12 @@ extension PacketEncodingTests {
     ]
 }
 
+extension QueryTests {
+    static let __allTests = [
+        ("testShowVariablesAsDictionaries", testShowVariablesAsDictionaries),
+    ]
+}
+
 #if !os(macOS)
 public func __allTests() -> [XCTestCaseEntry] {
     return [
@@ -129,6 +135,7 @@ public func __allTests() -> [XCTestCaseEntry] {
         testCase(MySqlClientTests.__allTests),
         testCase(PacketDecodingTests.__allTests),
         testCase(PacketEncodingTests.__allTests),
+        testCase(QueryTests.__allTests),
     ]
 }
 #endif
