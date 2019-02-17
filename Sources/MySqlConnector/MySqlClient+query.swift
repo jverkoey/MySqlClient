@@ -131,7 +131,23 @@ private final class RowKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContai
   }
 
   func decode(_ type: Bool.Type, forKey key: K) throws -> Bool {
-    return try decodeLossless(type, forKey: key)
+    guard let valueOrNil = decoder.storage[key.stringValue],
+      let value = valueOrNil else {
+        throw DecodingError.valueNotFound(type,
+                                          DecodingError.Context(codingPath: decoder.codingPath,
+                                                                debugDescription: "\(key) was not found."))
+    }
+    let trueValues = Set(["YES"])
+    let falseValues = Set(["NO"])
+    if trueValues.contains(value) {
+      return true
+    }
+    if falseValues.contains(value) {
+      return false
+    }
+    throw DecodingError.typeMismatch(type,
+                                     DecodingError.Context(codingPath: decoder.codingPath,
+                                                           debugDescription: "\(key.stringValue) was not convertible to \(type)."))
   }
 
   func decode(_ type: Double.Type, forKey key: K) throws -> Double {

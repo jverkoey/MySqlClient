@@ -84,7 +84,7 @@ final class TableManagementTests: XCTestCase {
     }
   }
 
-  func testoCreatesAndDropsTable() throws {
+  func testCreatesAndDropsTable() throws {
     guard client.isConnected else {
       return
     }
