@@ -37,9 +37,10 @@ struct Packet<T: BinaryDecodable>: BinaryDecodable {
     // - 1 byte describing the packet's sequence number.
 
     let lengthBytes = try container.decode(maxLength: 3)
-    self.length = Data(lengthBytes + [0]).withUnsafeBytes { (ptr: UnsafePointer<UInt32>) -> UInt32 in
+    let length = Data(lengthBytes + [0]).withUnsafeBytes { (ptr: UnsafePointer<UInt32>) -> UInt32 in
       return ptr.pointee
     }
+    self.length = length
 
     self.sequenceNumber = try container.decode(UInt8.self)
 

@@ -226,6 +226,14 @@ public protocol BinaryDecodingContainer {
   mutating func decode(maxLength: Int) throws -> Data
 
   /**
+   Reads up the maxLength values without affecting the decoder's `decode` cursor.
+
+   - parameter maxLength: The maximum number of bytes to read.
+   - returns: A preview of the bytes that will be read from the `decode` cursor position.
+   */
+  mutating func peek(maxLength: Int) throws -> Data
+
+  /**
    Decodes a nested container, optionally with a maximum number of bytes that can be decoded.
 
    - parameter maxLength: The maximum number of bytes that this container is allowed to decode. If nil, then this

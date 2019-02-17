@@ -26,23 +26,31 @@ public protocol StreamableDataProvider {
   func hasAtLeast(minBytes: Int) throws -> Bool
   mutating func pull(maxBytes: Int) throws -> Data
   mutating func pull(until delimiter: UInt8) throws -> (data: Data, didFindDelimiter: Bool)
+  mutating func peek(maxBytes: Int) throws -> Data
 }
 
 public protocol Reader {
   func read(recommendedAmount: Int) throws -> Data?
+  func peek(recommendedAmount: Int) throws -> Data?
   var isAtEnd: Bool { get }
 }
 
 public final class AnyReader: Reader {
   let readCallback: (Int) throws -> Data?
+  let peekCallback: (Int) throws -> Data?
   let isAtEndCallback: () -> Bool
-  public init(read: @escaping (Int) throws -> Data?, isAtEnd: @escaping () -> Bool) {
+  public init(read: @escaping (Int) throws -> Data?, peek: @escaping (Int) throws -> Data?, isAtEnd: @escaping () -> Bool) {
     self.readCallback = read
+    self.peekCallback = peek
     self.isAtEndCallback = isAtEnd
   }
 
   public func read(recommendedAmount: Int) throws -> Data? {
     return try readCallback(recommendedAmount)
+  }
+
+  public func peek(recommendedAmount: Int) throws -> Data? {
+    return try peekCallback(recommendedAmount)
   }
 
   public var isAtEnd: Bool { return isAtEndCallback() }
@@ -61,6 +69,13 @@ public final class DataReader: Reader {
     let pulledData = data.prefix(recommendedAmount)
     data = data.dropFirst(recommendedAmount)
     return pulledData
+  }
+
+  public func peek(recommendedAmount: Int) throws -> Data? {
+    guard !isAtEnd else {
+      return nil
+    }
+    return data.prefix(recommendedAmount)
   }
 
   public var isAtEnd: Bool { return data.isEmpty }
@@ -94,6 +109,21 @@ public final class LazyDataStream: StreamableDataProvider {
       buffer.append(data)
     }
     return buffer.count >= minBytes
+  }
+
+  public func peek(maxBytes: Int) throws -> Data {
+    while buffer.count < maxBytes {
+      guard let data = try reader.read(recommendedAmount: maxBytes - buffer.count) else {
+        isAtEnd = true
+        break
+      }
+      buffer.append(data)
+    }
+    // TODO: The original buffer may never decrease in size because of how this is implemented.
+    // This can likely be optimized with a ring buffer implementation.
+    // Example implementation in Swift's Sequence:
+    // https://github.com/apple/swift/blob/b0fbbb3342c1c2df0753a0fc9b469e9d951adf43/stdlib/public/core/Sequence.swift#L898
+    return buffer.prefix(maxBytes)
   }
 
   public func pull(maxBytes: Int) throws -> Data {

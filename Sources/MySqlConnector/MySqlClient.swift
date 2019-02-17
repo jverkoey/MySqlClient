@@ -16,6 +16,8 @@ import BinaryCodable
 import Foundation
 import Socket
 
+
+
 public final class MySqlClient {
   var connectionPool: [Connection] = []
 
@@ -63,6 +65,12 @@ public final class MySqlClient {
       let pulledData = buffer.prefix(recommendedAmount)
       buffer = buffer.dropFirst(recommendedAmount)
       return pulledData
+    }, peek: { recommendedAmount in
+      if buffer.count == 0 {
+        _ = try socket.read(into: &buffer)
+        print([UInt8](buffer))
+      }
+      return buffer.prefix(recommendedAmount)
     }, isAtEnd: {
       do {
         return try buffer.isEmpty && !socket.isReadableOrWritable(waitForever: false, timeout: 0).readable
@@ -123,7 +131,7 @@ public enum ClientError: Error, Equatable {
   case connectionIsNotIdle
 }
 
-struct Connection {
+final class Connection {
   let decoder: BinaryStreamDecoder
   let socket: Socket
   let socketDataStream: LazyDataStream

@@ -31,24 +31,22 @@ struct LengthEncodedInteger: BinaryDecodable {
     // The largest possible length-encoded integer is 1 byte for the identifier + 8 bytes for the 64 bit number.
     var container = decoder.container(maxLength: 9)
 
-    let firstByte = try container.decode(UInt8.self)
-    guard let type = LengthEncodedIntegerType(firstByte: firstByte) else {
-      throw BinaryDecodingError.dataCorrupted(.init(debugDescription: "Not a length-encoded integer."))
-    }
-
     // Parse the data into the relevant storage.
-    switch type {
-    case .one:
-      self.storage = .one(value: firstByte)
-    case .two:
+    switch try container.decode(LengthOrError.self) {
+    case .length(.one, let value):
+      self.storage = .one(value: value)
+    case .length(.two, _):
       self.storage = try .two(value: container.decode(UInt16.self))
-    case .three:
+    case .length(.three, _):
       let data = try container.decode(maxLength: 3)
       self.storage = .three(value: Data(data + [0x00]).withUnsafeBytes { (ptr: UnsafePointer<UInt32>) -> UInt32 in
         return ptr.pointee
       })
-    case .eight:
+    case .length(.eight, _):
       self.storage = try .eight(value: container.decode(UInt64.self))
+
+    case .err:
+      throw BinaryDecodingError.dataCorrupted(.init(debugDescription: "Not a length-encoded integer."))
     }
   }
 
@@ -56,8 +54,7 @@ struct LengthEncodedInteger: BinaryDecodable {
    Initializes a length-encoded integer with the given value.
    */
   init(value: UInt64) {
-    let type = LengthEncodedIntegerType(value: value)
-    switch type {
+    switch Length(value: value) {
     case .one:
       self.storage = .one(value: UInt8(value))
     case .two:
@@ -106,21 +103,32 @@ struct LengthEncodedInteger: BinaryDecodable {
     case eight(value: UInt64)
   }
 
-  private enum LengthEncodedIntegerType {
+  enum LengthOrError: BinaryDecodable {
+    case length(length: Length, value: UInt8)
+    case err
+
+    init(from decoder: BinaryDecoder) throws {
+      var container = decoder.container(maxLength: 1)
+      let value = try container.decode(UInt8.self)
+      self.init(byte: value)
+    }
+
+    init(byte: UInt8) {
+      switch byte {
+      case 0xff: self = .err // Error packet / undefined.
+      case 0xfc: self = .length(length: .two, value: byte)
+      case 0xfd: self = .length(length: .three, value: byte)
+      case 0xfe: self = .length(length: .eight, value: byte) // May be an EOF packet. See LengthEncodedInteger implementation for details.
+      default: self = .length(length: .one, value: byte)
+      }
+    }
+  }
+
+  enum Length {
     case one
     case two
     case three
     case eight
-
-    init?(firstByte: UInt8) {
-      switch firstByte {
-      case 0xff: return nil // Error packet / undefined.
-      case 0xfc: self = .two
-      case 0xfd: self = .three
-      case 0xfe: self = .eight // May be an EOF packet. See LengthEncodedInteger implementation for details.
-      default: self = .one
-      }
-    }
 
     init(value: UInt64) {
       if value < 0xfc {
