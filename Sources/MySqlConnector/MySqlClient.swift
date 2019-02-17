@@ -16,8 +16,6 @@ import BinaryCodable
 import Foundation
 import Socket
 
-
-
 public final class MySqlClient {
   var connectionPool: [Connection] = []
 
