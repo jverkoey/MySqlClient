@@ -58,7 +58,7 @@ final class QueryTests: XCTestCase {
     }
   }
 
-  func testShowVariablesObjects() throws {
+  func testShowVariablesAsObjects() throws {
     guard client.isConnected else {
       return
     }
