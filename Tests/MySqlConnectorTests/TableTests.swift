@@ -65,7 +65,7 @@ final class TableTests: XCTestCase {
     }
 
     // When
-    let response = try client.query(rowType: TableColumnDescription.self, query: "describe \(type(of: self))")
+    let response = try client.query("describe \(type(of: self))", rowType: TableColumnDescription.self)
 
     // Then
     switch response {

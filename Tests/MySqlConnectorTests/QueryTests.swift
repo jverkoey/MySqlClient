@@ -67,7 +67,7 @@ final class QueryTests: XCTestCase {
     let query = "SHOW VARIABLES;"
 
     // When
-    let response = try client.query(rowType: Variable.self, query: query)
+    let response = try client.query(query, rowType: Variable.self)
 
     // Then
     switch response {
