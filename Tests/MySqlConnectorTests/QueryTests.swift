@@ -18,17 +18,11 @@ import XCTest
 
 final class QueryTests: XCTestCase {
   var client: MySqlClient!
+  let config = TestConfig.environment
   override func setUp() {
     super.setUp()
 
-    guard let host = getEnvironmentVariable(named: "MYSQL_SERVER_HOST"),
-      let mySqlServerPortString = getEnvironmentVariable(named: "MYSQL_SERVER_PORT"),
-      let mySqlServerPort = Int32(mySqlServerPortString),
-      let username = getEnvironmentVariable(named: "MYSQL_SERVER_USER"),
-      let password = getEnvironmentVariable(named: "MYSQL_SERVER_PASSWORD") else {
-        return
-    }
-    client = MySqlClient(to: host, port: mySqlServerPort, username: username, password: password, database: nil)
+    client = MySqlClient(to: config.host, port: config.port, username: config.user, password: config.pass, database: nil)
   }
 
   override func tearDown() {
