@@ -17,45 +17,22 @@ import Socket
 @testable import MySqlConnector
 import XCTest
 
-func getEnvironmentVariable(named name: String) -> String? {
-  if let environmentValue = getenv(name) {
-    return String(cString: environmentValue)
-  } else {
-    return nil
-  }
-}
-
 final class HandshakeTests: XCTestCase {
-  var connected = false
   var socket: Socket!
   var socketDataStream: LazyDataStream!
-  var host: String!
-  var username: String!
-  var password: String!
+  let config = TestConfig.environment
   override func setUp() {
     super.setUp()
 
-    guard let host = getEnvironmentVariable(named: "MYSQL_SERVER_HOST"),
-      let mySqlServerPortString = getEnvironmentVariable(named: "MYSQL_SERVER_PORT"),
-      let mySqlServerPort = Int32(mySqlServerPortString),
-      let username = getEnvironmentVariable(named: "MYSQL_SERVER_USER"),
-      let password = getEnvironmentVariable(named: "MYSQL_SERVER_PASSWORD") else {
-      connected = false
-      return
-    }
-    connected = true
-    self.host = host
-    self.username = username
-    self.password = password
-
     do {
       socket = try Socket.create()
-      try socket.connect(to: host, port: mySqlServerPort)
-      guard socket.isConnected else {
-        preconditionFailure("Unable to connect to server.")
-      }
-    } catch let error {
-      preconditionFailure("Unable to connect to server: \(String(describing: error))")
+      try socket.connect(to: config.host, port: config.port)
+    } catch {
+      return
+    }
+
+    if !socket.isConnected {
+      return
     }
 
     var buffer = Data(capacity: socket.readBufferSize)
@@ -81,21 +58,17 @@ final class HandshakeTests: XCTestCase {
   }
 
   override func tearDown() {
-    connected = false
     if socket != nil {
       socket.close()
       socket = nil
     }
     socketDataStream = nil
-    host = nil
-    username = nil
-    password = nil
 
     super.tearDown()
   }
 
   func testHandshake() throws {
-    guard connected else {
+    guard socket.isConnected else {
       return
     }
 
@@ -140,7 +113,7 @@ final class HandshakeTests: XCTestCase {
   }
 
   func testAuthFailsWithInvalidPassword() throws {
-    guard connected else {
+    guard socket.isConnected else {
       return
     }
 
@@ -159,8 +132,8 @@ final class HandshakeTests: XCTestCase {
     decoder.userInfo[.capabilityFlags] = capabilityFlags
 
     // When
-    let handshakeResponse = try HandshakeResponse(username: username,
-                                                  password: password + "bogus",
+    let handshakeResponse = try HandshakeResponse(username: config.user,
+                                                  password: config.pass + "bogus",
                                                   database: nil,
                                                   capabilityFlags: capabilityFlags,
                                                   authPluginData: handshake.payload.authPluginData,
@@ -179,14 +152,14 @@ final class HandshakeTests: XCTestCase {
     switch response.payload {
     case .ERR(let errorCode, let errorMessage):
       XCTAssertEqual(errorCode, .ER_ACCESS_DENIED_ERROR)
-      XCTAssertEqual(errorMessage, "Access denied for user \'\(username!)\'@\'\(host!)\' (using password: YES)")
+      XCTAssertEqual(errorMessage, "Access denied for user \'\(config.user)\'@\'\(config.host)\' (using password: YES)")
     default:
       XCTFail("Unexpected response \(response)")
     }
   }
 
   func testAuthSucceedsWithValidPassword() throws {
-    guard connected else {
+    guard socket.isConnected else {
       return
     }
 
@@ -205,8 +178,8 @@ final class HandshakeTests: XCTestCase {
     decoder.userInfo[.capabilityFlags] = capabilityFlags
 
     // When
-    let handshakeResponse = try HandshakeResponse(username: username,
-                                                  password: password,
+    let handshakeResponse = try HandshakeResponse(username: config.user,
+                                                  password: config.pass,
                                                   database: nil,
                                                   capabilityFlags: capabilityFlags,
                                                   authPluginData: handshake.payload.authPluginData,
