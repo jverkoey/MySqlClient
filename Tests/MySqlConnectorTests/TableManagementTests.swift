@@ -40,7 +40,7 @@ final class TableManagementTests: XCTestCase {
   }
 
   func testFailsToCreateTableWithoutSelectingDatabase() throws {
-    guard client.isConnected else {
+    guard config.testAgainstSqlServer else {
       return
     }
 
@@ -58,7 +58,7 @@ final class TableManagementTests: XCTestCase {
   }
 
   func testFailsToCreateTableWithoutColumns() throws {
-    guard client.isConnected else {
+    guard config.testAgainstSqlServer else {
       return
     }
 
@@ -85,7 +85,7 @@ final class TableManagementTests: XCTestCase {
   }
 
   func testCreatesAndDropsTable() throws {
-    guard client.isConnected else {
+    guard config.testAgainstSqlServer else {
       return
     }
 

@@ -37,7 +37,7 @@ final class QueryTests: XCTestCase {
   }
 
   func testShowVariablesAsDictionaries() throws {
-    guard client.isConnected else {
+    guard config.testAgainstSqlServer else {
       return
     }
 
@@ -59,7 +59,7 @@ final class QueryTests: XCTestCase {
   }
 
   func testShowVariablesAsObjects() throws {
-    guard client.isConnected else {
+    guard config.testAgainstSqlServer else {
       return
     }
 

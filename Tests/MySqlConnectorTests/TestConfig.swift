@@ -15,6 +15,7 @@
 import Foundation
 
 struct TestConfig {
+  var testAgainstSqlServer = true
   var host: String = "localhost"
   var port: Int32 = 3306
   var user: String = "root"
@@ -22,6 +23,9 @@ struct TestConfig {
 
   static var environment: TestConfig {
     var config = TestConfig()
+    if let sqlServerExists = getEnvironmentVariable(named: "MYSQL_SERVER_EXISTS") {
+      config.testAgainstSqlServer = sqlServerExists == "true"
+    }
     if let host = getEnvironmentVariable(named: "MYSQL_SERVER_HOST") {
       config.host = host
     }

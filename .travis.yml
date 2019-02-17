@@ -12,6 +12,8 @@ matrix:
       os: osx
       osx_image: xcode10.1
       language: swift
+      env:
+        - MYSQL_SERVER_EXISTS=false
       script:
         - swift test
 

@@ -60,7 +60,7 @@ final class TableTests: XCTestCase {
   }
 
   func testDescribesTable() throws {
-    guard client.isConnected else {
+    guard config.testAgainstSqlServer else {
       return
     }
 
