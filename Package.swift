@@ -33,12 +33,22 @@ let package = Package(
       dependencies: [
         "Cryptor",
         "BinaryCodable",
+        "MySqlQuery",
         "Socket",
       ]
     ),
     .testTarget(
       name: "MySqlConnectorTests",
       dependencies: ["MySqlConnector"]
+    ),
+
+    .target(
+      name: "MySqlQuery",
+      dependencies: []
+    ),
+    .testTarget(
+      name: "MySqlQueryTests",
+      dependencies: ["MySqlQuery"]
     ),
 
     .target(

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@testable import MySqlConnector
+import MySqlQuery
 import XCTest
 
 private struct Object: Codable {
