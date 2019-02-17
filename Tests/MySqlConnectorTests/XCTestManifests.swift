@@ -127,6 +127,14 @@ extension QueryTests {
     ]
 }
 
+extension TableManagementTests {
+    static let __allTests = [
+        ("testFailsToCreateTableWithoutColumns", testFailsToCreateTableWithoutColumns),
+        ("testFailsToCreateTableWithoutSelectingDatabase", testFailsToCreateTableWithoutSelectingDatabase),
+        ("testoCreatesAndDropsTable", testoCreatesAndDropsTable),
+    ]
+}
+
 #if !os(macOS)
 public func __allTests() -> [XCTestCaseEntry] {
     return [
@@ -144,6 +152,7 @@ public func __allTests() -> [XCTestCaseEntry] {
         testCase(PacketDecodingTests.__allTests),
         testCase(PacketEncodingTests.__allTests),
         testCase(QueryTests.__allTests),
+        testCase(TableManagementTests.__allTests),
     ]
 }
 #endif

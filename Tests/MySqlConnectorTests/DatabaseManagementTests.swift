@@ -36,12 +36,9 @@ final class DatabaseManagementTests: XCTestCase {
       return
     }
 
-    // Given
-    let name = "MySqlConnectorUnitTests"
-
     // When
-    let creationResponse = try client.query("create database \(name)")
-    let dropResponse = try client.query("drop database \(name)")
+    let creationResponse = try client.query("create database \(type(of: self))")
+    let dropResponse = try client.query("drop database \(type(of: self))")
 
     // Then
     switch creationResponse {
