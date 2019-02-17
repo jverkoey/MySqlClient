@@ -94,9 +94,10 @@ public protocol BinaryEncodingContainer {
 
    - parameter value: The value to encode.
    - parameter encoding: The string encoding to use when creating the data representation of the string.
-   - parameter terminator: Typically 0. This will be encoded after the string has been encoded.
+   - parameter terminator: Typically 0. This will be encoded after the string has been encoded. If nil, no terminator
+   will be encoded.
    */
-  mutating func encode(_ value: String, encoding: String.Encoding, terminator: UInt8) throws
+  mutating func encode(_ value: String, encoding: String.Encoding, terminator: UInt8?) throws
 
   /**
    Encodes a value of the given type.

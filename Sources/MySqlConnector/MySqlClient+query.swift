@@ -15,8 +15,8 @@
 import Foundation
 
 public enum QueryResponse<T: Decodable> {
-  case OK(numberOfAffectedRows: UInt64)
-  case ERR(errorCode: ErrorCode)
+  case OK(numberOfAffectedRows: UInt64, lastInsertId: UInt64, info: String?)
+  case ERR(errorCode: ErrorCode, errorMessage: String)
   case Results(iterator: AnyIterator<T>)
 }
 
@@ -43,11 +43,11 @@ extension MySqlClient {
       switch response {
       case .ERR(let context):
         connection.isIdle = true
-        return .ERR(errorCode: context.errorCode)
+        return .ERR(errorCode: context.errorCode, errorMessage: context.errorMessage)
 
       case .OK(let context):
         connection.isIdle = true
-        return .OK(numberOfAffectedRows: context.numberOfAffectedRows)
+        return .OK(numberOfAffectedRows: context.numberOfAffectedRows, lastInsertId: context.lastInsertId, info: context.info)
 
       case .ResultSetColumnCount(let columnCount):
         let iterator = try QueryResultDecoder<T>(columnCount: columnCount, connection: connection)

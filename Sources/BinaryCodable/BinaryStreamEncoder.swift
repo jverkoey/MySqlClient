@@ -52,13 +52,15 @@ private struct UnboundedDataStreamEncodingContainer: BinaryEncodingContainer {
     self.encoder = encoder
   }
 
-  func encode(_ value: String, encoding: String.Encoding, terminator: UInt8) throws {
+  func encode(_ value: String, encoding: String.Encoding, terminator: UInt8?) throws {
     guard let data = value.data(using: encoding) else {
       throw BinaryEncodingError.incompatibleStringEncoding(.init(debugDescription:
         "The string \(value) could not be encoded as data using the encoding \(encoding)."))
     }
     encoder.storage.data.append(contentsOf: data)
-    encoder.storage.data.append(terminator)
+    if let terminator = terminator {
+      encoder.storage.data.append(terminator)
+    }
   }
 
   func encode(_ value: Int) throws {

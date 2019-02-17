@@ -38,7 +38,6 @@ enum Resultset: BinaryDecodable, CustomStringConvertible {
         values.append(nil)
         _ = try container.decode(maxLength: 1)
       } else {
-        // TODO: This should be using the identifier as part of the length-encoded string's length.
         values.append(try container.decode(LengthEncodedString.self).value)
       }
       if container.isAtEnd {
