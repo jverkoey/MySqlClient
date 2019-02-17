@@ -68,7 +68,7 @@ final class HandshakeTests: XCTestCase {
   }
 
   func testHandshake() throws {
-    guard socket.isConnected else {
+    guard config.testAgainstSqlServer else {
       return
     }
 
@@ -113,7 +113,7 @@ final class HandshakeTests: XCTestCase {
   }
 
   func testAuthFailsWithInvalidPassword() throws {
-    guard socket.isConnected else {
+    guard config.testAgainstSqlServer else {
       return
     }
 
@@ -159,7 +159,7 @@ final class HandshakeTests: XCTestCase {
   }
 
   func testAuthSucceedsWithValidPassword() throws {
-    guard socket.isConnected else {
+    guard config.testAgainstSqlServer else {
       return
     }
 

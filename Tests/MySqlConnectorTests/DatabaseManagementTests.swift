@@ -32,7 +32,7 @@ final class DatabaseManagementTests: XCTestCase {
   }
 
   func testCreatesAndDeletesDatabase() throws {
-    guard client.isConnected else {
+    guard config.testAgainstSqlServer else {
       return
     }
 
