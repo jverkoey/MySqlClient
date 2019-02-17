@@ -164,12 +164,22 @@ private struct UnboundedDataStreamDecodingContainer<S: StreamableDataProvider>: 
     return try T.init(from: _BinaryStreamDecoder(dataStream: dataStream, userInfo: userInfo, container: self))
   }
 
-  mutating func decode(maxLength: Int) throws -> Data {
-    return try dataStream.pull(maxBytes: maxLength)
+  mutating func decode(length: Int) throws -> Data {
+    let data = try dataStream.pull(maxBytes: length)
+    if data.count != length {
+      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
+        "Not enough bytes available to decode. Requested \(length), but received \(data.count)."))
+    }
+    return data
   }
 
-  mutating func peek(maxLength: Int) throws -> Data {
-    return try dataStream.peek(maxBytes: maxLength)
+  mutating func peek(length: Int) throws -> Data {
+    let data = try dataStream.peek(maxBytes: length)
+    if data.count != length {
+      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
+        "Not enough bytes available to decode. Requested \(length), but received \(data.count)."))
+    }
+    return data
   }
 
   mutating func nestedContainer(maxLength: Int?) -> BinaryDecodingContainer {
@@ -284,7 +294,7 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
       let data = try self.pullData(maxLength: recommendedAmount)
       return data.count > 0 ? data : nil
     }, peek: { recommendedAmount -> Data? in
-      let data = try self.peek(maxLength: recommendedAmount)
+      let data = try self.peek(length: recommendedAmount)
       return data.count > 0 ? data : nil
     }, isAtEnd: {
       return self.dataStream.isAtEnd
@@ -292,8 +302,13 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
     return try T.init(from: _BinaryStreamDecoder(dataStream: containedDataStream, userInfo: userInfo, container: self))
   }
 
-  func decode(maxLength: Int) throws -> Data {
-    return try pullData(maxLength: maxLength)
+  func decode(length: Int) throws -> Data {
+    let data = try pullData(maxLength: length)
+    if data.count != length {
+      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
+        "Not enough bytes available to decode. Requested \(length), but received \(data.count)."))
+    }
+    return data
   }
 
   func nestedContainer(maxLength: Int?) -> BinaryDecodingContainer {
@@ -310,8 +325,13 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
     return data
   }
 
-  func peek(maxLength: Int) throws -> Data {
-    return try dataStream.peek(maxBytes: min(remainingLength, maxLength))
+  func peek(length: Int) throws -> Data {
+    let data = try dataStream.peek(maxBytes: min(remainingLength, length))
+    if data.count != length {
+      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
+        "Not enough bytes available to decode. Requested \(length), but received \(data.count)."))
+    }
+    return data
   }
 
   func decodeFixedWidthInteger<T>(_ type: T.Type) throws -> T where T: FixedWidthInteger {

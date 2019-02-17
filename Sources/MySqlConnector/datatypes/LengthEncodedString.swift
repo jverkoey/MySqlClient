@@ -38,7 +38,7 @@ struct LengthEncodedString: BinaryDecodable {
     var container = decoder.container(maxLength: nil)
 
     let length = try container.decode(LengthEncodedInteger.self)
-    let stringData = try container.decode(maxLength: Int(length.value))
+    let stringData = try container.decode(length: Int(length.value))
     guard let string = String(data: Data(stringData), encoding: .utf8) else {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Unable to create String representation of data"))

@@ -218,20 +218,22 @@ public protocol BinaryDecodingContainer {
   mutating func decode<T>(_ type: T.Type) throws -> T where T : BinaryDecodable
 
   /**
-   Decodes a value of the given type.
+   Decodes a specific number of bytes.
 
-   - parameter type: The type of value to decode.
-   - returns: A value of the requested type.
+   - parameter length: The number of bytes to decode.
+   - returns: A Data representation of the decoded bytes.
+   - throws: if `length` bytes are not available.
    */
-  mutating func decode(maxLength: Int) throws -> Data
+  mutating func decode(length: Int) throws -> Data
 
   /**
-   Reads up the maxLength values without affecting the decoder's `decode` cursor.
+   Reads length values without affecting the `decode` cursor.
 
-   - parameter maxLength: The maximum number of bytes to read.
-   - returns: A preview of the bytes that will be read from the `decode` cursor position.
+   - parameter length: The number of bytes to peek ahead.
+   - returns: The bytes that will be read from the `decode` cursor position.
+   - throws: if `length` bytes are not available.
    */
-  mutating func peek(maxLength: Int) throws -> Data
+  mutating func peek(length: Int) throws -> Data
 
   /**
    Decodes a nested container, optionally with a maximum number of bytes that can be decoded.

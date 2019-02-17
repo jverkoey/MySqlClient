@@ -25,7 +25,7 @@ enum Resultset: BinaryDecodable, CustomStringConvertible {
   init(from decoder: BinaryDecoder) throws {
     var container = decoder.container(maxLength: nil)
 
-    var identifier = try container.peek(maxLength: 1).first
+    var identifier = try container.peek(length: 1).first
     if identifier == 0xfe {
       self = .eof(response: try container.decode(GenericResponse.self))
       return
@@ -36,14 +36,14 @@ enum Resultset: BinaryDecodable, CustomStringConvertible {
     while identifier != nil {
       if identifier == 0xfb {
         values.append(nil)
-        _ = try container.decode(maxLength: 1)
+        _ = try container.decode(length: 1)
       } else {
         values.append(try container.decode(LengthEncodedString.self).value)
       }
       if container.isAtEnd {
         break
       }
-      identifier = try container.peek(maxLength: 1).first
+      identifier = try container.peek(length: 1).first
     }
 
     self = .row(values: values)
