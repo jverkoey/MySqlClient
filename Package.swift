@@ -36,13 +36,10 @@ let package = Package(
         "Socket",
       ]
     ),
-
     .testTarget(
       name: "MySqlConnectorTests",
       dependencies: ["MySqlConnector"]
     ),
-
-    // Binary data management
 
     .target(
       name: "BinaryCodable",
