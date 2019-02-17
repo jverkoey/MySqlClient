@@ -91,14 +91,12 @@ final class RowDecoder: Decoder {
     return KeyedDecodingContainer(container)
   }
 
-  func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-    preconditionFailure("Unimplemented")
-  }
-
   func singleValueContainer() throws -> SingleValueDecodingContainer {
     precondition(storage.count == 1, "Only single-value responses are supported when converting to an array")
     return RowSingleValueDecodingContainer(decoder: self)
   }
+
+  func unkeyedContainer() throws -> UnkeyedDecodingContainer { preconditionFailure("Unimplemented") }
 }
 
 private final class RowKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerProtocol {
@@ -119,6 +117,20 @@ private final class RowKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContai
     return decoder.storage[key.stringValue] != nil
   }
 
+  func decode(_ type: String.Type, forKey key: K) throws -> String { return try decodeLossless(type, forKey: key) }
+  func decode(_ type: Double.Type, forKey key: K) throws -> Double { return try decodeLossless(type, forKey: key) }
+  func decode(_ type: Float.Type, forKey key: K) throws -> Float { return try decodeLossless(type, forKey: key) }
+  func decode(_ type: Int.Type, forKey key: K) throws -> Int { return try decodeLossless(type, forKey: key) }
+  func decode(_ type: Int8.Type, forKey key: K) throws -> Int8 { return try decodeLossless(type, forKey: key) }
+  func decode(_ type: Int16.Type, forKey key: K) throws -> Int16 { return try decodeLossless(type, forKey: key) }
+  func decode(_ type: Int32.Type, forKey key: K) throws -> Int32 { return try decodeLossless(type, forKey: key) }
+  func decode(_ type: Int64.Type, forKey key: K) throws -> Int64 { return try decodeLossless(type, forKey: key) }
+  func decode(_ type: UInt.Type, forKey key: K) throws -> UInt { return try decodeLossless(type, forKey: key) }
+  func decode(_ type: UInt8.Type, forKey key: K) throws -> UInt8 { return try decodeLossless(type, forKey: key) }
+  func decode(_ type: UInt16.Type, forKey key: K) throws -> UInt16 { return try decodeLossless(type, forKey: key) }
+  func decode(_ type: UInt32.Type, forKey key: K) throws -> UInt32 { return try decodeLossless(type, forKey: key) }
+  func decode(_ type: UInt64.Type, forKey key: K) throws -> UInt64 { return try decodeLossless(type, forKey: key) }
+
   func decodeNil(forKey key: K) throws -> Bool {
     guard let value = decoder.storage[key.stringValue] else {
       return true
@@ -126,10 +138,7 @@ private final class RowKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContai
     return value == nil
   }
 
-  func decode(_ type: String.Type, forKey key: K) throws -> String {
-    return try decodeLossless(type, forKey: key)
-  }
-
+  // TODO: Share this implementation across the decoder implementations.
   func decode(_ type: Bool.Type, forKey key: K) throws -> Bool {
     guard let valueOrNil = decoder.storage[key.stringValue],
       let value = valueOrNil else {
@@ -150,54 +159,7 @@ private final class RowKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContai
                                                            debugDescription: "\(key.stringValue) was not convertible to \(type)."))
   }
 
-  func decode(_ type: Double.Type, forKey key: K) throws -> Double {
-    return try decodeLossless(type, forKey: key)
-  }
-
-  func decode(_ type: Float.Type, forKey key: K) throws -> Float {
-    return try decodeLossless(type, forKey: key)
-  }
-
-  func decode(_ type: Int.Type, forKey key: K) throws -> Int {
-    return try decodeLossless(type, forKey: key)
-  }
-
-  func decode(_ type: Int8.Type, forKey key: K) throws -> Int8 {
-    return try decodeLossless(type, forKey: key)
-  }
-
-  func decode(_ type: Int16.Type, forKey key: K) throws -> Int16 {
-    return try decodeLossless(type, forKey: key)
-  }
-
-  func decode(_ type: Int32.Type, forKey key: K) throws -> Int32 {
-    return try decodeLossless(type, forKey: key)
-  }
-
-  func decode(_ type: Int64.Type, forKey key: K) throws -> Int64 {
-    return try decodeLossless(type, forKey: key)
-  }
-
-  func decode(_ type: UInt.Type, forKey key: K) throws -> UInt {
-    return try decodeLossless(type, forKey: key)
-  }
-
-  func decode(_ type: UInt8.Type, forKey key: K) throws -> UInt8 {
-    return try decodeLossless(type, forKey: key)
-  }
-
-  func decode(_ type: UInt16.Type, forKey key: K) throws -> UInt16 {
-    return try decodeLossless(type, forKey: key)
-  }
-
-  func decode(_ type: UInt32.Type, forKey key: K) throws -> UInt32 {
-    return try decodeLossless(type, forKey: key)
-  }
-
-  func decode(_ type: UInt64.Type, forKey key: K) throws -> UInt64 {
-    return try decodeLossless(type, forKey: key)
-  }
-
+  // TODO: Share this implementation across the decoder implementations.
   func decode<T>(_ type: T.Type, forKey key: K) throws -> T where T: Decodable {
     // Special-case handling of Optional<String> decoding for [String: String?] support.
     if type is Optional<String>.Type {
@@ -216,18 +178,7 @@ private final class RowKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContai
     throw DecodingError.typeMismatch(type, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "\(key) was not convertible to \(type)."))
   }
 
-  func nestedUnkeyedContainer(forKey key: K) throws -> UnkeyedDecodingContainer {
-    throw NSError(domain: "libMySqlClient", code: -105, userInfo: nil)
-  }
-
-  func superDecoder() throws -> Decoder {
-    throw NSError(domain: "libMySqlClient", code: -104, userInfo: nil)
-  }
-
-  func superDecoder(forKey key: K) throws -> Decoder {
-    throw NSError(domain: "libMySqlClient", code: -103, userInfo: nil)
-  }
-
+  // TODO: Share this implementation across the decoder implementations.
   private func decodeLossless<T: LosslessStringConvertible>(_ type: T.Type, forKey key: K) throws -> T {
     guard let valueOrNil = decoder.storage[key.stringValue],
       let value = valueOrNil else {
@@ -242,6 +193,10 @@ private final class RowKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContai
     }
     return typedValue
   }
+
+  func nestedUnkeyedContainer(forKey key: K) throws -> UnkeyedDecodingContainer { preconditionFailure("Unimplemented") }
+  func superDecoder() throws -> Decoder { preconditionFailure("Unimplemented") }
+  func superDecoder(forKey key: K) throws -> Decoder { preconditionFailure("Unimplemented") }
 }
 
 private final class RowSingleValueDecodingContainer: SingleValueDecodingContainer {
@@ -253,67 +208,26 @@ private final class RowSingleValueDecodingContainer: SingleValueDecodingContaine
     self.codingPath = decoder.codingPath
   }
 
+  func decode(_ type: Bool.Type) throws -> Bool { return try decodeLossless(type) }
+  func decode(_ type: String.Type) throws -> String { return try decodeLossless(type) }
+  func decode(_ type: Double.Type) throws -> Double { return try decodeLossless(type) }
+  func decode(_ type: Float.Type) throws -> Float { return try decodeLossless(type) }
+  func decode(_ type: Int.Type) throws -> Int { return try decodeLossless(type) }
+  func decode(_ type: Int8.Type) throws -> Int8 { return try decodeLossless(type) }
+  func decode(_ type: Int16.Type) throws -> Int16 { return try decodeLossless(type) }
+  func decode(_ type: Int32.Type) throws -> Int32 { return try decodeLossless(type) }
+  func decode(_ type: Int64.Type) throws -> Int64 { return try decodeLossless(type) }
+  func decode(_ type: UInt.Type) throws -> UInt { return try decodeLossless(type) }
+  func decode(_ type: UInt8.Type) throws -> UInt8 { return try decodeLossless(type) }
+  func decode(_ type: UInt16.Type) throws -> UInt16 { return try decodeLossless(type) }
+  func decode(_ type: UInt32.Type) throws -> UInt32 { return try decodeLossless(type) }
+  func decode(_ type: UInt64.Type) throws -> UInt64 { return try decodeLossless(type) }
+
   func decodeNil() -> Bool {
     guard let element = decoder.storage.first else {
       return true
     }
     return element.value == nil
-  }
-
-  func decode(_ type: Bool.Type) throws -> Bool {
-    return try decodeLossless(type)
-  }
-
-  func decode(_ type: String.Type) throws -> String {
-    return try decodeLossless(type)
-  }
-
-  func decode(_ type: Double.Type) throws -> Double {
-    return try decodeLossless(type)
-  }
-
-  func decode(_ type: Float.Type) throws -> Float {
-    return try decodeLossless(type)
-  }
-
-  func decode(_ type: Int.Type) throws -> Int {
-    return try decodeLossless(type)
-  }
-
-  func decode(_ type: Int8.Type) throws -> Int8 {
-    return try decodeLossless(type)
-  }
-
-  func decode(_ type: Int16.Type) throws -> Int16 {
-    return try decodeLossless(type)
-  }
-
-  func decode(_ type: Int32.Type) throws -> Int32 {
-    return try decodeLossless(type)
-  }
-
-  func decode(_ type: Int64.Type) throws -> Int64 {
-    return try decodeLossless(type)
-  }
-
-  func decode(_ type: UInt.Type) throws -> UInt {
-    return try decodeLossless(type)
-  }
-
-  func decode(_ type: UInt8.Type) throws -> UInt8 {
-    return try decodeLossless(type)
-  }
-
-  func decode(_ type: UInt16.Type) throws -> UInt16 {
-    return try decodeLossless(type)
-  }
-
-  func decode(_ type: UInt32.Type) throws -> UInt32 {
-    return try decodeLossless(type)
-  }
-
-  func decode(_ type: UInt64.Type) throws -> UInt64 {
-    return try decodeLossless(type)
   }
 
   func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
@@ -328,6 +242,7 @@ private final class RowSingleValueDecodingContainer: SingleValueDecodingContaine
     return try T(from: decoder)
   }
 
+  // TODO: Share this implementation across the decoder implementations.
   private func decodeLossless<T: LosslessStringConvertible>(_ type: T.Type) throws -> T {
     guard let element = decoder.storage.first,
       let value = element.value else {
