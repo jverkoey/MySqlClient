@@ -19,8 +19,6 @@ public enum QueryDuplicateKeyBehavior {
   case max
 }
 
-// TODO: Pull this out to its own library.
-
 public final class MySqlQueryEncoder {
   public init() {}
 
