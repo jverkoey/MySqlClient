@@ -32,7 +32,7 @@ final class QueryTests: XCTestCase {
   }
 
   func testShowVariablesAsDictionaries() throws {
-    guard client != nil else {
+    guard client.isConnected else {
       return
     }
 

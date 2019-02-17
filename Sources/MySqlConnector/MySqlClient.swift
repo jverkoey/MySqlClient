@@ -33,6 +33,10 @@ public final class MySqlClient {
     self.database = database
   }
 
+  public var isConnected: Bool {
+    return connectionPool.count > 0
+  }
+
   func anyIdleConnection() throws -> Connection? {
     if let connection = connectionPool.first(where: { $0.isIdle }) {
       return connection

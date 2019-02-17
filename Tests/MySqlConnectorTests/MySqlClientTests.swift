@@ -32,7 +32,7 @@ final class MySqlClientTests: XCTestCase {
   }
 
   func testConnects() throws {
-    guard client != nil else {
+    guard client.isConnected else {
       return
     }
 
@@ -45,7 +45,7 @@ final class MySqlClientTests: XCTestCase {
   }
 
   func testReusesIdleConnection() throws {
-    guard client != nil else {
+    guard client.isConnected else {
       return
     }
 
