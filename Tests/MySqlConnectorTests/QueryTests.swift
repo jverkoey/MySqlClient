@@ -16,6 +16,11 @@ import BinaryCodable
 @testable import MySqlConnector
 import XCTest
 
+struct Variable: Codable {
+  let Variable_name: String
+  let Value: String
+}
+
 final class QueryTests: XCTestCase {
   var client: MySqlClient!
   let config = TestConfig.environment
@@ -41,6 +46,28 @@ final class QueryTests: XCTestCase {
 
     // When
     let response = try client.query(query)
+
+    // Then
+    switch response {
+    case .Results(let iterator):
+      let keyValues = Array(iterator)
+      XCTAssertGreaterThan(keyValues.count, 0)
+
+    default:
+      XCTFail("Unexpected response \(response)")
+    }
+  }
+
+  func testShowVariablesObjects() throws {
+    guard client.isConnected else {
+      return
+    }
+
+    // Given
+    let query = "SHOW VARIABLES;"
+
+    // When
+    let response = try client.query(rowType: Variable.self, query: query)
 
     // Then
     switch response {

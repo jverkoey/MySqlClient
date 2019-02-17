@@ -34,7 +34,15 @@ public final class MySqlClient {
   }
 
   public var isConnected: Bool {
-    return connectionPool.count > 0
+    do {
+      let socket = try Socket.create()
+      try socket.connect(to: host, port: port)
+      let isConnected = socket.isConnected
+      socket.close()
+      return isConnected
+    } catch {
+      return false
+    }
   }
 
   func anyIdleConnection() throws -> Connection? {
