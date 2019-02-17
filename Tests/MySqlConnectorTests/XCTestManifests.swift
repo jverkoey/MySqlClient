@@ -123,7 +123,7 @@ extension PacketEncodingTests {
 extension QueryTests {
     static let __allTests = [
         ("testShowVariablesAsDictionaries", testShowVariablesAsDictionaries),
-        ("testShowVariablesObjects", testShowVariablesObjects),
+        ("testShowVariablesAsObjects", testShowVariablesAsObjects),
     ]
 }
 
