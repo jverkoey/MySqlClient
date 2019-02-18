@@ -40,7 +40,7 @@ class PacketEncodingTests: XCTestCase {
   func testSucceeds() throws {
     // Given
     let payload = Payload(unsignedValue: 1234, enumValue: .value1, stringValue: "Some string", signedValue: -123)
-    let encoder = BinaryStreamEncoder()
+    let encoder = BinaryDataEncoder()
 
     // When
     let data = try encoder.encode(payload)

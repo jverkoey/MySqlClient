@@ -21,7 +21,7 @@ class HandshakeDecodingTests: XCTestCase {
   func testThrowsWithEmptyData() throws {
     // Given
     let data = Data()
-    let decoder = BinaryStreamDecoder()
+    let decoder = BinaryDataDecoder()
 
     // Then
     XCTAssertThrowsError(try decoder.decode(Packet<Handshake>.self, from: data)) { error in
@@ -40,7 +40,7 @@ class HandshakeDecodingTests: XCTestCase {
     let payloadData = protocolVersion
     let packetHeader = UInt32(payloadData.count).bytes[0...2] + [0]
     let data = Data(packetHeader + payloadData)
-    let decoder = BinaryStreamDecoder()
+    let decoder = BinaryDataDecoder()
 
     // Then
     XCTAssertThrowsError(try decoder.decode(Packet<Handshake>.self, from: data)) { error in
@@ -68,7 +68,7 @@ class HandshakeDecodingTests: XCTestCase {
 
     let packetHeader = UInt32(payloadData.count).bytes[0...2] + [0]
     let data = Data(packetHeader + payloadData)
-    let decoder = BinaryStreamDecoder()
+    let decoder = BinaryDataDecoder()
 
     // Then
     let packet = try decoder.decode(Packet<Handshake>.self, from: data)
