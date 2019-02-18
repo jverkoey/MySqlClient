@@ -70,111 +70,36 @@ private struct _BinaryDataDecoder: BinaryDecoder {
   }
 
   func container(maxLength: Int?) -> BinaryDecodingContainer {
-    if let maxLength = maxLength, let container = container as? BoundedBinaryDataDecodingContainer {
-      return BoundedBinaryDataDecodingContainer(bufferedData: bufferedData,
-                                                maxLength: min(maxLength, container.remainingLength),
-                                                userInfo: userInfo)
-
-    } else if let maxLength = maxLength {
-      return BoundedBinaryDataDecodingContainer(bufferedData: bufferedData, maxLength: maxLength, userInfo: userInfo)
-
-    } else if let container = container as? BoundedBinaryDataDecodingContainer {
-      return BoundedBinaryDataDecodingContainer(bufferedData: bufferedData, maxLength: container.remainingLength, userInfo: userInfo)
-
+    if let maxLength = maxLength, let container = container as? BinaryDataDecodingContainer, let remainingLength = container.remainingLength {
+      return BinaryDataDecodingContainer(bufferedData: bufferedData,
+                                         maxLength: min(maxLength, remainingLength),
+                                         userInfo: userInfo)
+    } else if let container = container as? BinaryDataDecodingContainer, let remainingLength = container.remainingLength {
+      return BinaryDataDecodingContainer(bufferedData: bufferedData,
+                                         maxLength: remainingLength,
+                                         userInfo: userInfo)
     } else {
-      return UnboundedBinaryDataDecodingContainer(bufferedData: bufferedData, userInfo: userInfo)
+      return BinaryDataDecodingContainer(bufferedData: bufferedData, maxLength: maxLength, userInfo: userInfo)
     }
   }
-}
-
-private struct UnboundedBinaryDataDecodingContainer: BinaryDecodingContainer {
-  var bufferedData: BufferedData
-  let userInfo: [BinaryCodingUserInfoKey: Any]
-  init(bufferedData: BufferedData, userInfo: [BinaryCodingUserInfoKey: Any]) {
-    self.bufferedData = bufferedData
-    self.userInfo = userInfo
-  }
-
-  var isAtEnd: Bool {
-    return bufferedData.isAtEnd
-  }
-
-  mutating func decode<IntegerType: FixedWidthInteger>(_ type: IntegerType.Type) throws -> IntegerType {
-    return try decodeFixedWidthInteger(type)
-  }
-
-  mutating func decodeString(encoding: String.Encoding, terminator: UInt8) throws -> String {
-    let result = try bufferedData.read(until: terminator)
-    guard result.didFindDelimiter else {
-      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
-        "Unable to find delimiter for string."))
-    }
-    guard let string = String(data: result.data, encoding: encoding) else {
-      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
-        "Unable to create string from data with \(encoding) encoding."))
-    }
-    return string
-  }
-
-  mutating func decode<T>(_ type: T.Type) throws -> T where T: BinaryDecodable {
-    return try T.init(from: _BinaryDataDecoder(bufferedData: bufferedData, userInfo: userInfo, container: self))
-  }
-
-  mutating func decode(length: Int) throws -> Data {
-    let data = try bufferedData.read(maxBytes: length)
-    if data.count != length {
-      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
-        "Not enough bytes available to decode. Requested \(length), but received \(data.count)."))
-    }
-    return data
-  }
-
-  mutating func peek(length: Int) throws -> Data {
-    let data = try bufferedData.peek(maxLength: length)
-    if data.count != length {
-      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
-        "Not enough bytes available to decode. Requested \(length), but received \(data.count)."))
-    }
-    return data
-  }
-
-  mutating func nestedContainer(maxLength: Int?) -> BinaryDecodingContainer {
-    if let maxLength = maxLength {
-      return BoundedBinaryDataDecodingContainer(bufferedData: bufferedData, maxLength: maxLength, userInfo: userInfo)
-    } else {
-      return UnboundedBinaryDataDecodingContainer(bufferedData: bufferedData, userInfo: userInfo)
-    }
-  }
-
-  mutating func decodeFixedWidthInteger<T>(_ type: T.Type) throws -> T where T: FixedWidthInteger {
-    let byteWidth = type.bitWidth / 8
-    let bytes = try bufferedData.read(maxBytes: byteWidth)
-    if bytes.count < byteWidth {
-      throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
-        "Not enough data to create a a type of \(type). Needed: \(byteWidth). Received: \(bytes.count)."))
-    }
-    let value = Data(bytes).withUnsafeBytes { (ptr: UnsafePointer<T>) -> T in
-      return ptr.pointee
-    }
-    return value
-  }
-
-  func decodeString(encoding: String.Encoding) throws -> String { preconditionFailure("Unimplemented.") }
 }
 
 // This needs to be a class instead of a struct because we hold a mutating reference in decode<T>.
-private class BoundedBinaryDataDecodingContainer: BinaryDecodingContainer {
+private class BinaryDataDecodingContainer: BinaryDecodingContainer {
   var bufferedData: BufferedData
-  var remainingLength: Int
+  var remainingLength: Int?
   let userInfo: [BinaryCodingUserInfoKey: Any]
-  init(bufferedData: BufferedData, maxLength: Int, userInfo: [BinaryCodingUserInfoKey: Any]) {
+  init(bufferedData: BufferedData, maxLength: Int?, userInfo: [BinaryCodingUserInfoKey: Any]) {
     self.bufferedData = bufferedData
     self.remainingLength = maxLength
     self.userInfo = userInfo
   }
 
   var isAtEnd: Bool {
-    return remainingLength == 0
+    if let remainingLength = remainingLength {
+      return remainingLength == 0 || bufferedData.isAtEnd
+    }
+    return bufferedData.isAtEnd
   }
 
   func decode<IntegerType: FixedWidthInteger>(_ type: IntegerType.Type) throws -> IntegerType {
@@ -187,7 +112,9 @@ private class BoundedBinaryDataDecodingContainer: BinaryDecodingContainer {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Unable to find delimiter for string."))
     }
-    self.remainingLength = remainingLength - (result.data.count + 1)
+    if let remainingLength = remainingLength {
+      self.remainingLength = remainingLength - (result.data.count + 1)
+    }
     guard let string = String(data: result.data, encoding: encoding) else {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Unable to create string from data with \(encoding) encoding."))
@@ -197,7 +124,9 @@ private class BoundedBinaryDataDecodingContainer: BinaryDecodingContainer {
 
   func decodeString(encoding: String.Encoding) throws -> String {
     let data = try bufferedData.read(maxBytes: Int.max)
-    self.remainingLength = remainingLength - (data.count + 1)
+    if let remainingLength = remainingLength {
+      self.remainingLength = remainingLength - (data.count + 1)
+    }
     guard let string = String(data: data, encoding: encoding) else {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Unable to create string from data with \(encoding) encoding."))
@@ -207,16 +136,16 @@ private class BoundedBinaryDataDecodingContainer: BinaryDecodingContainer {
 
   func decode<T>(_ type: T.Type) throws -> T where T: BinaryDecodable {
     let containedBuffer = BufferedData(reader: AnyBufferedDataSource(read: { recommendedAmount -> Data? in
-      let data = try self.pullData(maxLength: recommendedAmount)
+      let data = try self.pullData(length: recommendedAmount)
       return data.count > 0 ? data : nil
     }, isAtEnd: {
-      return self.bufferedData.isAtEnd
+      return self.isAtEnd
     }))
     return try T.init(from: _BinaryDataDecoder(bufferedData: containedBuffer, userInfo: userInfo, container: self))
   }
 
   func decode(length: Int) throws -> Data {
-    let data = try pullData(maxLength: length)
+    let data = try pullData(length: length)
     if data.count != length {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Not enough bytes available to decode. Requested \(length), but received \(data.count)."))
@@ -225,21 +154,39 @@ private class BoundedBinaryDataDecodingContainer: BinaryDecodingContainer {
   }
 
   func nestedContainer(maxLength: Int?) -> BinaryDecodingContainer {
-    if let maxLength = maxLength {
-      return BoundedBinaryDataDecodingContainer(bufferedData: bufferedData, maxLength: maxLength, userInfo: userInfo)
+    let length: Int?
+    if let remainingLength = remainingLength, let maxLength = maxLength {
+      length = min(remainingLength, maxLength)
+    } else if let remainingLength = remainingLength {
+      length = remainingLength
     } else {
-      return UnboundedBinaryDataDecodingContainer(bufferedData: bufferedData, userInfo: userInfo)
+      length = maxLength
     }
+    return BinaryDataDecodingContainer(bufferedData: bufferedData, maxLength: length, userInfo: userInfo)
   }
 
-  func pullData(maxLength: Int) throws -> Data {
-    let data = try bufferedData.read(maxBytes: min(remainingLength, maxLength))
-    self.remainingLength = remainingLength - data.count
+  func pullData(length: Int) throws -> Data {
+    let maxLength: Int
+    if let remainingLength = remainingLength {
+      maxLength = min(remainingLength, length)
+    } else {
+      maxLength = length
+    }
+    let data = try bufferedData.read(maxBytes: maxLength)
+    if let remainingLength = remainingLength {
+      self.remainingLength = remainingLength - data.count
+    }
     return data
   }
 
   func peek(length: Int) throws -> Data {
-    let data = try bufferedData.peek(maxLength: min(remainingLength, length))
+    let maxLength: Int
+    if let remainingLength = remainingLength {
+      maxLength = min(remainingLength, length)
+    } else {
+      maxLength = length
+    }
+    let data = try bufferedData.peek(maxLength: maxLength)
     if data.count != length {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Not enough bytes available to decode. Requested \(length), but received \(data.count)."))
@@ -249,7 +196,7 @@ private class BoundedBinaryDataDecodingContainer: BinaryDecodingContainer {
 
   func decodeFixedWidthInteger<T>(_ type: T.Type) throws -> T where T: FixedWidthInteger {
     let byteWidth = type.bitWidth / 8
-    let bytes = try pullData(maxLength: byteWidth)
+    let bytes = try pullData(length: byteWidth)
     if bytes.count < byteWidth {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Not enough data to create a a type of \(type). Needed: \(byteWidth). Received: \(bytes.count)."))
