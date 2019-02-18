@@ -23,7 +23,6 @@ public func lazyDataStream(from data: Data) -> LazyDataStream {
  */
 public protocol StreamableDataProvider {
   var isAtEnd: Bool { get }
-  func hasAtLeast(minBytes: Int) throws -> Bool
   mutating func pull(maxBytes: Int) throws -> Data
   mutating func pull(until delimiter: UInt8) throws -> (data: Data, didFindDelimiter: Bool)
   mutating func peek(maxBytes: Int) throws -> Data
@@ -98,17 +97,6 @@ public final class LazyDataStream: StreamableDataProvider {
   public init(reader: Reader, bufferCapacity: Int = 1024) {
     self.buffer = Data(capacity: bufferCapacity)
     self.reader = reader
-  }
-
-  public func hasAtLeast(minBytes: Int) throws -> Bool {
-    while buffer.count < minBytes {
-      guard let data = try reader.read(recommendedAmount: minBytes - buffer.count) else {
-        isAtEnd = true
-        break
-      }
-      buffer.append(data)
-    }
-    return buffer.count >= minBytes
   }
 
   public func peek(maxBytes: Int) throws -> Data {

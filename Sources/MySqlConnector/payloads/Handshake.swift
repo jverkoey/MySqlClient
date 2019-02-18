@@ -60,7 +60,7 @@ struct Handshake: BinaryDecodable, CustomStringConvertible {
         "Only protocol \(ProtocolVersion.v10) is presently supported, but \(protocolVersion) was found instead."))
     }
 
-    self.serverVersion = try container.decode(String.self, encoding: .utf8, terminator: 0)
+    self.serverVersion = try container.decodeString(encoding: .utf8, terminator: 0)
     self.connectionIdentifier = try container.decode(UInt32.self)
     let firstAuthPluginData = try container.decode(length: 8)
 
@@ -122,7 +122,7 @@ struct Handshake: BinaryDecodable, CustomStringConvertible {
     }
 
     if self.serverCapabilityFlags.contains(.pluginAuth) {
-      self.authPluginName = try container.decode(String.self, encoding: .utf8, terminator: 0)
+      self.authPluginName = try container.decodeString(encoding: .utf8, terminator: 0)
     } else {
       self.authPluginName = nil
     }

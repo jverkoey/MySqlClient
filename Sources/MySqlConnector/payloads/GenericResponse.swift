@@ -79,7 +79,7 @@ enum GenericResponse: BinaryDecodable {
       let numberOfAffectedRows = try container.decode(LengthEncodedInteger.self)
       let lastInsertId = try container.decode(LengthEncodedInteger.self)
 
-      var info: String? = nil
+      var info: String?
 
       if capabilityFlags.contains(.protocol41) {
         // TODO: Turn this into an enum
@@ -87,7 +87,7 @@ enum GenericResponse: BinaryDecodable {
         let statusFlags = try container.decode(UInt16.self)
 
         // Number of warnings is 2 bytes.
-        let _ = try container.decode(UInt16.self)
+        _ = try container.decode(UInt16.self)
 
         if !container.isAtEnd {
           let sessionStateChanged = (statusFlags & UInt16(0x4000)) != 0
@@ -98,7 +98,7 @@ enum GenericResponse: BinaryDecodable {
 
             if sessionStateChanged {
               // State changes
-              let _ = try container.decode(LengthEncodedString.self)
+              _ = try container.decode(LengthEncodedString.self)
             }
           }
         }
@@ -146,11 +146,11 @@ enum GenericResponse: BinaryDecodable {
 
       if capabilityFlags.contains(.protocol41) {
         // State marker
-        let _ = try container.decode(length: 1)
+        _ = try container.decode(length: 1)
         // State
-        let _ = try container.decode(length: 5)
+        _ = try container.decode(length: 5)
       }
-      let errorMessage = try container.decodeToEnd(String.self, encoding: .utf8)
+      let errorMessage = try container.decodeString(encoding: .utf8)
 
       self = .ERR(errorCode: errorCode, errorMessage: errorMessage)
 

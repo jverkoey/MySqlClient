@@ -23,7 +23,7 @@ public struct BinaryStreamDecoder {
   /**
    Contextual user-provided information for use during decoding.
    */
-  public var userInfo: [BinaryCodingUserInfoKey : Any] = [:]
+  public var userInfo: [BinaryCodingUserInfoKey: Any] = [:]
 
   /**
    Returns a type you specify decoded from data.
@@ -54,16 +54,16 @@ public struct BinaryStreamDecoder {
 
 private struct _BinaryStreamDecoder<S: StreamableDataProvider>: BinaryDecoder {
   var dataStream: S
-  let userInfo: [BinaryCodingUserInfoKey : Any]
+  let userInfo: [BinaryCodingUserInfoKey: Any]
   let container: BinaryDecodingContainer?
 
-  init(dataStream: S, userInfo: [BinaryCodingUserInfoKey : Any]) {
+  init(dataStream: S, userInfo: [BinaryCodingUserInfoKey: Any]) {
     self.dataStream = dataStream
     self.userInfo = userInfo
     self.container = nil
   }
 
-  init(dataStream: S, userInfo: [BinaryCodingUserInfoKey : Any], container: BinaryDecodingContainer) {
+  init(dataStream: S, userInfo: [BinaryCodingUserInfoKey: Any], container: BinaryDecodingContainer) {
     self.dataStream = dataStream
     self.userInfo = userInfo
     self.container = container
@@ -89,8 +89,8 @@ private struct _BinaryStreamDecoder<S: StreamableDataProvider>: BinaryDecoder {
 
 private struct UnboundedDataStreamDecodingContainer<S: StreamableDataProvider>: BinaryDecodingContainer {
   var dataStream: S
-  let userInfo: [BinaryCodingUserInfoKey : Any]
-  init(dataStream: S, userInfo: [BinaryCodingUserInfoKey : Any]) {
+  let userInfo: [BinaryCodingUserInfoKey: Any]
+  init(dataStream: S, userInfo: [BinaryCodingUserInfoKey: Any]) {
     self.dataStream = dataStream
     self.userInfo = userInfo
   }
@@ -99,22 +99,11 @@ private struct UnboundedDataStreamDecodingContainer<S: StreamableDataProvider>: 
     return dataStream.isAtEnd
   }
 
-  func hasAtLeast(minBytes: Int) throws -> Bool {
-    return try dataStream.hasAtLeast(minBytes: minBytes)
+  mutating func decode<IntegerType: FixedWidthInteger>(_ type: IntegerType.Type) throws -> IntegerType {
+    return try decodeFixedWidthInteger(type)
   }
 
-  mutating func decode(_ type: Int.Type) throws -> Int { return try decodeFixedWidthInteger(type) }
-  mutating func decode(_ type: Int8.Type) throws -> Int8 { return try decodeFixedWidthInteger(type) }
-  mutating func decode(_ type: Int16.Type) throws -> Int16 { return try decodeFixedWidthInteger(type) }
-  mutating func decode(_ type: Int32.Type) throws -> Int32 { return try decodeFixedWidthInteger(type) }
-  mutating func decode(_ type: Int64.Type) throws -> Int64 { return try decodeFixedWidthInteger(type) }
-  mutating func decode(_ type: UInt.Type) throws -> UInt { return try decodeFixedWidthInteger(type) }
-  mutating func decode(_ type: UInt8.Type) throws -> UInt8 { return try decodeFixedWidthInteger(type) }
-  mutating func decode(_ type: UInt16.Type) throws -> UInt16 { return try decodeFixedWidthInteger(type) }
-  mutating func decode(_ type: UInt32.Type) throws -> UInt32 { return try decodeFixedWidthInteger(type) }
-  mutating func decode(_ type: UInt64.Type) throws -> UInt64 { return try decodeFixedWidthInteger(type) }
-
-  mutating func decode(_ type: String.Type, encoding: String.Encoding, terminator: UInt8) throws -> String {
+  mutating func decodeString(encoding: String.Encoding, terminator: UInt8) throws -> String {
     let result = try dataStream.pull(until: terminator)
     guard result.didFindDelimiter else {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
@@ -127,7 +116,7 @@ private struct UnboundedDataStreamDecodingContainer<S: StreamableDataProvider>: 
     return string
   }
 
-  mutating func decode<T>(_ type: T.Type) throws -> T where T : BinaryDecodable {
+  mutating func decode<T>(_ type: T.Type) throws -> T where T: BinaryDecodable {
     return try T.init(from: _BinaryStreamDecoder(dataStream: dataStream, userInfo: userInfo, container: self))
   }
 
@@ -170,14 +159,15 @@ private struct UnboundedDataStreamDecodingContainer<S: StreamableDataProvider>: 
     return value
   }
 
-  func decodeToEnd(_ type: String.Type, encoding: String.Encoding) throws -> String { preconditionFailure("Unimplemented.") }
+  func decodeString(encoding: String.Encoding) throws -> String { preconditionFailure("Unimplemented.") }
 }
 
+// This needs to be a class instead of a struct because we hold a mutating reference in decode<T>.
 private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: BinaryDecodingContainer {
   var dataStream: S
   var remainingLength: Int
-  let userInfo: [BinaryCodingUserInfoKey : Any]
-  init(dataStream: S, maxLength: Int, userInfo: [BinaryCodingUserInfoKey : Any]) {
+  let userInfo: [BinaryCodingUserInfoKey: Any]
+  init(dataStream: S, maxLength: Int, userInfo: [BinaryCodingUserInfoKey: Any]) {
     self.dataStream = dataStream
     self.remainingLength = maxLength
     self.userInfo = userInfo
@@ -187,25 +177,11 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
     return remainingLength == 0
   }
 
-  func hasAtLeast(minBytes: Int) throws -> Bool {
-    if minBytes > remainingLength {
-      return false
-    }
-    return try dataStream.hasAtLeast(minBytes: minBytes)
+  func decode<IntegerType: FixedWidthInteger>(_ type: IntegerType.Type) throws -> IntegerType {
+    return try decodeFixedWidthInteger(type)
   }
 
-  func decode(_ type: Int.Type) throws -> Int { return try decodeFixedWidthInteger(type) }
-  func decode(_ type: Int8.Type) throws -> Int8 { return try decodeFixedWidthInteger(type) }
-  func decode(_ type: Int16.Type) throws -> Int16 { return try decodeFixedWidthInteger(type) }
-  func decode(_ type: Int32.Type) throws -> Int32 { return try decodeFixedWidthInteger(type) }
-  func decode(_ type: Int64.Type) throws -> Int64 { return try decodeFixedWidthInteger(type) }
-  func decode(_ type: UInt.Type) throws -> UInt { return try decodeFixedWidthInteger(type) }
-  func decode(_ type: UInt8.Type) throws -> UInt8 { return try decodeFixedWidthInteger(type) }
-  func decode(_ type: UInt16.Type) throws -> UInt16 { return try decodeFixedWidthInteger(type) }
-  func decode(_ type: UInt32.Type) throws -> UInt32 { return try decodeFixedWidthInteger(type) }
-  func decode(_ type: UInt64.Type) throws -> UInt64 { return try decodeFixedWidthInteger(type) }
-
-  func decode(_ type: String.Type, encoding: String.Encoding, terminator: UInt8) throws -> String {
+  func decodeString(encoding: String.Encoding, terminator: UInt8) throws -> String {
     let result = try dataStream.pull(until: terminator)
     guard result.didFindDelimiter else {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
@@ -219,7 +195,7 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
     return string
   }
 
-  func decodeToEnd(_ type: String.Type, encoding: String.Encoding) throws -> String {
+  func decodeString(encoding: String.Encoding) throws -> String {
     let data = try dataStream.pull(maxBytes: Int.max)
     self.remainingLength = remainingLength - (data.count + 1)
     guard let string = String(data: data, encoding: encoding) else {
@@ -229,7 +205,7 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
     return string
   }
 
-  func decode<T>(_ type: T.Type) throws -> T where T : BinaryDecodable {
+  func decode<T>(_ type: T.Type) throws -> T where T: BinaryDecodable {
     let containedDataStream = LazyDataStream(reader: AnyReader(read: { recommendedAmount -> Data? in
       let data = try self.pullData(maxLength: recommendedAmount)
       return data.count > 0 ? data : nil
@@ -287,4 +263,3 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
     return value
   }
 }
-

@@ -30,7 +30,7 @@ private struct Payload: BinaryDecodable {
     var container = decoder.container(maxLength: nil)
     self.unsignedValue = try container.decode(type(of: unsignedValue))
     self.enumValue = try container.decode(type(of: enumValue))
-    self.stringValue = try container.decode(type(of: stringValue), encoding: .utf8, terminator: 0)
+    self.stringValue = try container.decodeString(encoding: .utf8, terminator: 0)
     self.signedValue = try container.decode(type(of: signedValue))
   }
 }

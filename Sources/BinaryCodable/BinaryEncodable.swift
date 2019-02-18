@@ -46,7 +46,7 @@ public protocol BinaryEncoder {
 /**
  An error that occurs during the binary encoding of a value.
  */
-public enum BinaryEncodingError : Error {
+public enum BinaryEncodingError: Error {
 
   /**
    The context in which the error occurred.
@@ -59,19 +59,12 @@ public enum BinaryEncodingError : Error {
     public let debugDescription: String
 
     /**
-     The underlying error which caused this error, if any.
-     */
-    public let underlyingError: Error?
-
-    /**
      Creates a new context with the given description of what went wrong.
 
      - parameter debugDescription: A description of what went wrong, for debugging purposes.
-     - parameter underlyingError: The underlying error which caused this error, if any.
      */
-    public init(debugDescription: String, underlyingError: Error? = nil) {
+    public init(debugDescription: String) {
       self.debugDescription = debugDescription
-      self.underlyingError = underlyingError
     }
   }
 
@@ -104,77 +97,14 @@ public protocol BinaryEncodingContainer {
 
    - parameter value: The value to encode.
    */
-  mutating func encode(_ value: Int) throws
+  mutating func encode<IntegerType: FixedWidthInteger>(_ value: IntegerType) throws
 
   /**
    Encodes a value of the given type.
 
    - parameter value: The value to encode.
    */
-  mutating func encode(_ value: Int8) throws
-
-  /**
-   Encodes a value of the given type.
-
-   - parameter value: The value to encode.
-   */
-  mutating func encode(_ value: Int16) throws
-
-  /**
-   Encodes a value of the given type.
-
-   - parameter value: The value to encode.
-   */
-  mutating func encode(_ value: Int32) throws
-
-  /**
-   Encodes a value of the given type.
-
-   - parameter value: The value to encode.
-   */
-  mutating func encode(_ value: Int64) throws
-
-  /**
-   Encodes a value of the given type.
-
-   - parameter value: The value to encode.
-   */
-  mutating func encode(_ value: UInt) throws
-
-  /**
-   Encodes a value of the given type.
-
-   - parameter value: The value to encode.
-   */
-  mutating func encode(_ value: UInt8) throws
-
-  /**
-   Encodes a value of the given type.
-
-   - parameter value: The value to encode.
-   */
-  mutating func encode(_ value: UInt16) throws
-
-  /**
-   Encodes a value of the given type.
-
-   - parameter value: The value to encode.
-   */
-  mutating func encode(_ value: UInt32) throws
-
-  /**
-   Encodes a value of the given type.
-
-   - parameter value: The value to encode.
-   */
-  mutating func encode(_ value: UInt64) throws
-
-  /**
-   Encodes a value of the given type.
-
-   - parameter value: The value to encode.
-   */
-  mutating func encode<T>(_ value: T) throws where T : BinaryEncodable
+  mutating func encode<T>(_ value: T) throws where T: BinaryEncodable
 
   /**
    Encodes a sequence of bytes.
@@ -186,21 +116,21 @@ public protocol BinaryEncodingContainer {
 
 // MARK: RawRepresentable extensions
 
-extension RawRepresentable where RawValue == UInt8, Self : BinaryEncodable {
+extension RawRepresentable where RawValue == UInt8, Self: BinaryEncodable {
   public func encode(to encoder: BinaryEncoder) throws {
     var container = encoder.container()
     try container.encode(self.rawValue)
   }
 }
 
-extension RawRepresentable where RawValue == UInt16, Self : BinaryEncodable {
+extension RawRepresentable where RawValue == UInt16, Self: BinaryEncodable {
   public func encode(to encoder: BinaryEncoder) throws {
     var container = encoder.container()
     try container.encode(self.rawValue)
   }
 }
 
-extension RawRepresentable where RawValue == UInt32, Self : BinaryEncodable {
+extension RawRepresentable where RawValue == UInt32, Self: BinaryEncodable {
   public func encode(to encoder: BinaryEncoder) throws {
     var container = encoder.container()
     try container.encode(self.rawValue)

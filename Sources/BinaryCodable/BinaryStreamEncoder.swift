@@ -52,17 +52,10 @@ private struct UnboundedDataStreamEncodingContainer: BinaryEncodingContainer {
     self.encoder = encoder
   }
 
-  func encode(_ value: Int) throws { encoder.storage.data.append(contentsOf: value.bytes) }
-  func encode(_ value: Int8) throws { encoder.storage.data.append(contentsOf: value.bytes) }
-  func encode(_ value: Int16) throws { encoder.storage.data.append(contentsOf: value.bytes) }
-  func encode(_ value: Int32) throws { encoder.storage.data.append(contentsOf: value.bytes) }
-  func encode(_ value: Int64) throws { encoder.storage.data.append(contentsOf: value.bytes) }
-  func encode(_ value: UInt) throws { encoder.storage.data.append(contentsOf: value.bytes) }
-  func encode(_ value: UInt8) throws { encoder.storage.data.append(contentsOf: value.bytes) }
-  func encode(_ value: UInt16) throws { encoder.storage.data.append(contentsOf: value.bytes) }
-  func encode(_ value: UInt32) throws { encoder.storage.data.append(contentsOf: value.bytes) }
-  func encode(_ value: UInt64) throws { encoder.storage.data.append(contentsOf: value.bytes) }
-  func encode<T>(_ value: T) throws where T : BinaryEncodable { try value.encode(to: encoder) }
+  func encode<IntegerType: FixedWidthInteger>(_ value: IntegerType) throws {
+    encoder.storage.data.append(contentsOf: value.bytes)
+  }
+  func encode<T>(_ value: T) throws where T: BinaryEncodable { try value.encode(to: encoder) }
 
   func encode(_ value: String, encoding: String.Encoding, terminator: UInt8?) throws {
     guard let data = value.data(using: encoding) else {
