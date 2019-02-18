@@ -15,15 +15,15 @@
 import BinaryCodable
 import XCTest
 
-final class LazyDataStreamTests: XCTestCase {
+final class BufferedDataTests: XCTestCase {
 
   func testInitiallyPullsFromStart() throws {
     // Given
     let data = Data([UInt8](0..<255))
-    let lazyData = lazyDataStream(from: data)
+    let lazyData = bufferedData(from: data)
 
     // When
-    let readData = try lazyData.pull(maxBytes: 100)
+    let readData = try lazyData.read(maxBytes: 100)
 
     // Then
     XCTAssertEqual([UInt8](readData), [UInt8](0..<100))
@@ -32,12 +32,12 @@ final class LazyDataStreamTests: XCTestCase {
   func testSuccessivePullsUseCursor() throws {
     // Given
     let data = Data([UInt8](0..<255))
-    let lazyData = lazyDataStream(from: data)
+    let lazyData = bufferedData(from: data)
 
     // When
-    let readData1 = try lazyData.pull(maxBytes: 25)
-    let readData2 = try lazyData.pull(maxBytes: 25)
-    let readData3 = try lazyData.pull(maxBytes: 25)
+    let readData1 = try lazyData.read(maxBytes: 25)
+    let readData2 = try lazyData.read(maxBytes: 25)
+    let readData3 = try lazyData.read(maxBytes: 25)
 
     // Then
     XCTAssertEqual([UInt8](readData1), [UInt8](0..<25))
@@ -48,10 +48,10 @@ final class LazyDataStreamTests: XCTestCase {
   func testPullingMoreThanAvailableOnlyPullsWhatsAvailable() throws {
     // Given
     let data = Data([UInt8](0..<255))
-    let lazyData = lazyDataStream(from: data)
+    let lazyData = bufferedData(from: data)
 
     // When
-    let readData = try lazyData.pull(maxBytes: 1000)
+    let readData = try lazyData.read(maxBytes: 1000)
 
     // Then
     XCTAssertEqual([UInt8](readData), [UInt8](0..<255))

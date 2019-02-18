@@ -128,9 +128,9 @@ extension MySqlClient {
     return nil
   }
 
-  private static func createDataStream(socket: Socket) -> LazyDataStream {
+  private static func createDataStream(socket: Socket) -> BufferedData {
     var buffer = Data(capacity: socket.readBufferSize)
-    return LazyDataStream(reader: AnyReader(read: { recommendedAmount in
+    return BufferedData(reader: AnyReader(read: { recommendedAmount in
       if buffer.count == 0 {
         _ = try socket.read(into: &buffer)
       }
@@ -156,9 +156,9 @@ extension MySqlClient {
 final class Connection {
   let decoder: BinaryStreamDecoder
   let socket: Socket
-  let socketDataStream: LazyDataStream
+  let socketDataStream: BufferedData
 
-  init(decoder: BinaryStreamDecoder, socket: Socket, socketDataStream: LazyDataStream) {
+  init(decoder: BinaryStreamDecoder, socket: Socket, socketDataStream: BufferedData) {
     self.decoder = decoder
     self.socket = socket
     self.socketDataStream = socketDataStream

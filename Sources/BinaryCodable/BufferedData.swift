@@ -1,0 +1,197 @@
+// Copyright 2019-present the MySqlConnector authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import Foundation
+
+/**
+ Convenience method for creating a buffered data view for some given Data.
+ */
+public func bufferedData(from data: Data) -> BufferedData {
+  return BufferedData(reader: DataReader(data: data))
+}
+
+/**
+ An interface for lazily reading data from a source.
+ */
+public final class BufferedData {
+  /**
+   Whether the buffer's internal cursor has reached the end of the available content.
+   */
+  public var isAtEnd: Bool = false
+
+  /**
+   - parameter reader: An object that implements mechanisms for retrieving data that can be added to the buffer.
+   - parameter initialCapacity: The initial capacity of the internal buffer.
+   */
+  public init(reader: BufferedDataSource, initialCapacity: Int = 1024) {
+    self.buffer = Data(capacity: initialCapacity)
+    self.reader = reader
+  }
+
+  /**
+   Returns up to `maxLength` bytes from the source without modifying the internal buffer cursor.
+
+   Note that it is not guaranteed that `maxLength` bytes will be returned. For example, if the source only has 100 bytes
+   of data available but 1000 are requested, then only 100 bytes will be returned.
+   */
+  public func peek(maxLength: Int) throws -> Data {
+    while buffer.count < maxLength {
+      guard let data = try reader.read(length: maxLength - buffer.count) else {
+        isAtEnd = true
+        break
+      }
+      buffer.append(data)
+    }
+    return buffer.prefix(maxLength)
+  }
+
+  /**
+   Returns up to `maxLength` bytes from the source.
+
+   The internal buffer cursor will also be moved forward by the number of returned bytes.
+
+   Note that it is not guaranteed that `maxLength` bytes will be returned. For example, if the source only has 100 bytes
+   of data available but 1000 are requested, then only 100 bytes will be returned.
+   */
+  public func read(maxBytes: Int) throws -> Data {
+    while buffer.count < maxBytes {
+      guard let data = try reader.read(length: maxBytes - buffer.count) else {
+        isAtEnd = true
+        break
+      }
+      buffer.append(data)
+    }
+    let data = buffer.prefix(maxBytes)
+    buffer = buffer[(buffer.startIndex + data.count)...]
+    return data
+  }
+
+  /**
+   Returns bytes from the source until either the delimiter is found or there is no remaining data in the source.
+
+   The internal buffer cursor will also be moved forward by the number of returned bytes.
+
+   Note that it is not guaranteed that `maxLength` bytes will be returned. For example, if the source only has 100 bytes
+   of data available but 1000 are requested, then only 100 bytes will be returned.
+   */
+  public func read(until delimiter: UInt8) throws -> (data: Data, didFindDelimiter: Bool) {
+    var indexOfDelimiter = buffer.firstIndex(of: delimiter)
+    while indexOfDelimiter == nil {
+      guard let data = try reader.read(length: 1) else {
+        isAtEnd = true
+        break
+      }
+      if let subIndex = data.firstIndex(of: delimiter) {
+        indexOfDelimiter = buffer.startIndex + buffer.count + (subIndex - data.startIndex)
+      }
+      buffer.append(data)
+    }
+    if let indexOfDelimiter = indexOfDelimiter {
+      let data = buffer.prefix(indexOfDelimiter - buffer.startIndex)
+      buffer = buffer[(buffer.startIndex + data.count + 1)...]
+      return (data: data, didFindDelimiter: true)
+    } else {
+      // Couldn't find the delimeter, so read in all of the data.
+      let data = buffer
+      buffer = buffer[(buffer.startIndex + data.count)...]
+      return (data: data, didFindDelimiter: false)
+    }
+  }
+
+  // Note: the buffer may never decrease in size which can be a concern for long-running applications.
+  // This may need to be changed to a ring buffer implementation, where the ring buffer's size is increased only when
+  // the number of bytes requested grows larger than the ring buffer.
+  // Example implementation in Swift's Sequence:
+  // https://github.com/apple/swift/blob/b0fbbb3342c1c2df0753a0fc9b469e9d951adf43/stdlib/public/core/Sequence.swift#L898
+  private var buffer: Data
+  private let reader: BufferedDataSource
+}
+
+/**
+ A type that implements mechanisms for reading data from an external source.
+ */
+public protocol BufferedDataSource {
+  /**
+   Requests that `length` bytes be read from the external source.
+
+   - parameter length: A recommended number of bytes to return.
+   */
+  func read(length: Int) throws -> Data?
+  func peek(length: Int) throws -> Data?
+
+  /**
+   Whether or not the source has reached the end of its data.
+   */
+  var isAtEnd: Bool { get }
+}
+
+/**
+ An interface for lazily reading data.
+ */
+public protocol StreamableDataProvider {
+  var isAtEnd: Bool { get }
+  mutating func read(maxBytes: Int) throws -> Data
+  mutating func read(until delimiter: UInt8) throws -> (data: Data, didFindDelimiter: Bool)
+  mutating func peek(maxLength: Int) throws -> Data
+}
+
+extension BufferedData: StreamableDataProvider {}
+
+public final class AnyReader: BufferedDataSource {
+  let readCallback: (Int) throws -> Data?
+  let peekCallback: (Int) throws -> Data?
+  let isAtEndCallback: () -> Bool
+  public init(read: @escaping (Int) throws -> Data?,
+              peek: @escaping (Int) throws -> Data?,
+              isAtEnd: @escaping () -> Bool) {
+    self.readCallback = read
+    self.peekCallback = peek
+    self.isAtEndCallback = isAtEnd
+  }
+
+  public func read(length: Int) throws -> Data? {
+    return try readCallback(length)
+  }
+
+  public func peek(length: Int) throws -> Data? {
+    return try peekCallback(length)
+  }
+
+  public var isAtEnd: Bool { return isAtEndCallback() }
+}
+
+public final class DataReader: BufferedDataSource {
+  var data: Data
+  init(data: Data) {
+    self.data = data
+  }
+
+  public func read(length: Int) throws -> Data? {
+    guard !isAtEnd else {
+      return nil
+    }
+    let requestedData = data.prefix(length)
+    data = data.dropFirst(length)
+    return requestedData
+  }
+
+  public func peek(length: Int) throws -> Data? {
+    guard !isAtEnd else {
+      return nil
+    }
+    return data.prefix(length)
+  }
+
+  public var isAtEnd: Bool { return data.isEmpty }
+}
