@@ -16,8 +16,6 @@ import Foundation
 
 // Note: the types described below are based off - but distinct from - Swift's Codable family of APIs.
 
-public typealias BinaryCodable = BinaryDecodable & BinaryEncodable
-
 /**
  A type that can encode itself to an external binary representation.
  */
@@ -116,21 +114,7 @@ public protocol BinaryEncodingContainer {
 
 // MARK: RawRepresentable extensions
 
-extension RawRepresentable where RawValue == UInt8, Self: BinaryEncodable {
-  public func encode(to encoder: BinaryEncoder) throws {
-    var container = encoder.container()
-    try container.encode(self.rawValue)
-  }
-}
-
-extension RawRepresentable where RawValue == UInt16, Self: BinaryEncodable {
-  public func encode(to encoder: BinaryEncoder) throws {
-    var container = encoder.container()
-    try container.encode(self.rawValue)
-  }
-}
-
-extension RawRepresentable where RawValue == UInt32, Self: BinaryEncodable {
+extension RawRepresentable where RawValue: FixedWidthInteger, Self: BinaryEncodable {
   public func encode(to encoder: BinaryEncoder) throws {
     var container = encoder.container()
     try container.encode(self.rawValue)
