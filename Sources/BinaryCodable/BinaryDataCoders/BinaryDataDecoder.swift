@@ -48,11 +48,11 @@ public struct BinaryDataDecoder {
   }
 
   public func decode<T>(_ type: T.Type, from bufferedData: BufferedData) throws -> T where T: BinaryDecodable {
-    return try T.init(from: _BinaryStreamDecoder(bufferedData: bufferedData, userInfo: userInfo))
+    return try T.init(from: _BinaryDataDecoder(bufferedData: bufferedData, userInfo: userInfo))
   }
 }
 
-private struct _BinaryStreamDecoder: BinaryDecoder {
+private struct _BinaryDataDecoder: BinaryDecoder {
   var bufferedData: BufferedData
   let userInfo: [BinaryCodingUserInfoKey: Any]
   let container: BinaryDecodingContainer?
@@ -70,24 +70,24 @@ private struct _BinaryStreamDecoder: BinaryDecoder {
   }
 
   func container(maxLength: Int?) -> BinaryDecodingContainer {
-    if let maxLength = maxLength, let container = container as? BoundedDataStreamDecodingContainer {
-      return BoundedDataStreamDecodingContainer(bufferedData: bufferedData,
+    if let maxLength = maxLength, let container = container as? BoundedBinaryDataDecodingContainer {
+      return BoundedBinaryDataDecodingContainer(bufferedData: bufferedData,
                                                 maxLength: min(maxLength, container.remainingLength),
                                                 userInfo: userInfo)
 
     } else if let maxLength = maxLength {
-      return BoundedDataStreamDecodingContainer(bufferedData: bufferedData, maxLength: maxLength, userInfo: userInfo)
+      return BoundedBinaryDataDecodingContainer(bufferedData: bufferedData, maxLength: maxLength, userInfo: userInfo)
 
-    } else if let container = container as? BoundedDataStreamDecodingContainer {
-      return BoundedDataStreamDecodingContainer(bufferedData: bufferedData, maxLength: container.remainingLength, userInfo: userInfo)
+    } else if let container = container as? BoundedBinaryDataDecodingContainer {
+      return BoundedBinaryDataDecodingContainer(bufferedData: bufferedData, maxLength: container.remainingLength, userInfo: userInfo)
 
     } else {
-      return UnboundedDataStreamDecodingContainer(bufferedData: bufferedData, userInfo: userInfo)
+      return UnboundedBinaryDataDecodingContainer(bufferedData: bufferedData, userInfo: userInfo)
     }
   }
 }
 
-private struct UnboundedDataStreamDecodingContainer: BinaryDecodingContainer {
+private struct UnboundedBinaryDataDecodingContainer: BinaryDecodingContainer {
   var bufferedData: BufferedData
   let userInfo: [BinaryCodingUserInfoKey: Any]
   init(bufferedData: BufferedData, userInfo: [BinaryCodingUserInfoKey: Any]) {
@@ -117,7 +117,7 @@ private struct UnboundedDataStreamDecodingContainer: BinaryDecodingContainer {
   }
 
   mutating func decode<T>(_ type: T.Type) throws -> T where T: BinaryDecodable {
-    return try T.init(from: _BinaryStreamDecoder(bufferedData: bufferedData, userInfo: userInfo, container: self))
+    return try T.init(from: _BinaryDataDecoder(bufferedData: bufferedData, userInfo: userInfo, container: self))
   }
 
   mutating func decode(length: Int) throws -> Data {
@@ -140,9 +140,9 @@ private struct UnboundedDataStreamDecodingContainer: BinaryDecodingContainer {
 
   mutating func nestedContainer(maxLength: Int?) -> BinaryDecodingContainer {
     if let maxLength = maxLength {
-      return BoundedDataStreamDecodingContainer(bufferedData: bufferedData, maxLength: maxLength, userInfo: userInfo)
+      return BoundedBinaryDataDecodingContainer(bufferedData: bufferedData, maxLength: maxLength, userInfo: userInfo)
     } else {
-      return UnboundedDataStreamDecodingContainer(bufferedData: bufferedData, userInfo: userInfo)
+      return UnboundedBinaryDataDecodingContainer(bufferedData: bufferedData, userInfo: userInfo)
     }
   }
 
@@ -163,7 +163,7 @@ private struct UnboundedDataStreamDecodingContainer: BinaryDecodingContainer {
 }
 
 // This needs to be a class instead of a struct because we hold a mutating reference in decode<T>.
-private class BoundedDataStreamDecodingContainer: BinaryDecodingContainer {
+private class BoundedBinaryDataDecodingContainer: BinaryDecodingContainer {
   var bufferedData: BufferedData
   var remainingLength: Int
   let userInfo: [BinaryCodingUserInfoKey: Any]
@@ -206,13 +206,13 @@ private class BoundedDataStreamDecodingContainer: BinaryDecodingContainer {
   }
 
   func decode<T>(_ type: T.Type) throws -> T where T: BinaryDecodable {
-    let containedDataStream = BufferedData(reader: AnyReader(read: { recommendedAmount -> Data? in
+    let containedBuffer = BufferedData(reader: AnyBufferedDataSource(read: { recommendedAmount -> Data? in
       let data = try self.pullData(maxLength: recommendedAmount)
       return data.count > 0 ? data : nil
     }, isAtEnd: {
       return self.bufferedData.isAtEnd
     }))
-    return try T.init(from: _BinaryStreamDecoder(bufferedData: containedDataStream, userInfo: userInfo, container: self))
+    return try T.init(from: _BinaryDataDecoder(bufferedData: containedBuffer, userInfo: userInfo, container: self))
   }
 
   func decode(length: Int) throws -> Data {
@@ -226,9 +226,9 @@ private class BoundedDataStreamDecodingContainer: BinaryDecodingContainer {
 
   func nestedContainer(maxLength: Int?) -> BinaryDecodingContainer {
     if let maxLength = maxLength {
-      return BoundedDataStreamDecodingContainer(bufferedData: bufferedData, maxLength: maxLength, userInfo: userInfo)
+      return BoundedBinaryDataDecodingContainer(bufferedData: bufferedData, maxLength: maxLength, userInfo: userInfo)
     } else {
-      return UnboundedDataStreamDecodingContainer(bufferedData: bufferedData, userInfo: userInfo)
+      return UnboundedBinaryDataDecodingContainer(bufferedData: bufferedData, userInfo: userInfo)
     }
   }
 
