@@ -30,8 +30,6 @@ public protocol BinaryDecodable {
   init(from decoder: BinaryDecoder) throws
 }
 
-public typealias BinaryCodingUserInfoKey = String
-
 /**
  A type that can decode values from a binary format into in-memory representations.
  */
@@ -155,7 +153,6 @@ public protocol BinaryDecodingContainer {
 }
 
 // MARK: RawRepresentable extensions
-// Enables certain foundation types to be automatically binary decodable.
 
 extension RawRepresentable where RawValue: FixedWidthInteger, Self: BinaryDecodable {
   public init(from decoder: BinaryDecoder) throws {

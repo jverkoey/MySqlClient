@@ -13,3 +13,5 @@
 // limitations under the License.
 
 public typealias BinaryCodable = BinaryDecodable & BinaryEncodable
+
+public typealias BinaryCodingUserInfoKey = String
