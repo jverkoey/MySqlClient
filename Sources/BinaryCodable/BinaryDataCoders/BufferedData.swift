@@ -15,14 +15,18 @@
 import Foundation
 
 /**
- Convenience method for creating a buffered data view for some given Data.
+ Creates a buffered data view into a given Data object.
  */
 public func bufferedData(from data: Data) -> BufferedData {
-  return BufferedData(reader: DataReader(data: data))
+  return BufferedData(reader: DataBufferedDataSource(data: data))
 }
 
 /**
  An interface for lazily reading data from a source.
+
+ A buffered data object allows data to be read into memory on-demand, rather than requiring that all data be represented
+ in memory or even available simultaneously. This can be used to read large files from disk or to read data from a
+ socket one packet at a time.
  */
 public final class BufferedData {
   /**
@@ -136,9 +140,10 @@ public protocol BufferedDataSource {
   var isAtEnd: Bool { get }
 }
 
-public final class AnyReader: BufferedDataSource {
-  let readCallback: (Int) throws -> Data?
-  let isAtEndCallback: () -> Bool
+/**
+ A type-erased buffered data source.
+ */
+public final class AnyBufferedDataSource: BufferedDataSource {
   public init(read: @escaping (Int) throws -> Data?, isAtEnd: @escaping () -> Bool) {
     self.readCallback = read
     self.isAtEndCallback = isAtEnd
@@ -149,15 +154,20 @@ public final class AnyReader: BufferedDataSource {
   }
 
   public var isAtEnd: Bool { return isAtEndCallback() }
+
+  private let readCallback: (Int) throws -> Data?
+  private let isAtEndCallback: () -> Bool
 }
 
-public final class DataReader: BufferedDataSource {
-  var data: Data
+/**
+ A buffered data source for a Data object.
+ */
+private final class DataBufferedDataSource: BufferedDataSource {
   init(data: Data) {
     self.data = data
   }
 
-  public func read(length: Int) throws -> Data? {
+  func read(length: Int) throws -> Data? {
     guard !isAtEnd else {
       return nil
     }
@@ -166,5 +176,7 @@ public final class DataReader: BufferedDataSource {
     return requestedData
   }
 
-  public var isAtEnd: Bool { return data.isEmpty }
+  var isAtEnd: Bool { return data.isEmpty }
+
+  private var data: Data
 }

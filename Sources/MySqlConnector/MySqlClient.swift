@@ -130,7 +130,7 @@ extension MySqlClient {
 
   private static func createDataStream(socket: Socket) -> BufferedData {
     var buffer = Data(capacity: socket.readBufferSize)
-    return BufferedData(reader: AnyReader(read: { length in
+    return BufferedData(reader: AnyBufferedDataSource(read: { length in
       if buffer.count == 0 {
         _ = try socket.read(into: &buffer)
       }

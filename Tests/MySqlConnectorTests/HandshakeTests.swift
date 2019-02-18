@@ -36,7 +36,7 @@ final class HandshakeTests: XCTestCase {
     }
 
     var buffer = Data(capacity: socket.readBufferSize)
-    socketDataStream = BufferedData(reader: AnyReader(read: { recommendedAmount in
+    socketDataStream = BufferedData(reader: AnyBufferedDataSource(read: { recommendedAmount in
       if buffer.count == 0 {
         _ = try self.socket.read(into: &buffer)
       }

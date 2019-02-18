@@ -21,41 +21,43 @@ public struct BinaryDataEncoder {
   public init() {}
 
   /**
-   Returns a type you specify encoded from data.
+   Returns a binary-encoded representation of a given value.
 
-   - parameter type: The type of the instance to be encoded.
-   - parameter data: The data from which the instance should be encoded.
-   - returns: An instance of `type` encoded from `data`.
+   - parameter value: The instance to be encoded.
+   - returns: `value` encoded in binary form.
    */
-  public func encode<T>(_ type: T) throws -> Data where T: BinaryEncodable {
-    let encoder = _BinaryStreamEncoder()
-    try type.encode(to: encoder)
+  public func encode<T>(_ value: T) throws -> Data where T: BinaryEncodable {
+    let encoder = _BinaryDataEncoder()
+    try value.encode(to: encoder)
     return encoder.storage.data
   }
 }
 
-private final class BinaryStreamEncoderStorage {
+private final class BinaryDataEncoderStorage {
   var data = Data()
 }
 
-private struct _BinaryStreamEncoder: BinaryEncoder {
-  var storage = BinaryStreamEncoderStorage()
+private struct _BinaryDataEncoder: BinaryEncoder {
+  var storage = BinaryDataEncoderStorage()
 
   func container() -> BinaryEncodingContainer {
-    return UnboundedDataStreamEncodingContainer(encoder: self)
+    return BinaryDataEncodingContainer(encoder: self)
   }
 }
 
-private struct UnboundedDataStreamEncodingContainer: BinaryEncodingContainer {
-  let encoder: _BinaryStreamEncoder
-  init(encoder: _BinaryStreamEncoder) {
+private struct BinaryDataEncodingContainer: BinaryEncodingContainer {
+  let encoder: _BinaryDataEncoder
+  init(encoder: _BinaryDataEncoder) {
     self.encoder = encoder
   }
 
   func encode<IntegerType: FixedWidthInteger>(_ value: IntegerType) throws {
     encoder.storage.data.append(contentsOf: value.bytes)
   }
-  func encode<T>(_ value: T) throws where T: BinaryEncodable { try value.encode(to: encoder) }
+
+  func encode<T>(_ value: T) throws where T: BinaryEncodable {
+    try value.encode(to: encoder)
+  }
 
   func encode(_ value: String, encoding: String.Encoding, terminator: UInt8?) throws {
     guard let data = value.data(using: encoding) else {
