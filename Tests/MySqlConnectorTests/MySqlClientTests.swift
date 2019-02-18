@@ -41,7 +41,6 @@ final class MySqlClientTests: XCTestCase {
 
     // Then
     XCTAssertNotNil(connection)
-    XCTAssertEqual(client.connectionPool.count, 1)
   }
 
   func testReusesIdleConnection() throws {
@@ -56,6 +55,5 @@ final class MySqlClientTests: XCTestCase {
     // Then
     XCTAssertNotNil(connection1)
     XCTAssertNotNil(connection2)
-    XCTAssertEqual(client.connectionPool.count, 1)
   }
 }
