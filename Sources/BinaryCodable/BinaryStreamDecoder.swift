@@ -33,7 +33,7 @@ public struct BinaryStreamDecoder {
    - returns: An instance of `type` decoded from `data`.
    */
   public func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: BinaryDecodable {
-    return try decode(type, from: lazyDataStream(from: data))
+    return try decode(type, from: bufferedData(from: data))
   }
 
   /**
@@ -44,7 +44,7 @@ public struct BinaryStreamDecoder {
    - returns: An instance of `type` decoded from `bytes`.
    */
   public func decode<T>(_ type: T.Type, from bytes: [UInt8]) throws -> T where T: BinaryDecodable {
-    return try decode(type, from: lazyDataStream(from: Data(bytes)))
+    return try decode(type, from: bufferedData(from: Data(bytes)))
   }
 
   public func decode<T, S>(_ type: T.Type, from dataStream: S) throws -> T where T: BinaryDecodable, S: StreamableDataProvider {
@@ -104,7 +104,7 @@ private struct UnboundedDataStreamDecodingContainer<S: StreamableDataProvider>: 
   }
 
   mutating func decodeString(encoding: String.Encoding, terminator: UInt8) throws -> String {
-    let result = try dataStream.pull(until: terminator)
+    let result = try dataStream.read(until: terminator)
     guard result.didFindDelimiter else {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Unable to find delimiter for string."))
@@ -121,7 +121,7 @@ private struct UnboundedDataStreamDecodingContainer<S: StreamableDataProvider>: 
   }
 
   mutating func decode(length: Int) throws -> Data {
-    let data = try dataStream.pull(maxBytes: length)
+    let data = try dataStream.read(maxBytes: length)
     if data.count != length {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Not enough bytes available to decode. Requested \(length), but received \(data.count)."))
@@ -130,7 +130,7 @@ private struct UnboundedDataStreamDecodingContainer<S: StreamableDataProvider>: 
   }
 
   mutating func peek(length: Int) throws -> Data {
-    let data = try dataStream.peek(maxBytes: length)
+    let data = try dataStream.peek(maxLength: length)
     if data.count != length {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Not enough bytes available to decode. Requested \(length), but received \(data.count)."))
@@ -148,7 +148,7 @@ private struct UnboundedDataStreamDecodingContainer<S: StreamableDataProvider>: 
 
   mutating func decodeFixedWidthInteger<T>(_ type: T.Type) throws -> T where T: FixedWidthInteger {
     let byteWidth = type.bitWidth / 8
-    let bytes = try dataStream.pull(maxBytes: byteWidth)
+    let bytes = try dataStream.read(maxBytes: byteWidth)
     if bytes.count < byteWidth {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Not enough data to create a a type of \(type). Needed: \(byteWidth). Received: \(bytes.count)."))
@@ -182,7 +182,7 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
   }
 
   func decodeString(encoding: String.Encoding, terminator: UInt8) throws -> String {
-    let result = try dataStream.pull(until: terminator)
+    let result = try dataStream.read(until: terminator)
     guard result.didFindDelimiter else {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Unable to find delimiter for string."))
@@ -196,7 +196,7 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
   }
 
   func decodeString(encoding: String.Encoding) throws -> String {
-    let data = try dataStream.pull(maxBytes: Int.max)
+    let data = try dataStream.read(maxBytes: Int.max)
     self.remainingLength = remainingLength - (data.count + 1)
     guard let string = String(data: data, encoding: encoding) else {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
@@ -206,7 +206,7 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
   }
 
   func decode<T>(_ type: T.Type) throws -> T where T: BinaryDecodable {
-    let containedDataStream = LazyDataStream(reader: AnyReader(read: { recommendedAmount -> Data? in
+    let containedDataStream = BufferedData(reader: AnyReader(read: { recommendedAmount -> Data? in
       let data = try self.pullData(maxLength: recommendedAmount)
       return data.count > 0 ? data : nil
     }, peek: { recommendedAmount -> Data? in
@@ -236,13 +236,13 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
   }
 
   func pullData(maxLength: Int) throws -> Data {
-    let data = try dataStream.pull(maxBytes: min(remainingLength, maxLength))
+    let data = try dataStream.read(maxBytes: min(remainingLength, maxLength))
     self.remainingLength = remainingLength - data.count
     return data
   }
 
   func peek(length: Int) throws -> Data {
-    let data = try dataStream.peek(maxBytes: min(remainingLength, length))
+    let data = try dataStream.peek(maxLength: min(remainingLength, length))
     if data.count != length {
       throw BinaryDecodingError.dataCorrupted(.init(debugDescription:
         "Not enough bytes available to decode. Requested \(length), but received \(data.count)."))

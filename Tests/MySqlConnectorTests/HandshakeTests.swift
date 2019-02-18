@@ -19,7 +19,7 @@ import XCTest
 
 final class HandshakeTests: XCTestCase {
   var socket: Socket!
-  var socketDataStream: LazyDataStream!
+  var socketDataStream: BufferedData!
   let config = TestConfig.environment
   override func setUp() {
     super.setUp()
@@ -36,7 +36,7 @@ final class HandshakeTests: XCTestCase {
     }
 
     var buffer = Data(capacity: socket.readBufferSize)
-    socketDataStream = LazyDataStream(reader: AnyReader(read: { recommendedAmount in
+    socketDataStream = BufferedData(reader: AnyReader(read: { recommendedAmount in
       if buffer.count == 0 {
         _ = try self.socket.read(into: &buffer)
       }

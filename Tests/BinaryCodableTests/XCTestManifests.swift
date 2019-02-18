@@ -1,6 +1,6 @@
 import XCTest
 
-extension LazyDataStreamTests {
+extension BufferedDataTests {
     static let __allTests = [
         ("testInitiallyPullsFromStart", testInitiallyPullsFromStart),
         ("testPullingMoreThanAvailableOnlyPullsWhatsAvailable", testPullingMoreThanAvailableOnlyPullsWhatsAvailable),
@@ -21,7 +21,7 @@ extension Tests {
 #if !os(macOS)
 public func __allTests() -> [XCTestCaseEntry] {
     return [
-        testCase(LazyDataStreamTests.__allTests),
+        testCase(BufferedDataTests.__allTests),
         testCase(Tests.__allTests),
     ]
 }
