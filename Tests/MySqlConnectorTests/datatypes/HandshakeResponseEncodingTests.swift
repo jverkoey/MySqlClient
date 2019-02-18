@@ -27,7 +27,7 @@ class HandshakeResponseEncodingTests: XCTestCase {
                                      capabilityFlags: [],
                                      authPluginData: Data(repeating: 0xf1, count: 20),
                                      authPluginName: "plugin")
-    let encoder = BinaryStreamEncoder()
+    let encoder = BinaryDataEncoder()
 
     // When
     let data = try encoder.encode(response)
@@ -49,7 +49,7 @@ class HandshakeResponseEncodingTests: XCTestCase {
                                      capabilityFlags: [.secureConnection, .connectWithDb, .pluginAuth],
                                      authPluginData: Data(repeating: 0xf1, count: 20),
                                      authPluginName: "plugin")
-    let encoder = BinaryStreamEncoder()
+    let encoder = BinaryDataEncoder()
 
     // When
     let data = try encoder.encode(response)

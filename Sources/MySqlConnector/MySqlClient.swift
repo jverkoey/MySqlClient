@@ -93,7 +93,7 @@ extension MySqlClient {
     }
 
     let socketDataStream = createDataStream(socket: socket)
-    var decoder = BinaryStreamDecoder()
+    var decoder = BinaryDataDecoder()
 
     // Step 1: Receive Handshake from server.
     let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
@@ -148,11 +148,11 @@ extension MySqlClient {
 }
 
 final class Connection {
-  let decoder: BinaryStreamDecoder
+  let decoder: BinaryDataDecoder
   let socket: Socket
   let socketDataStream: BufferedData
 
-  init(decoder: BinaryStreamDecoder, socket: Socket, socketDataStream: BufferedData) {
+  init(decoder: BinaryDataDecoder, socket: Socket, socketDataStream: BufferedData) {
     self.decoder = decoder
     self.socket = socket
     self.socketDataStream = socketDataStream

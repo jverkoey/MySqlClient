@@ -56,7 +56,7 @@ extension BinaryEncodable {
    Encodes a binary encodable type as a MySql packet.
    */
   func encodedAsPacket(sequenceNumber: UInt8) throws -> Data {
-    let encoder = BinaryStreamEncoder()
+    let encoder = BinaryDataEncoder()
     let payloadData = try encoder.encode(self)
     let packetLength = UInt32(payloadData.count)
     return Data(packetLength.bytes[0...2] + [sequenceNumber]) + payloadData

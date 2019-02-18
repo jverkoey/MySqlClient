@@ -136,18 +136,6 @@ public protocol BufferedDataSource {
   var isAtEnd: Bool { get }
 }
 
-/**
- An interface for lazily reading data.
- */
-public protocol StreamableDataProvider {
-  var isAtEnd: Bool { get }
-  mutating func read(maxBytes: Int) throws -> Data
-  mutating func read(until delimiter: UInt8) throws -> (data: Data, didFindDelimiter: Bool)
-  mutating func peek(maxLength: Int) throws -> Data
-}
-
-extension BufferedData: StreamableDataProvider {}
-
 public final class AnyReader: BufferedDataSource {
   let readCallback: (Int) throws -> Data?
   let isAtEndCallback: () -> Bool

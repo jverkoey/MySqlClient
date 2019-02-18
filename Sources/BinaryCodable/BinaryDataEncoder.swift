@@ -17,7 +17,7 @@ import Foundation
 /**
  An object that encodes instances of a type to binary data.
  */
-public struct BinaryStreamEncoder {
+public struct BinaryDataEncoder {
   public init() {}
 
   /**

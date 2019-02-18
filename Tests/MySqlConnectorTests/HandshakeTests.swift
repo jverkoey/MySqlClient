@@ -68,7 +68,7 @@ final class HandshakeTests: XCTestCase {
     }
 
     // Given
-    let decoder = BinaryStreamDecoder()
+    let decoder = BinaryDataDecoder()
 
     // When
     let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
@@ -113,7 +113,7 @@ final class HandshakeTests: XCTestCase {
     }
 
     // Given
-    var decoder = BinaryStreamDecoder()
+    var decoder = BinaryDataDecoder()
     let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
     let clientCapabilityFlags: CapabilityFlags = [
       .connectWithDb,
@@ -159,7 +159,7 @@ final class HandshakeTests: XCTestCase {
     }
 
     // Given
-    var decoder = BinaryStreamDecoder()
+    var decoder = BinaryDataDecoder()
     let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
     let clientCapabilityFlags: CapabilityFlags = [
       .connectWithDb,
