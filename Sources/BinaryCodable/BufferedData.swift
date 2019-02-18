@@ -126,9 +126,9 @@ public protocol BufferedDataSource {
    Requests that `length` bytes be read from the external source.
 
    - parameter length: A recommended number of bytes to return.
+   - returns: Approximately `length` bytes, or nil if no more data will ever be available.
    */
   func read(length: Int) throws -> Data?
-  func peek(length: Int) throws -> Data?
 
   /**
    Whether or not the source has reached the end of its data.
@@ -150,22 +150,14 @@ extension BufferedData: StreamableDataProvider {}
 
 public final class AnyReader: BufferedDataSource {
   let readCallback: (Int) throws -> Data?
-  let peekCallback: (Int) throws -> Data?
   let isAtEndCallback: () -> Bool
-  public init(read: @escaping (Int) throws -> Data?,
-              peek: @escaping (Int) throws -> Data?,
-              isAtEnd: @escaping () -> Bool) {
+  public init(read: @escaping (Int) throws -> Data?, isAtEnd: @escaping () -> Bool) {
     self.readCallback = read
-    self.peekCallback = peek
     self.isAtEndCallback = isAtEnd
   }
 
   public func read(length: Int) throws -> Data? {
     return try readCallback(length)
-  }
-
-  public func peek(length: Int) throws -> Data? {
-    return try peekCallback(length)
   }
 
   public var isAtEnd: Bool { return isAtEndCallback() }
@@ -184,13 +176,6 @@ public final class DataReader: BufferedDataSource {
     let requestedData = data.prefix(length)
     data = data.dropFirst(length)
     return requestedData
-  }
-
-  public func peek(length: Int) throws -> Data? {
-    guard !isAtEnd else {
-      return nil
-    }
-    return data.prefix(length)
   }
 
   public var isAtEnd: Bool { return data.isEmpty }

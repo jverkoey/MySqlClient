@@ -43,11 +43,6 @@ final class HandshakeTests: XCTestCase {
       let pulledData = buffer.prefix(recommendedAmount)
       buffer = buffer.dropFirst(recommendedAmount)
       return pulledData
-    }, peek: { recommendedAmount in
-      if buffer.count == 0 {
-        _ = try self.socket.read(into: &buffer)
-      }
-      return buffer.prefix(recommendedAmount)
     }, isAtEnd: {
       do {
         return try buffer.isEmpty && !self.socket.isReadableOrWritable(waitForever: false, timeout: 0).readable

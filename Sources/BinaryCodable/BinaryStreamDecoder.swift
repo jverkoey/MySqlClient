@@ -209,9 +209,6 @@ private class BoundedDataStreamDecodingContainer<S: StreamableDataProvider>: Bin
     let containedDataStream = BufferedData(reader: AnyReader(read: { recommendedAmount -> Data? in
       let data = try self.pullData(maxLength: recommendedAmount)
       return data.count > 0 ? data : nil
-    }, peek: { recommendedAmount -> Data? in
-      let data = try self.peek(length: recommendedAmount)
-      return data.count > 0 ? data : nil
     }, isAtEnd: {
       return self.dataStream.isAtEnd
     }))
