@@ -37,6 +37,39 @@ public final class MySqlClient {
     self.database = database
   }
 
+  private var connectionPool: [Connection] = []
+  private let host: String
+  private let port: Int32
+  private let username: String
+  private let password: String
+  private let database: String?
+}
+
+/**
+ An error that occurs when connecting to a MySql server.
+ */
+public enum ClientError: Error, Equatable {
+  /**
+   Indicates that no connection could be made to the MySql server. Check the host and port.
+   */
+  case noConnectionAvailable
+
+  /**
+   Indicates that an error was received by the MySql server when attempting to perform the handshake.
+   */
+  case handshakeError(errorCode: ErrorCode)
+}
+
+private let clientCapabilityFlags: CapabilityFlags = [
+  .connectWithDb,
+  .deprecateEof,
+  .protocol41,
+  .secureConnection,
+  .sessionTrack,
+  .pluginAuth
+]
+
+extension MySqlClient {
   func anyIdleConnection() throws -> Connection? {
     if let connection = connectionPool.first(where: { $0.isIdle }) {
       return connection
@@ -68,7 +101,7 @@ public final class MySqlClient {
     // > The client should only announce the capabilities in the Handshake
     // > Response Packet that it has in common with the server.
     // https://dev.mysql.com/doc/internals/en/capability-negotiation.html
-    let capabilityFlags = MySqlClient.capabilityFlags.intersection(handshake.payload.serverCapabilityFlags)
+    let capabilityFlags = clientCapabilityFlags.intersection(handshake.payload.serverCapabilityFlags)
 
     // Subsequent decodings on this data stream may require access to the intersected capability flags, so we make them
     // available through `userInfo`.
@@ -118,38 +151,6 @@ public final class MySqlClient {
       }
     }))
   }
-
-  var connectionPool: [Connection] = []
-
-  private let host: String
-  private let port: Int32
-  private let username: String
-  private let password: String
-  private let database: String?
-
-  private static let capabilityFlags: CapabilityFlags = [
-    .connectWithDb,
-    .deprecateEof,
-    .protocol41,
-    .secureConnection,
-    .sessionTrack,
-    .pluginAuth
-  ]
-}
-
-/**
- An error that occurs when connecting to a MySql server.
- */
-public enum ClientError: Error, Equatable {
-  /**
-   Indicates that no connection could be made to the MySql server. Check the host and port.
-   */
-  case noConnectionAvailable
-
-  /**
-   Indicates that an error was received by the MySql server when attempting to perform the handshake.
-   */
-  case handshakeError(errorCode: ErrorCode)
 }
 
 final class Connection {
