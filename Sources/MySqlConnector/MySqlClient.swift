@@ -16,33 +16,25 @@ import BinaryCodable
 import Foundation
 import Socket
 
+/**
+ An instance of MySqlClient lazily creates and maintains connections to a single MySql server.
+ */
 public final class MySqlClient {
-  var connectionPool: [Connection] = []
+  /**
+   Initializes a client with the given MySql server location and credentials.
 
-  private let host: String
-  private let port: Int32
-  private let username: String
-  private let password: String
-  private let database: String?
-
+   - parameter host: The MySql server's host address. E.g. "127.0.0.1".
+   - parameter port: The MySql server's port. Typically 3306.
+   - parameter username: The username to authenticate with.
+   - parameter password: The password to authenticate with. Can be empty if no password is required.
+   - parameter database: If provided, this database will be the default used database for queries.
+   */
   public init(to host: String, port: Int32 = 3306, username: String, password: String, database: String? = nil) {
     self.host = host
     self.port = port
     self.username = username
     self.password = password
     self.database = database
-  }
-
-  public var isConnected: Bool {
-    do {
-      let socket = try Socket.create()
-      try socket.connect(to: host, port: port)
-      let isConnected = socket.isConnected
-      socket.close()
-      return isConnected
-    } catch {
-      return false
-    }
   }
 
   func anyIdleConnection() throws -> Connection? {
@@ -67,8 +59,45 @@ public final class MySqlClient {
       return nil
     }
 
+    let socketDataStream = createDataStream(socket: socket)
+    var decoder = BinaryStreamDecoder()
+
+    // Step 1: Receive Handshake from server.
+    let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
+
+    // > The client should only announce the capabilities in the Handshake
+    // > Response Packet that it has in common with the server.
+    // https://dev.mysql.com/doc/internals/en/capability-negotiation.html
+    let capabilityFlags = MySqlClient.capabilityFlags.intersection(handshake.payload.serverCapabilityFlags)
+
+    // Subsequent decodings on this data stream may require access to the intersected capability flags, so we make them
+    // available through `userInfo`.
+    decoder.userInfo[.capabilityFlags] = capabilityFlags
+
+    // Step 2: Send HandshakeResponse to server.
+    let handshakeResponse = try HandshakeResponse(username: username,
+                                                  password: password,
+                                                  database: database,
+                                                  capabilityFlags: capabilityFlags,
+                                                  authPluginData: handshake.payload.authPluginData,
+                                                  authPluginName: handshake.payload.authPluginName)
+      .encodedAsPacket(sequenceNumber: 1)
+    try socket.write(from: handshakeResponse)
+
+    // Step 3: Confirm that an OK response was received.
+    let response = try decoder.decode(Packet<GenericResponse>.self, from: socketDataStream)
+
+    if case .OK = response.payload {
+      return Connection(decoder: decoder, socket: socket, socketDataStream: socketDataStream)
+    } else if case .ERR(let errorCode, _) = response.payload {
+      throw ClientError.handshakeError(errorCode: errorCode)
+    }
+    return nil
+  }
+
+  private static func createDataStream(socket: Socket) -> LazyDataStream {
     var buffer = Data(capacity: socket.readBufferSize)
-    let socketDataStream = LazyDataStream(reader: AnyReader(read: { recommendedAmount in
+    return LazyDataStream(reader: AnyReader(read: { recommendedAmount in
       if buffer.count == 0 {
         _ = try socket.read(into: &buffer)
       }
@@ -88,42 +117,17 @@ public final class MySqlClient {
         return true
       }
     }))
-
-    var decoder = BinaryStreamDecoder()
-
-    // Step 1: Receive Handshake from server.
-    let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
-
-    // > The client should only announce the capabilities in the Handshake
-    // > Response Packet that it has in common with the server.
-    // https://dev.mysql.com/doc/internals/en/capability-negotiation.html
-
-    let capabilityFlags = MySqlClient.capabilityFlags.intersection(handshake.payload.serverCapabilityFlags)
-    decoder.userInfo[.capabilityFlags] = capabilityFlags
-
-    // Step 2: Send HandshakeResponse to server.
-    let handshakeResponse = try HandshakeResponse(username: username,
-                                                  password: password,
-                                                  database: nil,
-                                                  capabilityFlags: capabilityFlags,
-                                                  authPluginData: handshake.payload.authPluginData,
-                                                  authPluginName: handshake.payload.authPluginName)
-      .encodedAsPacket(sequenceNumber: 1)
-    try socket.write(from: handshakeResponse)
-
-    // Step 3: Confirm that an OK response was received.
-
-    let response = try decoder.decode(Packet<GenericResponse>.self, from: socketDataStream)
-
-    if case .OK = response.payload {
-      return Connection(decoder: decoder, socket: socket, socketDataStream: socketDataStream)
-    } else if case .ERR(let errorCode, _) = response.payload {
-      throw ClientError.handshakeError(errorCode: errorCode)
-    }
-    return nil
   }
 
-  static let capabilityFlags: CapabilityFlags = [
+  var connectionPool: [Connection] = []
+
+  private let host: String
+  private let port: Int32
+  private let username: String
+  private let password: String
+  private let database: String?
+
+  private static let capabilityFlags: CapabilityFlags = [
     .connectWithDb,
     .deprecateEof,
     .protocol41,
@@ -133,12 +137,19 @@ public final class MySqlClient {
   ]
 }
 
+/**
+ An error that occurs when connecting to a MySql server.
+ */
 public enum ClientError: Error, Equatable {
+  /**
+   Indicates that no connection could be made to the MySql server. Check the host and port.
+   */
   case noConnectionAvailable
 
+  /**
+   Indicates that an error was received by the MySql server when attempting to perform the handshake.
+   */
   case handshakeError(errorCode: ErrorCode)
-
-  case connectionIsNotIdle
 }
 
 final class Connection {
@@ -156,7 +167,7 @@ final class Connection {
   var isIdle = true
 
   func send<Payload: BinaryEncodable>(payload: Payload) throws {
-    guard isIdle else { throw ClientError.connectionIsNotIdle }
+    precondition(isIdle, "A connection is being reused even though it is not yet idle.")
     try socket.write(from: payload.encodedAsPacket(sequenceNumber: 0))
   }
 

@@ -42,7 +42,7 @@ final class TableTests: XCTestCase {
 
     client = MySqlClient(to: config.host, port: config.port, username: config.user, password: config.pass, database: nil)
 
-    if client.isConnected {
+    if config.testAgainstSqlServer {
       try! client.query("create database \(type(of: self))")
       try! client.query("use \(type(of: self))")
       try! client.query("create table \(type(of: self)) (name VARCHAR(20), owner VARCHAR(20), species VARCHAR(20), sex CHAR(1), birth DATE, death DATE)")
@@ -50,7 +50,7 @@ final class TableTests: XCTestCase {
   }
 
   override func tearDown() {
-    if client.isConnected {
+    if config.testAgainstSqlServer {
       try! client.query("drop database \(type(of: self))")
     }
 
