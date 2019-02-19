@@ -55,7 +55,7 @@ enum GenericResponse: BinaryDecodable {
   case ResultSetColumnCount(columnCount: UInt64)
 
   init(from decoder: BinaryDecoder) throws {
-    var container = decoder.container(maxLength: nil)
+    var container = decoder.sequentialContainer(maxLength: nil)
 
     // Packet header is 1 byte.
     var packetHeaderByte = try container.peek(length: 1)
@@ -150,7 +150,7 @@ enum GenericResponse: BinaryDecodable {
         // State
         _ = try container.decode(length: 5)
       }
-      let errorMessage = try container.decodeString(encoding: .utf8)
+      let errorMessage = try container.decodeString(encoding: .utf8, terminator: nil)
 
       self = .ERR(errorCode: errorCode, errorMessage: errorMessage)
 

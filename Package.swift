@@ -25,7 +25,8 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/IBM-Swift/BlueSocket.git", .upToNextMajor(from: "1.0.0")),
-    .package(url: "https://github.com/IBM-Swift/BlueCryptor.git", .upToNextMajor(from: "1.0.0"))
+    .package(url: "https://github.com/IBM-Swift/BlueCryptor.git", .upToNextMajor(from: "1.0.0")),
+    .package(url: "https://github.com/jverkoey/BinaryCodable.git", .upToNextMajor(from: "0.1.0"))
   ],
   targets: [
     .target(
@@ -49,15 +50,6 @@ let package = Package(
     .testTarget(
       name: "MySqlQueryTests",
       dependencies: ["MySqlQuery"]
-    ),
-
-    .target(
-      name: "BinaryCodable",
-      dependencies: []
-    ),
-    .testTarget(
-      name: "BinaryCodableTests",
-      dependencies: ["BinaryCodable"]
-    ),
+    )
   ]
 )
