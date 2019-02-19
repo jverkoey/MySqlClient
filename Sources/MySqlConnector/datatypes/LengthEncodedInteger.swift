@@ -29,7 +29,7 @@ struct LengthEncodedInteger: BinaryDecodable {
    */
   init(from decoder: BinaryDecoder) throws {
     // The largest possible length-encoded integer is 1 byte for the identifier + 8 bytes for the 64 bit number.
-    var container = decoder.container(maxLength: 9)
+    var container = decoder.sequentialContainer(maxLength: 9)
 
     let firstByte = try container.decode(UInt8.self)
     guard let type = LengthEncodedIntegerType(firstByte: firstByte) else {
