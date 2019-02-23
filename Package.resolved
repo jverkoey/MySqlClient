@@ -5,9 +5,9 @@
         "package": "BinaryCodable",
         "repositoryURL": "https://github.com/jverkoey/BinaryCodable.git",
         "state": {
-          "branch": null,
-          "revision": "3a38a02b13b0cb23c9995086a076e46fca91dd4f",
-          "version": "0.1.0"
+          "branch": "develop",
+          "revision": "9cca6e629d352890181d81ce0d2dd47dd2bd6649",
+          "version": null
         }
       },
       {

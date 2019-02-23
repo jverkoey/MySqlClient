@@ -33,7 +33,7 @@ struct ColumnDefinition: BinaryDecodable, CustomStringConvertible {
    - Throws: `PayloadReaderError.unexpectedEndOfPayload` if the packet's end was unexpectedly reached.
    */
   init(from decoder: BinaryDecoder) throws {
-    var container = decoder.sequentialContainer(maxLength: nil)
+    var container = decoder.container(maxLength: nil)
 
     let catalog = try container.decode(LengthEncodedString.self).value
     assert(catalog == "def", "Unexpected catalog value.")

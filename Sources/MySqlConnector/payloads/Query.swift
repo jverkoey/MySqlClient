@@ -22,7 +22,7 @@ struct Query: BinaryEncodable {
   }
 
   func encode(to encoder: BinaryEncoder) throws {
-    var container = encoder.sequentialContainer()
+    var container = encoder.container()
     try container.encode(UInt8(0x03))
     try container.encode(query, encoding: .utf8, terminator: 0)
   }
