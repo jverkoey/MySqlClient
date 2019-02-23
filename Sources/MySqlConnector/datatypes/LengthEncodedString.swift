@@ -35,7 +35,7 @@ struct LengthEncodedString: BinaryDecodable {
    `data` with the given `encoding`.
    */
   init(from decoder: BinaryDecoder) throws {
-    var container = decoder.sequentialContainer(maxLength: nil)
+    var container = decoder.container(maxLength: nil)
 
     let length = try container.decode(LengthEncodedInteger.self)
     let stringData = try container.decode(length: Int(length.value))

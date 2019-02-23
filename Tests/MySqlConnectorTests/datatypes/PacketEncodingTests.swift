@@ -27,7 +27,7 @@ private struct Payload: BinaryEncodable {
   let signedValue: Int32
 
   func encode(to encoder: BinaryEncoder) throws {
-    var container = encoder.sequentialContainer()
+    var container = encoder.container()
     try container.encode(unsignedValue)
     try container.encode(enumValue)
     try container.encode(stringValue, encoding: .utf8, terminator: 0)

@@ -23,7 +23,7 @@ enum Resultset: BinaryDecodable, CustomStringConvertible {
   case row(values: [String?])
 
   init(from decoder: BinaryDecoder) throws {
-    var container = decoder.sequentialContainer(maxLength: nil)
+    var container = decoder.container(maxLength: nil)
 
     var identifier = try container.peek(length: 1).first
     if identifier == 0xfe {
