@@ -27,7 +27,11 @@ final class QueryTests: XCTestCase {
   override func setUp() {
     super.setUp()
 
-    client = MySqlClient(to: config.host, port: config.port, username: config.user, password: config.pass, database: nil)
+    client = MySqlClient(to: config.host,
+                         port: config.port,
+                         username: config.user,
+                         password: config.pass,
+                         database: nil)
   }
 
   override func tearDown() {
@@ -79,4 +83,61 @@ final class QueryTests: XCTestCase {
       XCTFail("Unexpected response \(response)")
     }
   }
+
+  func testMySqlTestcase() throws {
+    guard config.testAgainstSqlServer else {
+      return
+    }
+
+    try client.query("create database \(type(of: self))")
+    try client.query("use \(type(of: self))")
+
+    // Given
+    let query = #"""
+DROP TABLE IF EXISTS t1;
+CREATE TABLE t1(c1 CHAR(100) NULL, c2 CHAR(100) NULL);
+INSERT INTO t1 VALUES('abc','ABCDEFG');
+INSERT INTO t1 VALUES('123','1234567890');
+ANALYZE TABLE t1;
+DROP TABLE t1;
+CREATE TABLE t1(c1 VARCHAR(100) NULL, c2 VARCHAR(100) NULL);
+INSERT INTO t1 VALUES('abc','ABCDEFG');
+INSERT INTO t1 VALUES('123','1234567890');
+ANALYZE TABLE t1;
+DROP TABLE t1;
+CREATE TABLE t1(c1 BINARY(100) NULL, c2 BINARY(100) NULL);
+INSERT INTO t1 VALUES('abc','ABCDEFG');
+INSERT INTO t1 VALUES('123','1234567890');
+ANALYZE TABLE t1;
+DROP TABLE t1;
+CREATE TABLE t1(c1 VARBINARY(100) NULL, c2 VARBINARY(100) NULL);
+INSERT INTO t1 VALUES('abc','ABCDEFG');
+INSERT INTO t1 VALUES('123','1234567890');
+ANALYZE TABLE t1;
+DROP TABLE t1;
+CREATE TABLE t1(c1 BLOB(100) NULL, c2 BLOB(100) NULL);
+INSERT INTO t1 VALUES('abc','ABCDEFG');
+INSERT INTO t1 VALUES('123','1234567890');
+ANALYZE TABLE t1;
+DROP TABLE t1;
+CREATE TABLE t1(c1 TEXT(100) NULL, c2 TEXT(100) NULL);
+INSERT INTO t1 VALUES('abc','ABCDEFG');
+INSERT INTO t1 VALUES('123','1234567890');
+ANALYZE TABLE t1;
+DROP TABLE t1;
+"""#
+
+    // When
+     let response = try client.query(query)
+
+    // Then
+    switch response {
+    case .OK(let numberOfAffectedRows, _, _):
+      XCTAssertEqual(numberOfAffectedRows, 0)
+
+    default:
+      XCTFail("Unexpected response \(response)")
+    }
+  }
+
 }

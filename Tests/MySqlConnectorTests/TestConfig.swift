@@ -23,9 +23,6 @@ struct TestConfig {
 
   static var environment: TestConfig {
     var config = TestConfig()
-    if let sqlServerExists = getEnvironmentVariable(named: "MYSQL_SERVER_EXISTS") {
-      config.testAgainstSqlServer = sqlServerExists == "true"
-    }
     if let host = getEnvironmentVariable(named: "MYSQL_SERVER_HOST") {
       config.host = host
     }

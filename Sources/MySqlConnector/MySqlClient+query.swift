@@ -42,10 +42,10 @@ extension MySqlClient {
       let response = try connection.read(payloadType: GenericResponse.self)
 
       switch response {
-      case .ERR(let context):
+      case .ERR(let errorCode, let errorMessage):
         connection.isIdle = true
-        return .ERR(errorCode: context.errorCode,
-                    errorMessage: context.errorMessage)
+        return .ERR(errorCode: errorCode,
+                    errorMessage: errorMessage)
 
       case .OK(let context):
         connection.isIdle = true

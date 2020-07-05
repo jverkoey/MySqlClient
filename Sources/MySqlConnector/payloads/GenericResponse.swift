@@ -58,7 +58,7 @@ enum GenericResponse: BinaryDecodable {
     var container = decoder.container(maxLength: nil)
 
     // Packet header is 1 byte.
-    var packetHeaderByte = try container.peek(length: 1)
+    let packetHeaderByte = try container.peek(length: 1)
     var packetHeader = GenericResponseHeader(from: packetHeaderByte[0])
 
     guard let capabilityFlags = decoder.userInfo[.capabilityFlags] as? CapabilityFlags else {

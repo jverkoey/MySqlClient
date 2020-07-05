@@ -66,7 +66,9 @@ private let clientCapabilityFlags: CapabilityFlags = [
   .protocol41,
   .secureConnection,
   .sessionTrack,
-  .pluginAuth
+  .pluginAuth,
+  .multiStatements,
+  .multiResults
 ]
 
 extension MySqlClient {
