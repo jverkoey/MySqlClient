@@ -18,6 +18,7 @@ import PackageDescription
 let package = Package(
   name: "MySqlConnector",
   products: [
+    .executable(name: "bootstrap", targets: ["bootstrap"]),
     .library(
       name: "MySqlConnector",
       targets: ["MySqlConnector"]
@@ -29,6 +30,10 @@ let package = Package(
     .package(url: "https://github.com/jverkoey/BinaryCodable.git", .branch("develop"))
   ],
   targets: [
+    .target(
+      name: "bootstrap"
+    ),
+
     .target(
       name: "MySqlConnector",
       dependencies: [
