@@ -194,13 +194,17 @@ struct TestRunner {
 
         print("data.tar.xz exists \(fileManager.fileExists(atPath: URL(fileURLWithPath: fileManager.currentDirectoryPath).appendingPathComponent("data.tar.xz").path)).", to: &stderrOut)
 
+        if !fileManager.fileExists(atPath: environmentPath.path) {
+          fileManager.createDirectory(at: environmentPath, withIntermediateDirectories: true, attributes: nil)
+        }
+
         let dataTask = Process()
         dataTask.launchPath = "/bin/tar"
         dataTask.arguments = [
           "-xf",
           URL(fileURLWithPath: fileManager.currentDirectoryPath).appendingPathComponent("data.tar.xz").path,
           "-C",
-          testCacheDirectory.path
+          environmentPath.path
         ]
         dataTask.launch()
         dataTask.waitUntilExit()
@@ -218,10 +222,13 @@ struct TestRunner {
         #endif
       }
 
-      print("Initializing server...", to: &stderrOut)
       let serverPath = environmentPath.appendingPathComponent(environment.serverPath[hostEnvironment]!)
       let dataPath = environmentPath.appendingPathComponent("data")
       let initialDataPath = environmentPath.appendingPathComponent("data_initial")
+
+      print("Initializing server \(serverPath.path)...", to: &stderrOut)
+      print("Server exists at \(fileManager.fileExists(atPath: serverPath.path))...", to: &stderrOut)
+
       if !fileManager.fileExists(atPath: initialDataPath.path) {
         try! fileManager.createDirectory(at: initialDataPath, withIntermediateDirectories: true, attributes: nil)
 
