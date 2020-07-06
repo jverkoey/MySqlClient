@@ -19,7 +19,7 @@ import XCTest
 
 final class HandshakeTests: XCTestCase {
   func testHandshake() throws {
-//    try testRunner.test { environment, socketDataStream in
+    try testRunner.test { environment, socketDataStream in
 //      // Given
 //      let decoder = BinaryDataDecoder()
 //
@@ -65,6 +65,6 @@ final class HandshakeTests: XCTestCase {
 //          .mystery80000000
 //        ]
 //      ])
-//    }
+    }
   }
 }
