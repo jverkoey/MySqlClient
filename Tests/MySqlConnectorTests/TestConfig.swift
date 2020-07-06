@@ -133,6 +133,7 @@ struct TestRunner {
   let environments: [Environment]
   init() {
     let testDirectory = URL(fileURLWithPath: #file).deletingLastPathComponent()
+    print("Test directory: \(testDirectory)")
     let testCacheDirectory = testDirectory.appendingPathComponent(".cache")
 
     let fileManager = FileManager.default
