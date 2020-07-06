@@ -188,13 +188,12 @@ struct TestRunner {
         task.launchPath = "/usr/bin/ar"
         task.arguments = [
           "vx",
-          tarPath.path,
-          testCacheDirectory.path
+          tarPath.path
         ]
         task.launch()
         task.waitUntilExit()
 
-        print("data.tar.xz exists \(fileManager.fileExists(atPath: testCacheDirectory.appendingPathComponent("data.tar.xz").path)).", to: &stderrOut)
+        print("data.tar.xz exists \(fileManager.fileExists(atPath: fileManager.currentDirectoryPath.appendingPathComponent("data.tar.xz").path)).", to: &stderrOut)
         #else
         let tarBinaryPath = "/usr/bin/tar"
         let task = Process()
