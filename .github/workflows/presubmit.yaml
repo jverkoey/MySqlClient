@@ -5,12 +5,12 @@ on:
       - develop
 
 jobs:
-  mac_test:
-    runs-on: macOS-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-    - run: swift test
+  # mac_test:
+  #   runs-on: macOS-latest
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v2
+  #   - run: swift test
 
   linux_test:
     container:
