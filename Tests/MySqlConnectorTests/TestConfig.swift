@@ -14,6 +14,9 @@
 
 import BinaryCodable
 import Foundation
+#if os(Linux) // "You must link or load module FoundationNetworking to load non-file: URL content using String(contentsOf:…), Data(contentsOf:…), etc."
+import FoundationNetworking
+#endif
 import Socket
 import XCTest
 
