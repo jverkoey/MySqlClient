@@ -140,7 +140,9 @@ final class HandshakeTests: XCTestCase {
         user: "root",
         pass: "",
         setUp: {
-          try! fileManager.removeItem(at: dataPath)
+          if fileManager.fileExists(atPath: dataPath.path) {
+            try! fileManager.removeItem(at: dataPath)
+          }
           try! fileManager.copyItem(atPath: initialDataPath.path, toPath: dataPath.path)
           runTask.launch()
         }, tearDown: {
