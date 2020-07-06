@@ -132,6 +132,8 @@ struct TestRunner {
   }
   let environments: [Environment]
   init() {
+    print("Hello")
+
     let testDirectory = URL(fileURLWithPath: #file).deletingLastPathComponent()
     print("Test directory: \(testDirectory)")
     let testCacheDirectory = testDirectory.appendingPathComponent(".cache")
@@ -226,35 +228,6 @@ struct TestRunner {
 }
 
 let testRunner = TestRunner()
-
-struct TestConfig {
-  var testAgainstSqlServer = true
-  var host: String = "localhost"
-  var port: Int32 = 3306
-  var user: String = "root"
-  var pass: String = ""
-  var setUp: (() -> Void)?
-  var tearDown: (() -> Void)?
-  var serverType: SqlServerType?
-
-  static var environment: TestConfig {
-    var config = TestConfig()
-    if let host = getEnvironmentVariable(named: "MYSQL_SERVER_HOST") {
-      config.host = host
-    }
-    if let mySqlServerPortString = getEnvironmentVariable(named: "MYSQL_SERVER_PORT"),
-      let mySqlServerPort = Int32(mySqlServerPortString) {
-      config.port = mySqlServerPort
-    }
-    if let username = getEnvironmentVariable(named: "MYSQL_SERVER_USER") {
-      config.user = username
-    }
-    if let password = getEnvironmentVariable(named: "MYSQL_SERVER_PASSWORD") {
-      config.pass = password
-    }
-    return config
-  }
-}
 
 private func getEnvironmentVariable(named name: String) -> String? {
   if let environmentValue = getenv(name) {
