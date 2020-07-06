@@ -193,7 +193,7 @@ struct TestRunner {
         task.launch()
         task.waitUntilExit()
 
-        print("data.tar.xz exists \(fileManager.fileExists(atPath: fileManager.currentDirectoryPath.appendingPathComponent("data.tar.xz").path)).", to: &stderrOut)
+        print("data.tar.xz exists \(fileManager.fileExists(atPath: URL(fileURLWithPath: fileManager.currentDirectoryPath).appendingPathComponent("data.tar.xz").path)).", to: &stderrOut)
         #else
         let tarBinaryPath = "/usr/bin/tar"
         let task = Process()
