@@ -4,3 +4,4 @@
 /*.xcodeproj
 sqldb/
 .swiftpm/
+.cache

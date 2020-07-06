@@ -20,6 +20,9 @@ struct TestConfig {
   var port: Int32 = 3306
   var user: String = "root"
   var pass: String = ""
+  var setUp: (() -> Void)?
+  var tearDown: (() -> Void)?
+  var serverType: SqlServerType?
 
   static var environment: TestConfig {
     var config = TestConfig()

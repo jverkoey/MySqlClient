@@ -17,18 +17,133 @@ import Socket
 @testable import MySqlConnector
 import XCTest
 
+enum SqlServerType: Hashable {
+  case MySql(version: String)
+}
+
+enum HostEnvironment {
+  case macOS
+  case linux
+}
+
+struct SqlServerTestEnvironment {
+  let name: String
+  let url: [HostEnvironment: URL]
+  let serverPath: String
+  let serverType: SqlServerType
+}
+
+let environments: [SqlServerTestEnvironment] = [
+  SqlServerTestEnvironment(
+    name: "MySQL 8.0.20",
+    url: [
+      .macOS: URL(string: "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.20-macos10.15-x86_64.tar.gz")!
+    ],
+    serverPath: "bin/mysqld",
+    serverType: .MySql(version: "8.0.20")
+  )
+]
+
 final class HandshakeTests: XCTestCase {
   var socket: Socket!
   var socketDataStream: BufferedData!
-  let config = TestConfig.environment
+  var config: TestConfig!
+
+  override class var defaultTestSuite: XCTestSuite {
+    let suite = XCTestSuite(forTestCaseClass: HandshakeTests.self)
+
+    let testDirectory = URL(fileURLWithPath: #file).deletingLastPathComponent()
+    let testCacheDirectory = testDirectory.appendingPathComponent(".cache")
+
+    let fileManager = FileManager.default
+    try! fileManager.createDirectory(at: testCacheDirectory, withIntermediateDirectories: true, attributes: nil)
+
+    environments.forEach { environment in
+      #if os(Linux)
+      let environmentUrl = environment.url[.linux]!
+      #elseif os(macOS)
+      let environmentUrl = environment.url[.macOS]!
+      #endif
+      let environmentPath = testCacheDirectory.appendingPathComponent(environmentUrl.deletingPathExtension().deletingPathExtension().lastPathComponent)
+      if !fileManager.fileExists(atPath: environmentPath.path) {
+        let tarPath = testCacheDirectory.appendingPathComponent(environmentUrl.lastPathComponent)
+        if !fileManager.fileExists(atPath: tarPath.path) {
+          print("Downloading \(environment.name) from \(environment.url)...")
+          let tar = try! Data(contentsOf: environmentUrl)
+          try! tar.write(to: tarPath)
+        }
+        let task = Process()
+        task.launchPath = "/usr/bin/tar"
+        task.arguments = [
+          "-xf",
+          tarPath.path,
+          "-C",
+          testCacheDirectory.path
+        ]
+        task.launch()
+        task.waitUntilExit()
+      }
+
+      let serverPath = environmentPath.appendingPathComponent(environment.serverPath)
+      let dataPath = environmentPath.appendingPathComponent("data")
+      let initialDataPath = environmentPath.appendingPathComponent("data_initial")
+      if !fileManager.fileExists(atPath: initialDataPath.path) {
+        try! fileManager.createDirectory(at: initialDataPath, withIntermediateDirectories: true, attributes: nil)
+
+        let initializationTask = Process()
+        initializationTask.launchPath = serverPath.path
+        initializationTask.arguments = [
+          "--basedir=\(environmentPath.path)",
+          "--datadir=\(initialDataPath.path)",
+          "--initialize-insecure"  // We don't require a password.
+        ]
+        initializationTask.launch()
+        initializationTask.waitUntilExit()
+      }
+
+      let runTask = Process()
+      runTask.launchPath = serverPath.path
+      runTask.arguments = [
+        "--basedir=\(environmentPath.path)",
+        "--datadir=\(dataPath.path)",
+        "--port=3306",
+      ]
+
+      let config = TestConfig(
+        testAgainstSqlServer: true,
+        host: "localhost",
+        port: 3306,
+        user: "root",
+        pass: "",
+        setUp: {
+          try! fileManager.removeItem(at: dataPath)
+          try! fileManager.copyItem(atPath: initialDataPath.path, toPath: dataPath.path)
+          runTask.launch()
+        }, tearDown: {
+          runTask.terminate()
+        }, serverType: environment.serverType
+      )
+      let test = HandshakeTests(selector: #selector(parameterizedTestHandshake))
+      test.config = config
+      suite.addTest(test)
+    }
+    return suite
+  }
+
   override func setUp() {
     super.setUp()
 
-    do {
-      socket = try Socket.create()
-      try socket.connect(to: config.host, port: config.port)
-    } catch {
-      return
+    self.config.setUp!()
+
+    for backoff in [1, 2, 4, 8] as [UInt32] {
+      do {
+        socket = try Socket.create()
+        try socket.connect(to: config.host, port: config.port)
+      } catch {
+        sleep(backoff)
+        continue
+      }
+      break
     }
 
     if !socket.isConnected {
@@ -59,14 +174,21 @@ final class HandshakeTests: XCTestCase {
     }
     socketDataStream = nil
 
+    config.tearDown!()
+
     super.tearDown()
   }
 
-  func testHandshake() throws {
-    guard config.testAgainstSqlServer else {
-      return
-    }
+  func AssertEqual<T>(
+    _ arg1: T,
+    _ arg2: [SqlServerType: T],
+    file: StaticString = #filePath,
+    line: UInt = #line
+  ) where T : Equatable {
+    XCTAssertEqual(arg1, arg2[config.serverType!], file: file, line: line)
+  }
 
+  func parameterizedTestHandshake() throws {
     // Given
     let decoder = BinaryDataDecoder()
 
@@ -76,38 +198,45 @@ final class HandshakeTests: XCTestCase {
     // Then
     XCTAssertEqual(handshake.sequenceNumber, 0)
     XCTAssertEqual(handshake.payload.protocolVersion, .v10)
-    XCTAssertEqual(handshake.payload.authPluginName, "mysql_native_password")
-    XCTAssertEqual(handshake.payload.serverCapabilityFlags, [
-      .longPassword,
-      .foundRows,
-      .longFlag,
-      .connectWithDb,
-      .noSchema,
-      .compress,
-      .odbc,
-      .localFiles,
-      .ignoreSpace,
-      .protocol41,
-      .interactive,
-//      .ssl,
-      .ignoreSigpipe,
-      .transactions,
-      .reserved,
-      .secureConnection,
-      .multiStatements,
-      .multiResults,
-      .psMultiResults,
-      .pluginAuth,
-      .connectAttrs,
-      .pluginAuthLenencClientData,
-      .canHandleExpiredPasswords,
-      .sessionTrack,
-      .deprecateEof,
-      .mystery
+    AssertEqual(handshake.payload.authPluginName, [
+      .MySql(version: "8.0.20"): "caching_sha2_password"
+    ])
+    AssertEqual(handshake.payload.serverCapabilityFlags, [
+      .MySql(version: "8.0.20"): [
+        .longPassword,
+        .foundRows,
+        .longFlag,
+        .connectWithDb,
+        .noSchema,
+        .compress,
+        .odbc,
+        .localFiles,
+        .ignoreSpace,
+        .protocol41,
+        .interactive,
+        .ssl,
+        .ignoreSigpipe,
+        .transactions,
+        .reserved,
+        .secureConnection,
+        .multiStatements,
+        .multiResults,
+        .psMultiResults,
+        .pluginAuth,
+        .connectAttrs,
+        .pluginAuthLenencClientData,
+        .canHandleExpiredPasswords,
+        .sessionTrack,
+        .deprecateEof,
+        .mystery02000000,
+        .mystery04000000,
+        .mystery40000000,
+        .mystery80000000
+      ]
     ])
   }
 
-  func testAuthFailsWithInvalidPassword() throws {
+  func parameterizedTestAuthFailsWithInvalidPassword() throws {
     guard config.testAgainstSqlServer else {
       return
     }
@@ -153,7 +282,7 @@ final class HandshakeTests: XCTestCase {
     }
   }
 
-  func testAuthSucceedsWithValidPassword() throws {
+  func parameterizedTestAuthSucceedsWithValidPassword() throws {
     guard config.testAgainstSqlServer else {
       return
     }
