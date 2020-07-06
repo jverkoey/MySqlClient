@@ -226,5 +226,5 @@ struct TestRunner {
     }
   }
 }
-//
-//let testRunner = TestRunner()
+
+let testRunner = TestRunner()
