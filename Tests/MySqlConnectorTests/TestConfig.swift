@@ -11,45 +11,45 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-//import BinaryCodable
-//import Foundation
-//#if os(Linux) // "You must link or load module FoundationNetworking to load non-file: URL content using String(contentsOf:…), Data(contentsOf:…), etc."
-//import FoundationNetworking
-//#endif
-//import Socket
-//import XCTest
-//
-//enum SqlServerType: Hashable {
-//  case MySql(version: String)
-//}
-//
-//enum HostEnvironment {
-//  case macOS
-//  case linux
-//}
-//
-//struct SqlServerTestEnvironment {
-//  let name: String
-//  let url: [HostEnvironment: URL]
-//  let serverPath: [HostEnvironment: String]
-//  let serverType: SqlServerType
-//}
-//
-//let testEnvironments: [SqlServerTestEnvironment] = [
-//  SqlServerTestEnvironment(
-//    name: "MySQL 8.0.20",
-//    url: [
-//      .macOS: URL(string: "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.20-macos10.15-x86_64.tar.gz")!,
-//      .linux: URL(string: "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-community-server-core_8.0.20-1ubuntu18.04_i386.deb")!
-//    ],
-//    serverPath: [
-//      .macOS: "bin/mysqld",
-//      .linux: "usr/bin/mysqld_safe"
-//    ],
-//    serverType: .MySql(version: "8.0.20")
-//  )
-//]
+
+import BinaryCodable
+import Foundation
+#if os(Linux) // "You must link or load module FoundationNetworking to load non-file: URL content using String(contentsOf:…), Data(contentsOf:…), etc."
+import FoundationNetworking
+#endif
+import Socket
+import XCTest
+
+enum SqlServerType: Hashable {
+  case MySql(version: String)
+}
+
+enum HostEnvironment {
+  case macOS
+  case linux
+}
+
+struct SqlServerTestEnvironment {
+  let name: String
+  let url: [HostEnvironment: URL]
+  let serverPath: [HostEnvironment: String]
+  let serverType: SqlServerType
+}
+
+let testEnvironments: [SqlServerTestEnvironment] = [
+  SqlServerTestEnvironment(
+    name: "MySQL 8.0.20",
+    url: [
+      .macOS: URL(string: "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.20-macos10.15-x86_64.tar.gz")!,
+      .linux: URL(string: "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-community-server-core_8.0.20-1ubuntu18.04_i386.deb")!
+    ],
+    serverPath: [
+      .macOS: "bin/mysqld",
+      .linux: "usr/bin/mysqld_safe"
+    ],
+    serverType: .MySql(version: "8.0.20")
+  )
+]
 //
 //struct TestRunner {
 //  struct Environment {
