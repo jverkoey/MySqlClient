@@ -176,6 +176,7 @@ struct TestRunner {
           let tar = try! Data(contentsOf: environmentUrl)
           try! tar.write(to: tarPath)
         }
+        print("Untarring \(tarPath.path) to \(testCacheDirectory.path)...", to: &stderrOut)
         let task = Process()
         task.launchPath = "/usr/bin/tar"
         task.arguments = [
@@ -188,6 +189,7 @@ struct TestRunner {
         task.waitUntilExit()
 
         #if os(Linux)
+        print("Untarring \(testCacheDirectory.appendingPathComponent("data.tar.xz").path) to \(testCacheDirectory.path)...", to: &stderrOut)
         let dataTask = Process()
         dataTask.launchPath = "/usr/bin/tar"
         dataTask.arguments = [
@@ -201,6 +203,7 @@ struct TestRunner {
         #endif
       }
 
+      print("Initializing server...", to: &stderrOut)
       let serverPath = environmentPath.appendingPathComponent(environment.serverPath[hostEnvironment]!)
       let dataPath = environmentPath.appendingPathComponent("data")
       let initialDataPath = environmentPath.appendingPathComponent("data_initial")
@@ -218,6 +221,7 @@ struct TestRunner {
         initializationTask.waitUntilExit()
       }
 
+      print("Starting server...", to: &stderrOut)
       let runTask = Process()
       runTask.launchPath = serverPath.path
       runTask.arguments = [
