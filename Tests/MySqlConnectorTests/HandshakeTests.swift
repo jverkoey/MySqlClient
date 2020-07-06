@@ -29,7 +29,7 @@ enum HostEnvironment {
 struct SqlServerTestEnvironment {
   let name: String
   let url: [HostEnvironment: URL]
-  let serverPath: String
+  let serverPath: [HostEnvironment: String]
   let serverType: SqlServerType
 }
 
@@ -37,9 +37,13 @@ let environments: [SqlServerTestEnvironment] = [
   SqlServerTestEnvironment(
     name: "MySQL 8.0.20",
     url: [
-      .macOS: URL(string: "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.20-macos10.15-x86_64.tar.gz")!
+      .macOS: URL(string: "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.20-macos10.15-x86_64.tar.gz")!,
+      .linux: URL(string: "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-community-server-core_8.0.20-1ubuntu18.04_i386.deb")!
     ],
-    serverPath: "bin/mysqld",
+    serverPath: [
+      .macOS: "bin/mysqld",
+      .linux: "usr/bin/mysqld_safe"
+    ],
     serverType: .MySql(version: "8.0.20")
   )
 ]
@@ -60,11 +64,18 @@ final class HandshakeTests: XCTestCase {
 
     environments.forEach { environment in
       #if os(Linux)
-      let environmentUrl = environment.url[.linux]!
+      let hostEnvironment: HostEnvironment = .linux
       #elseif os(macOS)
-      let environmentUrl = environment.url[.macOS]!
+      let hostEnvironment: HostEnvironment = .macOS
       #endif
+
+      let environmentUrl = environment.url[hostEnvironment]!
+
+      #if os(Linux)
+      let environmentPath = testCacheDirectory.appendingPathComponent(environmentUrl.deletingPathExtension().lastPathComponent)
+      #elseif os(macOS)
       let environmentPath = testCacheDirectory.appendingPathComponent(environmentUrl.deletingPathExtension().deletingPathExtension().lastPathComponent)
+      #endif
       if !fileManager.fileExists(atPath: environmentPath.path) {
         let tarPath = testCacheDirectory.appendingPathComponent(environmentUrl.lastPathComponent)
         if !fileManager.fileExists(atPath: tarPath.path) {
@@ -82,9 +93,22 @@ final class HandshakeTests: XCTestCase {
         ]
         task.launch()
         task.waitUntilExit()
+
+        #if os(Linux)
+        let dataTask = Process()
+        dataTask.launchPath = "/usr/bin/tar"
+        dataTask.arguments = [
+          "-xf",
+          testCacheDirectory.appendingPathComponent("data.tar.xz").path,
+          "-C",
+          testCacheDirectory.path
+        ]
+        dataTask.launch()
+        dataTask.waitUntilExit()
+        #endif
       }
 
-      let serverPath = environmentPath.appendingPathComponent(environment.serverPath)
+      let serverPath = environmentPath.appendingPathComponent(environment.serverPath[hostEnvironment]!)
       let dataPath = environmentPath.appendingPathComponent("data")
       let initialDataPath = environmentPath.appendingPathComponent("data_initial")
       if !fileManager.fileExists(atPath: initialDataPath.path) {
@@ -179,6 +203,7 @@ final class HandshakeTests: XCTestCase {
     super.tearDown()
   }
 
+  #if compiler(>=5.3)
   func AssertEqual<T>(
     _ arg1: T,
     _ arg2: [SqlServerType: T],
@@ -187,6 +212,16 @@ final class HandshakeTests: XCTestCase {
   ) where T : Equatable {
     XCTAssertEqual(arg1, arg2[config.serverType!], file: file, line: line)
   }
+  #else
+  func AssertEqual<T>(
+    _ arg1: T,
+    _ arg2: [SqlServerType: T],
+    file: StaticString = #file,
+    line: UInt = #line
+  ) where T : Equatable {
+    XCTAssertEqual(arg1, arg2[config.serverType!], file: file, line: line)
+  }
+  #endif
 
   func parameterizedTestHandshake() throws {
     // Given
