@@ -57,13 +57,13 @@ let testEnvironments: [SqlServerTestEnvironment] = [
   )
 ]
 
+
 struct TestRunner {
   struct Environment {
     let host: String = "localhost"
-    let port: Int32 = 3306
     let user: String = "root"
     let pass: String = ""
-    let setUp: () -> Void
+    let setUp: () -> Int32
     let tearDown: () -> Void
     let serverType: SqlServerType
 
@@ -74,7 +74,7 @@ struct TestRunner {
       file: StaticString = #filePath,
       line: UInt = #line
     ) where T : Equatable {
-      XCTAssertEqual(arg1, arg2[serverType], file: file, line: line)
+      XCTAssertEqual(arg1, arg2[serverType], "Environment: \(serverType)", file: file, line: line)
     }
     #else
     func AssertEqual<T>(
@@ -83,15 +83,15 @@ struct TestRunner {
       file: StaticString = #file,
       line: UInt = #line
     ) where T : Equatable {
-      XCTAssertEqual(arg1, arg2[serverType], file: file, line: line)
+      XCTAssertEqual(arg1, arg2[serverType], "Environment: \(serverType)", file: file, line: line)
     }
     #endif
   }
-  func test(_ test: (Environment, BufferedData) throws -> Void) throws {
+  func test(testCase: XCTestCase, _ test: (Environment, BufferedData, Socket) throws -> Void) throws {
     try environments.forEach { environment in
       var socket: Socket!
       var socketDataStream: BufferedData!
-      environment.setUp()
+      let port = environment.setUp()
       defer {
         if socket != nil {
           socket.close()
@@ -102,12 +102,14 @@ struct TestRunner {
         environment.tearDown()
       }
 
-      for backoff in [1, 2, 4, 8] as [UInt32] {
+      for backoff in [1, 2, 4, 8] as [Double] {
         do {
+          let delayExpectation = XCTestExpectation()
+          delayExpectation.isInverted = true
+          testCase.wait(for: [delayExpectation], timeout: backoff)
           socket = try Socket.create()
-          try socket.connect(to: environment.host, port: environment.port)
+          try socket.connect(to: environment.host, port: port)
         } catch {
-          sleep(backoff)
           continue
         }
         break
@@ -133,11 +135,20 @@ struct TestRunner {
         }
       }))
 
-      try test(environment, socketDataStream)
+      try test(environment, socketDataStream, socket)
     }
   }
   let environments: [Environment]
   init() {
+    #if os(macOS)
+    let task = Process()
+    task.launchPath = "/usr/bin/killall"
+    task.arguments = ["mysqld"]
+    task.launch()
+    task.waitUntilExit()
+    sleep(1)
+    #endif
+
     var stderrOut = StandardErrorOutputStream()
     let testDirectory: URL
     if getEnvironmentVariable(named: "GITHUB_WORKSPACE") != nil {
@@ -152,6 +163,8 @@ struct TestRunner {
 
     print("Creating test directory...", to: &stderrOut)
     try! fileManager.createDirectory(at: testCacheDirectory, withIntermediateDirectories: true, attributes: nil)
+
+    var nextPort: Int32 = 3306
 
     print("Enumerating environments...", to: &stderrOut)
     self.environments = testEnvironments.map { environment in
@@ -243,22 +256,31 @@ struct TestRunner {
         initializationTask.waitUntilExit()
       }
 
-      print("Starting server...", to: &stderrOut)
-      let runTask = Process()
-      runTask.launchPath = serverPath.path
-      runTask.arguments = [
-        "--basedir=\(environmentPath.path)",
-        "--datadir=\(dataPath.path)",
-        "--port=3306",
-      ]
+      var runTask: Process!
 
       return Environment(
         setUp: {
-          if fileManager.fileExists(atPath: dataPath.path) {
-            try! fileManager.removeItem(at: dataPath)
+          if !fileManager.fileExists(atPath: dataPath.path) {
+            try! fileManager.copyItem(atPath: initialDataPath.path, toPath: dataPath.path)
           }
-          try! fileManager.copyItem(atPath: initialDataPath.path, toPath: dataPath.path)
+//          if fileManager.fileExists(atPath: dataPath.path) {
+//            try! fileManager.removeItem(at: dataPath)
+//          }
+//          try! fileManager.copyItem(atPath: initialDataPath.path, toPath: dataPath.path)
+
+          let port = nextPort
+          nextPort += 1
+
+          runTask = Process()
+          runTask.launchPath = serverPath.path
+          runTask.arguments = [
+            "--basedir=\(environmentPath.path)",
+            "--datadir=\(dataPath.path)",
+            "--port=\(port)",
+          ]
           runTask.launch()
+
+          return port
         }, tearDown: {
           runTask.terminate()
         }, serverType: environment.serverType
