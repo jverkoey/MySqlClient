@@ -19,6 +19,18 @@ import FoundationNetworking
 #endif
 import Socket
 import XCTest
+import CommonCrypto
+
+extension Data {
+  var md5: String {
+    let hash = self.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) -> [UInt8] in
+      var hash = [UInt8](repeating: 0, count: Int(CC_MD5_DIGEST_LENGTH))
+      CC_MD5(bytes.baseAddress, CC_LONG(data.count), &hash)
+      return hash
+    }
+    return hash.map { String(format: "%02x", $0) }.joined()
+  }
+}
 
 final class StandardErrorOutputStream: TextOutputStream {
   func write(_ string: String) {
@@ -182,15 +194,7 @@ struct TestRunner {
 
           print("Attributes \(attributes).", to: &stderrOut)
 
-          #if os(Linux)
-          let dataTask = Process()
-          dataTask.launchPath = "/bin/md5sum"
-          dataTask.arguments = [
-            tarPath.path,
-          ]
-          dataTask.launch()
-          dataTask.waitUntilExit()
-          #endif
+          print("MD5 \(tar.md5)", to: &stderrOut)
         }
         print("Untarring \(tarPath.path) to \(testCacheDirectory.path)...", to: &stderrOut)
 
