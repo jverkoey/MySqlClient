@@ -195,7 +195,7 @@ struct TestRunner {
         print("data.tar.xz exists \(fileManager.fileExists(atPath: URL(fileURLWithPath: fileManager.currentDirectoryPath).appendingPathComponent("data.tar.xz").path)).", to: &stderrOut)
 
         if !fileManager.fileExists(atPath: environmentPath.path) {
-          fileManager.createDirectory(at: environmentPath, withIntermediateDirectories: true, attributes: nil)
+          try! fileManager.createDirectory(at: environmentPath, withIntermediateDirectories: true, attributes: nil)
         }
 
         let dataTask = Process()
