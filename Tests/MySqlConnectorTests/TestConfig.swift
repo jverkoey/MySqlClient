@@ -132,9 +132,12 @@ struct TestRunner {
   }
   let environments: [Environment]
   init() {
-    print("Hello")
-
-    let testDirectory = URL(fileURLWithPath: #file).deletingLastPathComponent()
+    let testDirectory: URL
+    if getEnvironmentVariable(named: "GITHUB_WORKSPACE") != nil {
+      testDirectory = URL(fileURLWithPath: getEnvironmentVariable(named: "HOME")!)
+    } else {
+      testDirectory = URL(fileURLWithPath: #file).deletingLastPathComponent()
+    }
     print("Test directory: \(testDirectory)")
     let testCacheDirectory = testDirectory.appendingPathComponent(".cache")
 
@@ -228,3 +231,11 @@ struct TestRunner {
 }
 
 let testRunner = TestRunner()
+
+private func getEnvironmentVariable(named name: String) -> String? {
+  if let environmentValue = getenv(name) {
+    return String(cString: environmentValue)
+  } else {
+    return nil
+  }
+}
