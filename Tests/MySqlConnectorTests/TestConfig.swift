@@ -172,9 +172,11 @@ struct TestRunner {
       if !fileManager.fileExists(atPath: environmentPath.path) {
         let tarPath = testCacheDirectory.appendingPathComponent(environmentUrl.lastPathComponent)
         if !fileManager.fileExists(atPath: tarPath.path) {
-          print("Downloading \(environment.name) from \(environment.url)...", to: &stderrOut)
+          print("Downloading \(environment.name) from \(environmentUrl)...", to: &stderrOut)
           let tar = try! Data(contentsOf: environmentUrl)
           try! tar.write(to: tarPath)
+
+          print("File downloaded \(fileManager.fileExists(atPath: tarPath.path))...", to: &stderrOut)
         }
         print("Untarring \(tarPath.path) to \(testCacheDirectory.path)...", to: &stderrOut)
         let task = Process()
