@@ -20,6 +20,12 @@ import FoundationNetworking
 import Socket
 import XCTest
 
+final class StandardErrorOutputStream: TextOutputStream {
+  func write(_ string: String) {
+    FileHandle.standardError.write(Data(string.utf8))
+  }
+}
+
 enum SqlServerType: Hashable {
   case MySql(version: String)
 }
@@ -132,20 +138,22 @@ struct TestRunner {
   }
   let environments: [Environment]
   init() {
-    fputs("hello from libc\n", stderr)
-
+    var stderrOut = StandardErrorOutputStream()
     let testDirectory: URL
     if getEnvironmentVariable(named: "GITHUB_WORKSPACE") != nil {
       testDirectory = URL(fileURLWithPath: getEnvironmentVariable(named: "HOME")!)
     } else {
       testDirectory = URL(fileURLWithPath: #file).deletingLastPathComponent()
     }
-    print("Test directory: \(testDirectory)")
+    print("Test directory: \(testDirectory)", to: &stderrOut)
     let testCacheDirectory = testDirectory.appendingPathComponent(".cache")
 
     let fileManager = FileManager.default
+
+    print("Creating test directory...", to: &stderrOut)
     try! fileManager.createDirectory(at: testCacheDirectory, withIntermediateDirectories: true, attributes: nil)
 
+    print("Enumerating environments...", to: &stderrOut)
     self.environments = testEnvironments.map { environment in
       #if os(Linux)
       let hostEnvironment: HostEnvironment = .linux
@@ -154,6 +162,7 @@ struct TestRunner {
       #endif
 
       let environmentUrl = environment.url[hostEnvironment]!
+      print("Environment url: \(environmentUrl)", to: &stderrOut)
 
       #if os(Linux)
       let environmentPath = testCacheDirectory.appendingPathComponent(environmentUrl.deletingPathExtension().lastPathComponent)
@@ -163,7 +172,7 @@ struct TestRunner {
       if !fileManager.fileExists(atPath: environmentPath.path) {
         let tarPath = testCacheDirectory.appendingPathComponent(environmentUrl.lastPathComponent)
         if !fileManager.fileExists(atPath: tarPath.path) {
-          print("Downloading \(environment.name) from \(environment.url)...")
+          print("Downloading \(environment.name) from \(environment.url)...", to: &stderrOut)
           let tar = try! Data(contentsOf: environmentUrl)
           try! tar.write(to: tarPath)
         }
