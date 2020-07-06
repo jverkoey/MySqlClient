@@ -177,6 +177,20 @@ struct TestRunner {
           try! tar.write(to: tarPath)
 
           print("File downloaded \(fileManager.fileExists(atPath: tarPath.path))...", to: &stderrOut)
+
+          let attributes = try! fileManager.attributesOfItem(atPath: tarPath.path)
+
+          print("Attributes \(attributes).", to: &stderrOut)
+
+          #if os(Linux)
+          let dataTask = Process()
+          dataTask.launchPath = "/bin/md5sum"
+          dataTask.arguments = [
+            tarPath.path,
+          ]
+          dataTask.launch()
+          dataTask.waitUntilExit()
+          #endif
         }
         print("Untarring \(tarPath.path) to \(testCacheDirectory.path)...", to: &stderrOut)
 
