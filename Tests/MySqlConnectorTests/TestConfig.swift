@@ -179,9 +179,15 @@ struct TestRunner {
           print("File downloaded \(fileManager.fileExists(atPath: tarPath.path))...", to: &stderrOut)
         }
         print("Untarring \(tarPath.path) to \(testCacheDirectory.path)...", to: &stderrOut)
-        print("tar exists \(fileManager.fileExists(atPath: "/usr/bin/tar"))...", to: &stderrOut)
+
+        #if os(Linux)
+        let tarBinaryPath = "/bin/tar"
+        #else
+        let tarBinaryPath = "/usr/bin/tar"
+        #endif
+
         let task = Process()
-        task.launchPath = "/usr/bin/tar"
+        task.launchPath = tarBinaryPath
         task.arguments = [
           "-xf",
           tarPath.path,
@@ -194,7 +200,7 @@ struct TestRunner {
         #if os(Linux)
         print("Untarring \(testCacheDirectory.appendingPathComponent("data.tar.xz").path) to \(testCacheDirectory.path)...", to: &stderrOut)
         let dataTask = Process()
-        dataTask.launchPath = "/usr/bin/tar"
+        dataTask.launchPath = tarBinaryPath
         dataTask.arguments = [
           "-xf",
           testCacheDirectory.appendingPathComponent("data.tar.xz").path,
