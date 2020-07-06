@@ -132,6 +132,8 @@ struct TestRunner {
   }
   let environments: [Environment]
   init() {
+    fputs("hello from libc\n", stderr)
+
     let testDirectory: URL
     if getEnvironmentVariable(named: "GITHUB_WORKSPACE") != nil {
       testDirectory = URL(fileURLWithPath: getEnvironmentVariable(named: "HOME")!)
