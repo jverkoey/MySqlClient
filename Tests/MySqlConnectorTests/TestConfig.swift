@@ -19,18 +19,6 @@ import FoundationNetworking
 #endif
 import Socket
 import XCTest
-import CommonCrypto
-
-extension Data {
-  var md5: String {
-    let hash = self.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) -> [UInt8] in
-      var hash = [UInt8](repeating: 0, count: Int(CC_MD5_DIGEST_LENGTH))
-      CC_MD5(bytes.baseAddress, CC_LONG(data.count), &hash)
-      return hash
-    }
-    return hash.map { String(format: "%02x", $0) }.joined()
-  }
-}
 
 final class StandardErrorOutputStream: TextOutputStream {
   func write(_ string: String) {
@@ -189,21 +177,26 @@ struct TestRunner {
           try! tar.write(to: tarPath)
 
           print("File downloaded \(fileManager.fileExists(atPath: tarPath.path))...", to: &stderrOut)
-
-          let attributes = try! fileManager.attributesOfItem(atPath: tarPath.path)
-
-          print("Attributes \(attributes).", to: &stderrOut)
-
-          print("MD5 \(tar.md5)", to: &stderrOut)
         }
         print("Untarring \(tarPath.path) to \(testCacheDirectory.path)...", to: &stderrOut)
 
+        print("Current directory \(fileManager.currentDirectoryPath)...", to: &stderrOut)
+
         #if os(Linux)
         let tarBinaryPath = "/bin/tar"
+        let task = Process()
+        task.launchPath = "/bin/ar"
+        task.arguments = [
+          "vx",
+          tarPath.path,
+          testCacheDirectory.path
+        ]
+        task.launch()
+        task.waitUntilExit()
+
+        print("data.tar.xz exists \(fileManager.fileExists(atPath: testCacheDirectory.appendingPathComponent("data.tar.xz").path)).", to: &stderrOut)
         #else
         let tarBinaryPath = "/usr/bin/tar"
-        #endif
-
         let task = Process()
         task.launchPath = tarBinaryPath
         task.arguments = [
@@ -214,6 +207,7 @@ struct TestRunner {
         ]
         task.launch()
         task.waitUntilExit()
+        #endif
 
         #if os(Linux)
         print("Untarring \(testCacheDirectory.appendingPathComponent("data.tar.xz").path) to \(testCacheDirectory.path)...", to: &stderrOut)
