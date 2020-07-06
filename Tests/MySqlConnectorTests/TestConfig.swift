@@ -185,7 +185,7 @@ struct TestRunner {
         #if os(Linux)
         let tarBinaryPath = "/bin/tar"
         let task = Process()
-        task.launchPath = "/bin/ar"
+        task.launchPath = "/usr/bin/ar"
         task.arguments = [
           "vx",
           tarPath.path,
