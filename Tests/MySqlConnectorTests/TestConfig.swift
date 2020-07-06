@@ -179,6 +179,7 @@ struct TestRunner {
           print("File downloaded \(fileManager.fileExists(atPath: tarPath.path))...", to: &stderrOut)
         }
         print("Untarring \(tarPath.path) to \(testCacheDirectory.path)...", to: &stderrOut)
+        print("tar exists \(fileManager.fileExists(atPath: "/usr/bin/tar"))...", to: &stderrOut)
         let task = Process()
         task.launchPath = "/usr/bin/tar"
         task.arguments = [
