@@ -25,6 +25,12 @@ func getEnvironmentVariable(named name: String) -> String? {
   }
 }
 
+final class StandardErrorOutputStream: TextOutputStream {
+  func write(_ string: String) {
+    FileHandle.standardError.write(Data(string.utf8))
+  }
+}
+
 class BaseServerTestCase: XCTestCase {
   var socket: Socket!
   var socketDataStream: BufferedData!
@@ -39,6 +45,10 @@ class BaseServerTestCase: XCTestCase {
     } else {
       port = 3306
     }
+
+    var stderrOut = StandardErrorOutputStream()
+    print("Connecting to port \(port)...", to: &stderrOut)
+    
     try! socket.connect(to: "localhost", port: port)
 
     if !socket.isConnected {
