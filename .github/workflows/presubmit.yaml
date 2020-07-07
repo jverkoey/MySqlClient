@@ -30,7 +30,7 @@ jobs:
     steps:
       - run: apt-get update && apt-get install -y libssl-dev
       - uses: actions/checkout@v2
-      - run: swift test MySqlConnector --enable-test-discovery --enable-code-coverage
+      - run: swift test --enable-test-discovery --enable-code-coverage
         env:
           MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
           HOST: "mysql"
