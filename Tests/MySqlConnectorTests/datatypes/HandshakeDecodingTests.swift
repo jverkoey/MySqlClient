@@ -53,6 +53,7 @@ class HandshakeDecodingTests: XCTestCase {
           context.debugDescription,
           "Only protocol version10 is presently supported, but version9 was found instead."
         )
+
       default:
         XCTFail("Unexpected error \(String(describing: error))")
       }
