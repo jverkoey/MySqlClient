@@ -33,7 +33,7 @@ jobs:
       - run: swift test --enable-test-discovery --enable-code-coverage
         env:
           PORT: 3306
-          HOST: "localhost"
+          HOST: "mysql"
       - uses: mattpolzin/swift-codecov-action@0.4.0
   #
   # lint:
