@@ -17,27 +17,27 @@ import BinaryCodable
 import XCTest
 
 final class DatabaseManagementTests: BaseMySqlClientTests {
-//  func testCreatesAndDeletesDatabase() throws {
-//    // When
-//    let creationResponse = try client.query("create database \(type(of: self))")
-//    let dropResponse = try client.query("drop database \(type(of: self))")
-//
-//    // Then
-//    switch creationResponse {
-//    case .OK(let numberOfAffectedRows, let lastInsertId, let info):
-//      XCTAssertEqual(numberOfAffectedRows, 1)
-//      XCTAssertEqual(lastInsertId, 0)
-//      XCTAssertNil(info)
-//    default:
-//      XCTFail("Unexpected response \(creationResponse)")
-//    }
-//    switch dropResponse {
-//    case .OK(let numberOfAffectedRows, let lastInsertId, let info):
-//      XCTAssertEqual(numberOfAffectedRows, 0)
-//      XCTAssertEqual(lastInsertId, 0)
-//      XCTAssertNil(info)
-//    default:
-//      XCTFail("Unexpected response \(dropResponse)")
-//    }
-//  }
+  func testCreatesAndDeletesDatabase() throws {
+    // When
+    let creationResponse = try client.query("create database \(type(of: self))")
+    let dropResponse = try client.query("drop database \(type(of: self))")
+
+    // Then
+    switch creationResponse {
+    case .OK(let numberOfAffectedRows, let lastInsertId, let info):
+      XCTAssertEqual(numberOfAffectedRows, 1)
+      XCTAssertEqual(lastInsertId, 0)
+      XCTAssertNil(info)
+    default:
+      XCTFail("Unexpected response \(creationResponse)")
+    }
+    switch dropResponse {
+    case .OK(let numberOfAffectedRows, let lastInsertId, let info):
+      XCTAssertEqual(numberOfAffectedRows, 0)
+      XCTAssertEqual(lastInsertId, 0)
+      XCTAssertNil(info)
+    default:
+      XCTFail("Unexpected response \(dropResponse)")
+    }
+  }
 }

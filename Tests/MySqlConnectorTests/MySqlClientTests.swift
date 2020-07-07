@@ -17,21 +17,21 @@ import BinaryCodable
 import XCTest
 
 class MySqlClientTests: BaseMySqlClientTests {
-//  func testConnects() throws {
-//    // When
-//    let connection = try client.anyIdleConnection()
-//
-//    // Then
-//    XCTAssertNotNil(connection)
-//  }
-//
-//  func testReusesIdleConnection() throws {
-//    // When
-//    let connection1 = try client.anyIdleConnection()
-//    let connection2 = try client.anyIdleConnection()
-//
-//    // Then
-//    XCTAssertNotNil(connection1)
-//    XCTAssertNotNil(connection2)
-//  }
+  func testConnects() throws {
+    // When
+    let connection = try client.anyIdleConnection()
+
+    // Then
+    XCTAssertNotNil(connection)
+  }
+
+  func testReusesIdleConnection() throws {
+    // When
+    let connection1 = try client.anyIdleConnection()
+    let connection2 = try client.anyIdleConnection()
+
+    // Then
+    XCTAssertNotNil(connection1)
+    XCTAssertNotNil(connection2)
+  }
 }
