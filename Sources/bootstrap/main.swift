@@ -1,6 +1,7 @@
 import Foundation
 
-let serverUrl = URL(string: "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.20-macos10.15-x86_64.tar.gz")!
+//let serverUrl = URL(string: "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.20-macos10.15-x86_64.tar.gz")!
+let serverUrl = URL(string: "https://downloads.mysql.com/archives/get/p/23/file/mysql-5.7.29-macos10.14-x86_64.tar.gz")!
 
 let task = Process()
 task.launchPath = "/usr/bin/killall"
@@ -29,8 +30,6 @@ if !fileManager.fileExists(atPath: environmentPath.path) {
     print("Downloading \(serverUrl)...")
     let tar = try! Data(contentsOf: serverUrl)
     try! tar.write(to: tarPath)
-
-    print("File downloaded \(fileManager.fileExists(atPath: tarPath.path))...")
   }
   print("Untarring \(tarPath.path) to \(testCacheDirectory.path)...")
 
