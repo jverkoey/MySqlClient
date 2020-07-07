@@ -28,7 +28,7 @@ final class HandshakeTests: BaseServerTestCase {
     // Then
     XCTAssertTrue(socketDataStream.isAtEnd)
     XCTAssertEqual(handshake.sequenceNumber, 0)
-    XCTAssertEqual(handshake.payload.protocolVersion, .v10)
+    XCTAssertEqual(handshake.payload.protocolVersion, .version10)
     let standardCapabilityFlags: CapabilityFlags = [
       .longPassword,
       .foundRows,
@@ -110,7 +110,7 @@ final class HandshakeTests: BaseServerTestCase {
     // Then
     switch response.payload {
     case .ERR(let errorCode, let errorMessage):
-      XCTAssertEqual(errorCode, .ER_ACCESS_DENIED_ERROR)
+      XCTAssertEqual(errorCode, .accessDeniedError)
       XCTAssertTrue(errorMessage.hasPrefix("Access denied for user '"))
       XCTAssertTrue(errorMessage.hasSuffix("' (using password: YES)"))
     default:

@@ -36,7 +36,7 @@ class HandshakeDecodingTests: XCTestCase {
 
   func testThrowsWithUnsupportedProtocol() throws {
     // Given
-    let protocolVersion = ProtocolVersion.v9.rawValue.bytes
+    let protocolVersion = ProtocolVersion.version9.rawValue.bytes
     let payloadData = protocolVersion
     let packetHeader = UInt32(payloadData.count).bytes[0...2] + [0]
     let data = Data(packetHeader + payloadData)
@@ -55,7 +55,7 @@ class HandshakeDecodingTests: XCTestCase {
 
   func testShortv10HandshakeSucceeds() throws {
     // Given
-    let protocolVersion = ProtocolVersion.v10
+    let protocolVersion = ProtocolVersion.version10
     let serverVersion = "unit.tests"
     let connectionIdentifier: UInt32 = 123
     let firstAuthPluginData = [UInt8](repeating: 0xf1, count: 8)
@@ -73,6 +73,6 @@ class HandshakeDecodingTests: XCTestCase {
     // Then
     let packet = try decoder.decode(Packet<Handshake>.self, from: data)
 
-    XCTAssertEqual(packet.payload.protocolVersion, .v10)
+    XCTAssertEqual(packet.payload.protocolVersion, .version10)
   }
 }

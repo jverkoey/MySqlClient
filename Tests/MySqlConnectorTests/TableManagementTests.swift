@@ -36,7 +36,7 @@ final class TableManagementTests: BaseMySqlClientTests {
     // Then
     switch creationResponse {
     case .ERR(let errorCode, let errorMessage):
-      XCTAssertEqual(errorCode, .ER_NO_DB_ERROR)
+      XCTAssertEqual(errorCode, .noDbError)
       XCTAssertEqual(errorMessage, "No database selected")
     default:
       XCTFail("Unexpected response \(creationResponse)")
@@ -59,7 +59,7 @@ final class TableManagementTests: BaseMySqlClientTests {
     }
     switch creationResponse {
     case .ERR(let errorCode, let errorMessage):
-      XCTAssertEqual(errorCode, .ER_TABLE_MUST_HAVE_COLUMNS)
+      XCTAssertEqual(errorCode, .tableMustHaveColumns)
       XCTAssertEqual(errorMessage, "A table must have at least 1 column")
     default:
       XCTFail("Unexpected response \(creationResponse)")
