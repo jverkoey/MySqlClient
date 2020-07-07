@@ -23,7 +23,8 @@ jobs:
       - run: apt-get update && apt-get install -y libssl-dev
       - uses: actions/checkout@v2
       - run: swift run --enable-test-discovery bootstrap "${{ matrix.mysql_package }}"
-      - run: pgrep mysqld_safe && pgrep mysqld && swift test --enable-test-discovery --enable-code-coverage
+      - run: pgrep mysqld_safe
+      - run: swift test --enable-test-discovery --enable-code-coverage
       - uses: mattpolzin/swift-codecov-action@0.4.0
   #
   # lint:
