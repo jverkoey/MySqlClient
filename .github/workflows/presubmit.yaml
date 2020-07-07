@@ -18,11 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        server_version: [mysql:5.7]
+        server_version: ["mysql:5.7"]
     steps:
       - run: apt-get update && apt-get install -y libssl-dev
       - uses: actions/checkout@v2
       - run: swift test --enable-test-discovery --enable-code-coverage
+        env:
+          PORT: ${{ job.services.mysql.ports[3306] }}
       - uses: mattpolzin/swift-codecov-action@0.4.0
     services:
       mysql:
