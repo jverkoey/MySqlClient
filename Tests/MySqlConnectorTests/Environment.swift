@@ -25,6 +25,7 @@ private func getEnvironmentVariable(named name: String) -> String? {
 struct Environment {
   let port: Int32
   let host: String
+  let hostIp: String
 
   init() {
     if let portEnvVar = getEnvironmentVariable(named: "PORT") {
@@ -37,6 +38,7 @@ struct Environment {
     } else {
       self.host = "localhost"
     }
+    self.hostIp = Host(name: self.host).addresses.first { $0.contains(".") }!
   }
 }
 
