@@ -39,17 +39,24 @@ class BaseServerTestCase: XCTestCase {
     super.setUp()
 
     socket = try! Socket.create()
+
     let port: Int32
     if let portEnvVar = getEnvironmentVariable(named: "PORT") {
       port = Int32(portEnvVar)!
     } else {
       port = 3306
     }
+    let host: String
+    if let hostEnvVar = getEnvironmentVariable(named: "HOST") {
+      host = hostEnvVar
+    } else {
+      host = "localhost"
+    }
 
     var stderrOut = StandardErrorOutputStream()
-    print("Connecting to port \(port)...", to: &stderrOut)
-    
-    try! socket.connect(to: "localhost", port: port)
+    print("Connecting to port \(port) on \(host)...", to: &stderrOut)
+
+    try! socket.connect(to: host, port: port)
 
     if !socket.isConnected {
       return

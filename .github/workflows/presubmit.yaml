@@ -25,6 +25,7 @@ jobs:
       - run: swift test --enable-test-discovery --enable-code-coverage
         env:
           PORT: ${{ job.services.mysql.ports[3306] }}
+          HOST: "mysql"
       - uses: mattpolzin/swift-codecov-action@0.4.0
     services:
       mysql:
