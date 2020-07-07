@@ -18,15 +18,19 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        mysql_package: ["https://downloads.mysql.com/archives/get/p/23/file/mysql-community-server_5.7.29-1ubuntu18.04_i386.deb"]
+        mysql_version: [5.7]
     steps:
       - run: apt-get update && apt-get install -y libssl-dev
       - uses: actions/checkout@v2
-      - run: swift run --enable-test-discovery bootstrap "${{ matrix.mysql_package }}"
-      - run: pgrep mysqld_safe
-      - run: ls Sources/bootstrap/.cache/mysql-community-server_5.7.29-1ubuntu18.04_i386/data
       - run: swift test --enable-test-discovery --enable-code-coverage
       - uses: mattpolzin/swift-codecov-action@0.4.0
+    services:
+      mysql:
+        image: mysql:${{ matrix.mysql_version }}
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+        ports:
+          - 3306 
   #
   # lint:
   #   container:
