@@ -111,7 +111,11 @@ final class HandshakeTests: BaseServerTestCase {
     switch response.payload {
     case .ERR(let errorCode, let errorMessage):
       XCTAssertEqual(errorCode, .ER_ACCESS_DENIED_ERROR)
-      XCTAssertEqual(errorMessage, "Access denied for user 'root'@'\(environment.hostIp)' (using password: YES)")
+      if environment.host == "localhost" {
+        XCTAssertEqual(errorMessage, "Access denied for user 'root'@'\(environment.host)' (using password: YES)")
+      } else {
+        XCTAssertEqual(errorMessage, "Access denied for user 'root'@'\(environment.hostIp)' (using password: YES)")
+      }
     default:
       XCTFail("Unexpected response \(response)")
     }
