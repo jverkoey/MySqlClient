@@ -19,22 +19,22 @@ jobs:
     strategy:
       matrix:
         server_version: [5.7]
+    services:
+      mysql:
+        image: mysql:${{ matrix.server_version }}
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes 
+        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
     steps:
       - run: apt-get update && apt-get install -y libssl-dev
       - uses: actions/checkout@v2
       - run: swift test --enable-test-discovery --enable-code-coverage
         env:
-          PORT: ${{ job.services.mysql.ports[3306] }}
-          HOST: "mysql"
+          PORT: 3306
+          HOST: "localhost"
       - uses: mattpolzin/swift-codecov-action@0.4.0
-    services:
-      mysql:
-        image: mysql:${{ matrix.server_version }}
-        ports:
-          - 3306
-        env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes 
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
   #
   # lint:
   #   container:
