@@ -15,5 +15,70 @@
 import MySqlQuery
 import XCTest
 
+private struct Object: Codable {
+  let name: String
+  let age: Int
+}
+
 final class MySqlQueryTests: XCTestCase {
+
+  func testInsertSingleObject() throws {
+    // Given
+    let encoder = MySqlQueryEncoder()
+    let object = Object(name: "tests", age: 123)
+    let table = "some_table"
+
+    // When
+    let query = try encoder.insert(object, intoTable: table)
+
+    // Then
+    XCTAssertEqual(query, """
+INSERT INTO some_table (`age`,`name`) VALUES ("123","tests") ON DUPLICATE KEY UPDATE `age`=VALUES(`age`),`name`=VALUES(`name`)
+""")
+  }
+
+  func testInsertMultipleObjects() throws {
+    // Given
+    let encoder = MySqlQueryEncoder()
+    let objects = [Object(name: "object1", age: 123), Object(name: "object2", age: 456)]
+    let table = "some_table"
+
+    // When
+    let query = try encoder.insert(objects, intoTable: table)
+
+    // Then
+    XCTAssertEqual(query, """
+INSERT INTO some_table (`age`,`name`) VALUES (\"123\",\"object1\"),(\"456\",\"object2\") ON DUPLICATE KEY UPDATE `age`=VALUES(`age`),`name`=VALUES(`name`)
+""")
+  }
+
+  func testInsertWithMaxDuplicateKeyBehavior() throws {
+    // Given
+    let encoder = MySqlQueryEncoder()
+    let objects = [Object(name: "object1", age: 123), Object(name: "object2", age: 456)]
+    let table = "some_table"
+
+    // When
+    let query = try encoder.insert(objects, intoTable: table, duplicateKeyBehaviors: ["age": .max])
+
+    // Then
+    XCTAssertEqual(query, """
+INSERT INTO some_table (`age`,`name`) VALUES ("123","object1"),("456","object2") ON DUPLICATE KEY UPDATE `age`=GREATEST(VALUES(`age`),`age`),`name`=VALUES(`name`)
+""")
+  }
+
+  func testInsertIgnoresFields() throws {
+    // Given
+    let encoder = MySqlQueryEncoder()
+    let objects = [Object(name: "object1", age: 123), Object(name: "object2", age: 456)]
+    let table = "some_table"
+
+    // When
+    let query = try encoder.insert(objects, intoTable: table, ignoredFields: ["name"])
+
+    // Then
+    XCTAssertEqual(query, """
+INSERT INTO some_table (`age`) VALUES ("123"),("456") ON DUPLICATE KEY UPDATE `age`=VALUES(`age`)
+""")
+  }
 }

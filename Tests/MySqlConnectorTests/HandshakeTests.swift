@@ -17,49 +17,7 @@ import Socket
 @testable import MySqlConnector
 import XCTest
 
-class MySqlServerTestCase: XCTestCase {
-  var socket: Socket!
-  var socketDataStream: BufferedData!
-
-  override func setUp() {
-    super.setUp()
-
-    socket = try! Socket.create()
-    try! socket.connect(to: "localhost", port: 3306)
-
-    if !socket.isConnected {
-      return
-    }
-
-    var buffer = Data(capacity: socket.readBufferSize)
-    socketDataStream = BufferedData(reader: AnyBufferedDataSource(read: { recommendedAmount in
-      if buffer.count == 0 {
-        _ = try! self.socket.read(into: &buffer)
-      }
-      let pulledData = buffer.prefix(recommendedAmount)
-      buffer = buffer.dropFirst(recommendedAmount)
-      return pulledData
-    }, isAtEnd: {
-      do {
-        return try buffer.isEmpty && !self.socket.isReadableOrWritable(waitForever: false, timeout: 0).readable
-      } catch {
-        return true
-      }
-    }))
-  }
-
-  override func tearDown() {
-    if socket != nil {
-      socket.close()
-      socket = nil
-    }
-    socketDataStream = nil
-
-    super.tearDown()
-  }
-}
-
-final class HandshakeTests: MySqlServerTestCase {
+final class HandshakeTests: BaseServerTestCase {
   func testHandshake() throws {
     // Given
     let decoder = BinaryDataDecoder()
