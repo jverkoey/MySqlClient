@@ -154,6 +154,10 @@ struct Bootstrap: ParsableCommand {
     ]
     runTask.launch()
 
+    if getEnvironmentVariable(named: "GITHUB_WORKSPACE") != nil {
+      sleep(5) // Give the server time to boot.
+    }
+
     print("Booted.", to: &stderrOut)
   }
 }
