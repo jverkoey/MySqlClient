@@ -44,7 +44,6 @@ final class TableTests: BaseMySqlClientTests {
 
   override func tearDown() {
     try! client.query("drop database \(type(of: self))")
-    // 
 
     client = nil
 
