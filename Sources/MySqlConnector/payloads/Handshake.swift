@@ -19,8 +19,8 @@ import Foundation
  Documentation: https://dev.mysql.com/doc/internals/en/capability-flags.html#packet-Protocol::CapabilityFlags
  */
 enum ProtocolVersion: UInt8, BinaryDecodable {
-  case v10 = 0x0a
-  case v9  = 0x09
+  case version10 = 0x0a
+  case version9  = 0x09
 }
 
 /**
@@ -55,9 +55,9 @@ struct Handshake: BinaryDecodable, CustomStringConvertible {
 
     self.protocolVersion = try container.decode(ProtocolVersion.self)
 
-    if protocolVersion != .v10 {
+    if protocolVersion != .version10 {
       throw HandshakeDecodingError.unsupportedProtocol(context: .init(debugDescription:
-        "Only protocol \(ProtocolVersion.v10) is presently supported, but \(protocolVersion) was found instead."))
+        "Only protocol \(ProtocolVersion.version10) is presently supported, but \(protocolVersion) was found instead."))
     }
 
     self.serverVersion = try container.decodeString(encoding: .utf8, terminator: 0)
@@ -75,7 +75,8 @@ struct Handshake: BinaryDecodable, CustomStringConvertible {
 
     guard CapabilityFlags(rawValue: lowerCapabilityFlags).contains(.protocol41) else {
       throw HandshakeDecodingError.unsupportedProtocol(context: .init(debugDescription:
-        "Only protocol \(CapabilityFlags.protocol41) is presently supported, but this capability was not found on the server."))
+        "Only protocol \(CapabilityFlags.protocol41) is presently supported, " +
+        "but this capability was not found on the server."))
     }
 
     if container.isAtEnd {

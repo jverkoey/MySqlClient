@@ -60,19 +60,23 @@ struct Bootstrap: ParsableCommand {
 
     let fileManager = FileManager.default
 
-    try! fileManager.createDirectory(at: testCacheDirectory, withIntermediateDirectories: true, attributes: nil)
+    try fileManager.createDirectory(at: testCacheDirectory, withIntermediateDirectories: true, attributes: nil)
 
     #if os(Linux)
-    let environmentPath = testCacheDirectory.appendingPathComponent(serverUrl.deletingPathExtension().lastPathComponent)
+    let environmentPath = testCacheDirectory.appendingPathComponent(
+      serverUrl.deletingPathExtension().lastPathComponent
+    )
     #elseif os(macOS)
-    let environmentPath = testCacheDirectory.appendingPathComponent(serverUrl.deletingPathExtension().deletingPathExtension().lastPathComponent)
+    let environmentPath = testCacheDirectory.appendingPathComponent(
+      serverUrl.deletingPathExtension().deletingPathExtension().lastPathComponent
+    )
     #endif
     if !fileManager.fileExists(atPath: environmentPath.path) {
       let tarPath = testCacheDirectory.appendingPathComponent(serverUrl.lastPathComponent)
       if !fileManager.fileExists(atPath: tarPath.path) {
         print("Downloading \(serverUrl)...", to: &stderrOut)
-        let tar = try! Data(contentsOf: serverUrl)
-        try! tar.write(to: tarPath)
+        let tar = try Data(contentsOf: serverUrl)
+        try tar.write(to: tarPath)
       }
 
       #if os(Linux)
@@ -88,7 +92,7 @@ struct Bootstrap: ParsableCommand {
       task.waitUntilExit()
 
       if !fileManager.fileExists(atPath: environmentPath.path) {
-        try! fileManager.createDirectory(at: environmentPath, withIntermediateDirectories: true, attributes: nil)
+        try fileManager.createDirectory(at: environmentPath, withIntermediateDirectories: true, attributes: nil)
       }
 
       let dataTask = Process()
@@ -130,10 +134,10 @@ struct Bootstrap: ParsableCommand {
     print("Server exists at \(fileManager.fileExists(atPath: serverPath.path))...", to: &stderrOut)
 
     if fileManager.fileExists(atPath: dataPath.path) {
-      try! fileManager.removeItem(at: dataPath)
+      try fileManager.removeItem(at: dataPath)
     }
 
-    try! fileManager.createDirectory(at: dataPath, withIntermediateDirectories: true, attributes: nil)
+    try fileManager.createDirectory(at: dataPath, withIntermediateDirectories: true, attributes: nil)
 
     let initializationTask = Process()
     initializationTask.launchPath = serverPath.path
