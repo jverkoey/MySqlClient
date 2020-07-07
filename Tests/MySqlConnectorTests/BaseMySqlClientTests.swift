@@ -21,7 +21,7 @@ class BaseMySqlClientTests: XCTestCase {
   override func setUp() {
     super.setUp()
 
-    client = MySqlClient(to: "localhost", port: 3306, username: "root", password: "", database: nil)
+    client = MySqlClient(to: environment.host, port: environment.port, username: "root", password: "", database: nil)
   }
 
   override func tearDown() {

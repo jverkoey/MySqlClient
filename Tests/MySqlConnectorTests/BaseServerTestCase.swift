@@ -17,37 +17,16 @@ import Socket
 @testable import MySqlConnector
 import XCTest
 
-func getEnvironmentVariable(named name: String) -> String? {
-  if let environmentValue = getenv(name) {
-    return String(cString: environmentValue)
-  } else {
-    return nil
-  }
-}
-
 class BaseServerTestCase: XCTestCase {
   var socket: Socket!
   var socketDataStream: BufferedData!
-  var port: Int32!
-  var host: String!
 
   override func setUp() {
     super.setUp()
 
     socket = try! Socket.create()
 
-    if let portEnvVar = getEnvironmentVariable(named: "PORT") {
-      port = Int32(portEnvVar)!
-    } else {
-      port = 3306
-    }
-    if let hostEnvVar = getEnvironmentVariable(named: "HOST") {
-      host = hostEnvVar
-    } else {
-      host = "localhost"
-    }
-
-    try! socket.connect(to: host, port: port)
+    try! socket.connect(to: environment.host, port: environment.port)
 
     if !socket.isConnected {
       return
