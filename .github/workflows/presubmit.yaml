@@ -23,7 +23,7 @@ jobs:
       mysql:
         image: mysql:${{ matrix.server_version }}
         ports:
-          - 3306:3306
+          - 3306/tcp
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes 
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: swift test --enable-test-discovery --enable-code-coverage
         env:
-          PORT: 3306
+          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
           HOST: "mysql"
       - uses: mattpolzin/swift-codecov-action@0.4.0
   #
