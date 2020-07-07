@@ -27,7 +27,10 @@ class HandshakeDecodingTests: XCTestCase {
     XCTAssertThrowsError(try decoder.decode(Packet<Handshake>.self, from: data)) { error in
       switch error {
       case BinaryDecodingError.dataCorrupted(let context):
-        XCTAssertEqual(context.debugDescription, "Not enough bytes available to decode. Requested 3, but received 0.")
+        XCTAssertEqual(
+          context.debugDescription,
+          "Not enough bytes available to decode. Requested 3, but received 0."
+        )
       default:
         XCTFail("Unexpected error \(String(describing: error))")
       }
@@ -46,7 +49,10 @@ class HandshakeDecodingTests: XCTestCase {
     XCTAssertThrowsError(try decoder.decode(Packet<Handshake>.self, from: data)) { error in
       switch error {
       case HandshakeDecodingError.unsupportedProtocol(let context):
-        XCTAssertEqual(context.debugDescription, "Only protocol v10 is presently supported, but v9 was found instead.")
+        XCTAssertEqual(
+          context.debugDescription,
+          "Only protocol version10 is presently supported, but version9 was found instead."
+        )
       default:
         XCTFail("Unexpected error \(String(describing: error))")
       }
