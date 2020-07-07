@@ -107,7 +107,6 @@ final class HandshakeTests: BaseServerTestCase {
       return
     }
 
-
     // Then
     switch response.payload {
     case .ERR(let errorCode, let errorMessage):
