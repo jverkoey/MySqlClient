@@ -23,8 +23,6 @@ jobs:
       - run: apt-get update && apt-get install -y libssl-dev
       - uses: actions/checkout@v2
       - run: swift run --enable-test-discovery bootstrap "${{ matrix.mysql_package }}"
-      - run: pgrep mysqld_safe
-      - run: echo "SELECT 1 as col" | Sources/bootstrap/.cache/mysql-community-server_5.7.29-1ubuntu18.04_i386/usr/bin//mysql --user=root
       - run: swift test --enable-test-discovery --enable-code-coverage
       - uses: mattpolzin/swift-codecov-action@0.4.0
   #
