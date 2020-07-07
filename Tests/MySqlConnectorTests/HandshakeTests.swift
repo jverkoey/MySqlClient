@@ -116,6 +116,7 @@ final class HandshakeTests: BaseServerTestCase {
       } else {
         XCTAssertEqual(errorMessage, "Access denied for user 'root'@'\(environment.hostIp)' (using password: YES)")
       }
+      // Push.
     default:
       XCTFail("Unexpected response \(response)")
     }
