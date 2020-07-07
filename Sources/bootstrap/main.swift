@@ -24,12 +24,17 @@ struct Bootstrap: ParsableCommand {
     // https://downloads.mysql.com/archives/get/p/23/file/mysql-5.7.29-macos10.14-x86_64.tar.gz
     let serverUrl = URL(string: serverPackageUrl)!
 
-    let task = Process()
-    task.launchPath = "/usr/bin/killall"
-    task.arguments = ["mysqld"]
-    task.launch()
-    task.waitUntilExit()
-    sleep(1)
+    #if os(macOS)
+    // Only run this locally; on GitHub we assume we're starting from a clean machine.
+    if getEnvironmentVariable(named: "GITHUB_WORKSPACE") == nil {
+      let task = Process()
+      task.launchPath = "/usr/bin/killall"
+      task.arguments = ["mysqld"]
+      task.launch()
+      task.waitUntilExit()
+      sleep(1)
+    }
+    #endif
 
     let testDirectory = URL(fileURLWithPath: #file).deletingLastPathComponent()
     let testCacheDirectory = testDirectory.appendingPathComponent(".cache")
