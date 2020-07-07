@@ -14,11 +14,21 @@
 
 import ArgumentParser
 import Foundation
+#if os(Linux)
 import FoundationNetworking
+#endif
 
 final class StandardErrorOutputStream: TextOutputStream {
   func write(_ string: String) {
     FileHandle.standardError.write(Data(string.utf8))
+  }
+}
+
+private func getEnvironmentVariable(named name: String) -> String? {
+  if let environmentValue = getenv(name) {
+    return String(cString: environmentValue)
+  } else {
+    return nil
   }
 }
 
@@ -64,9 +74,10 @@ struct Bootstrap: ParsableCommand {
         let tar = try! Data(contentsOf: serverUrl)
         try! tar.write(to: tarPath)
       }
-      print("Untarring \(tarPath.path) to \(testCacheDirectory.path)...", to: &stderrOut)
 
       #if os(Linux)
+      print("Untarring \(tarPath.path) to \(fileManager.currentDirectoryPath)...", to: &stderrOut)
+
       let task = Process()
       task.launchPath = "/usr/bin/ar"
       task.arguments = [
@@ -91,6 +102,8 @@ struct Bootstrap: ParsableCommand {
       dataTask.launch()
       dataTask.waitUntilExit()
       #else
+      print("Untarring \(tarPath.path) to \(testCacheDirectory.path)...", to: &stderrOut)
+
       let task = Process()
       task.launchPath = "/usr/bin/tar"
       task.arguments = [
@@ -104,7 +117,13 @@ struct Bootstrap: ParsableCommand {
       #endif
     }
 
-    let serverPath = environmentPath.appendingPathComponent("bin/mysqld")
+    #if os(Linux)
+    let serverPath = "usr/bin/mysqld_safe"
+    #elseif os(macOS)
+    let serverPath = "bin/mysqld"
+    #endif
+
+    let serverPath = environmentPath.appendingPathComponent(serverPath)
     let dataPath = environmentPath.appendingPathComponent("data")
 
     print("Initializing server \(serverPath.path)...", to: &stderrOut)
