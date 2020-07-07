@@ -118,12 +118,12 @@ struct Bootstrap: ParsableCommand {
     }
 
     #if os(Linux)
-    let serverPath = "usr/bin/mysqld_safe"
+    let mysqldPath = "usr/bin/mysqld_safe"
     #elseif os(macOS)
-    let serverPath = "bin/mysqld"
+    let mysqldPath = "bin/mysqld"
     #endif
 
-    let serverPath = environmentPath.appendingPathComponent(serverPath)
+    let serverPath = environmentPath.appendingPathComponent(mysqldPath)
     let dataPath = environmentPath.appendingPathComponent("data")
 
     print("Initializing server \(serverPath.path)...", to: &stderrOut)
