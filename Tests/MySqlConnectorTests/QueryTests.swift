@@ -22,39 +22,39 @@ struct Variable: Codable {
 }
 
 final class QueryTests: BaseMySqlClientTests {
-  func testShowVariablesAsDictionaries() throws {
-    // Given
-    let query = "SHOW VARIABLES;"
-
-    // When
-    let response = try client.query(query)
-
-    // Then
-    switch response {
-    case .Results(let iterator):
-      let keyValues = Array(iterator)
-      XCTAssertGreaterThan(keyValues.count, 0)
-
-    default:
-      XCTFail("Unexpected response \(response)")
-    }
-  }
-
-  func testShowVariablesAsObjects() throws {
-    // Given
-    let query = "SHOW VARIABLES;"
-
-    // When
-    let response = try client.query(query, rowType: Variable.self)
-
-    // Then
-    switch response {
-    case .Results(let iterator):
-      let keyValues = Array(iterator)
-      XCTAssertGreaterThan(keyValues.count, 0)
-
-    default:
-      XCTFail("Unexpected response \(response)")
-    }
-  }
+//  func testShowVariablesAsDictionaries() throws {
+//    // Given
+//    let query = "SHOW VARIABLES;"
+//
+//    // When
+//    let response = try client.query(query)
+//
+//    // Then
+//    switch response {
+//    case .Results(let iterator):
+//      let keyValues = Array(iterator)
+//      XCTAssertGreaterThan(keyValues.count, 0)
+//
+//    default:
+//      XCTFail("Unexpected response \(response)")
+//    }
+//  }
+//
+//  func testShowVariablesAsObjects() throws {
+//    // Given
+//    let query = "SHOW VARIABLES;"
+//
+//    // When
+//    let response = try client.query(query, rowType: Variable.self)
+//
+//    // Then
+//    switch response {
+//    case .Results(let iterator):
+//      let keyValues = Array(iterator)
+//      XCTAssertGreaterThan(keyValues.count, 0)
+//
+//    default:
+//      XCTFail("Unexpected response \(response)")
+//    }
+//  }
 }

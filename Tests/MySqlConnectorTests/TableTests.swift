@@ -34,40 +34,40 @@ struct TableColumnDescription: Decodable, Equatable {
 }
 
 final class TableTests: BaseMySqlClientTests {
-  override func setUp() {
-    super.setUp()
-
-    try! client.query("create database \(type(of: self))")
-    try! client.query("use \(type(of: self))")
-    try! client.query("create table \(type(of: self)) (name VARCHAR(20), owner VARCHAR(20), species VARCHAR(20), sex CHAR(1), birth DATE, death DATE)")
-  }
-
-  override func tearDown() {
-    try! client.query("drop database \(type(of: self))")
-
-    client = nil
-
-    super.tearDown()
-  }
-
-  func testDescribesTable() throws {
-    // When
-    let response = try client.query("describe \(type(of: self))", rowType: TableColumnDescription.self)
-
-    // Then
-    switch response {
-    case .Results(let iterator):
-      let descriptions = Array(iterator)
-      XCTAssertEqual(descriptions, [
-        TableColumnDescription(field: "name", fieldType: "varchar(20)", isNullable: true, key: "", defaultValue: nil, extraInformation: ""),
-        TableColumnDescription(field: "owner", fieldType: "varchar(20)", isNullable: true, key: "", defaultValue: nil, extraInformation: ""),
-        TableColumnDescription(field: "species", fieldType: "varchar(20)", isNullable: true, key: "", defaultValue: nil, extraInformation: ""),
-        TableColumnDescription(field: "sex", fieldType: "char(1)", isNullable: true, key: "", defaultValue: nil, extraInformation: ""),
-        TableColumnDescription(field: "birth", fieldType: "date", isNullable: true, key: "", defaultValue: nil, extraInformation: ""),
-        TableColumnDescription(field: "death", fieldType: "date", isNullable: true, key: "", defaultValue: nil, extraInformation: ""),
-      ])
-    default:
-      XCTFail("Unexpected response \(response)")
-    }
-  }
+//  override func setUp() {
+//    super.setUp()
+//
+//    try! client.query("create database \(type(of: self))")
+//    try! client.query("use \(type(of: self))")
+//    try! client.query("create table \(type(of: self)) (name VARCHAR(20), owner VARCHAR(20), species VARCHAR(20), sex CHAR(1), birth DATE, death DATE)")
+//  }
+//
+//  override func tearDown() {
+//    try! client.query("drop database \(type(of: self))")
+//
+//    client = nil
+//
+//    super.tearDown()
+//  }
+//
+//  func testDescribesTable() throws {
+//    // When
+//    let response = try client.query("describe \(type(of: self))", rowType: TableColumnDescription.self)
+//
+//    // Then
+//    switch response {
+//    case .Results(let iterator):
+//      let descriptions = Array(iterator)
+//      XCTAssertEqual(descriptions, [
+//        TableColumnDescription(field: "name", fieldType: "varchar(20)", isNullable: true, key: "", defaultValue: nil, extraInformation: ""),
+//        TableColumnDescription(field: "owner", fieldType: "varchar(20)", isNullable: true, key: "", defaultValue: nil, extraInformation: ""),
+//        TableColumnDescription(field: "species", fieldType: "varchar(20)", isNullable: true, key: "", defaultValue: nil, extraInformation: ""),
+//        TableColumnDescription(field: "sex", fieldType: "char(1)", isNullable: true, key: "", defaultValue: nil, extraInformation: ""),
+//        TableColumnDescription(field: "birth", fieldType: "date", isNullable: true, key: "", defaultValue: nil, extraInformation: ""),
+//        TableColumnDescription(field: "death", fieldType: "date", isNullable: true, key: "", defaultValue: nil, extraInformation: ""),
+//      ])
+//    default:
+//      XCTFail("Unexpected response \(response)")
+//    }
+//  }
 }
