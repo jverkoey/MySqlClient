@@ -154,6 +154,7 @@ struct Bootstrap: ParsableCommand {
     ]
     runTask.launch()
 
+    print("Booted.", to: &stderrOut)
   }
 }
 
