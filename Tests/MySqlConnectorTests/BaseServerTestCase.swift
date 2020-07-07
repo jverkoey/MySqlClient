@@ -55,6 +55,7 @@ class BaseServerTestCase: XCTestCase {
 
     var stderrOut = StandardErrorOutputStream()
     print("Connecting to port \(port) on \(host)...", to: &stderrOut)
+    // HI.
 
     try! socket.connect(to: host, port: port)
 
