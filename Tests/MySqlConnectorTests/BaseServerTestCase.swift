@@ -25,7 +25,7 @@ class BaseServerTestCase: XCTestCase {
     super.setUp()
 
     socket = try! Socket.create()
-    try! socket.connect(to: "localhost", port: 3306)
+    try! socket.connect(to: "127.0.0.1", port: 3306)
 
     if !socket.isConnected {
       return
