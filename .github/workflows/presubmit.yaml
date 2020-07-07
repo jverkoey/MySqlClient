@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        mysql_version: [5.7]
+        server_version: [mysql:5.7]
     steps:
       - run: apt-get update && apt-get install -y libssl-dev
       - uses: actions/checkout@v2
@@ -26,11 +26,13 @@ jobs:
       - uses: mattpolzin/swift-codecov-action@0.4.0
     services:
       mysql:
-        image: mysql:${{ matrix.mysql_version }}
+        image: ${{ matrix.server_version }}
+        ports:
+          - 3306
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
-        ports:
-          - 3306 
+          MYSQL_DATABASE: test
+          MYSQL_ROOT_PASSWORD: 
   #
   # lint:
   #   container:
