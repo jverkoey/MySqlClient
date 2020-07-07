@@ -15,6 +15,11 @@
 import BinaryCodable
 import Foundation
 
+/**
+ A query can be sent a MySql server as a text-based query that is executed immediately.
+
+ Docs: https://dev.mysql.com/doc/internals/en/com-query.html
+ */
 struct Query: BinaryEncodable {
   let query: String
   init(_ query: String) {

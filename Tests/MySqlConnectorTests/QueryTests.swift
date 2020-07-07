@@ -21,26 +21,8 @@ struct Variable: Codable {
   let Value: String
 }
 
-final class QueryTests: XCTestCase {
-  var client: MySqlClient!
-  let config = TestConfig.environment
-  override func setUp() {
-    super.setUp()
-
-    client = MySqlClient(to: config.host, port: config.port, username: config.user, password: config.pass, database: nil)
-  }
-
-  override func tearDown() {
-    client = nil
-
-    super.tearDown()
-  }
-
+final class QueryTests: BaseMySqlClientTests {
   func testShowVariablesAsDictionaries() throws {
-    guard config.testAgainstSqlServer else {
-      return
-    }
-
     // Given
     let query = "SHOW VARIABLES;"
 
@@ -59,10 +41,6 @@ final class QueryTests: XCTestCase {
   }
 
   func testShowVariablesAsObjects() throws {
-    guard config.testAgainstSqlServer else {
-      return
-    }
-
     // Given
     let query = "SHOW VARIABLES;"
 

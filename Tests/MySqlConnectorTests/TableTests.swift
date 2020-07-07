@@ -33,25 +33,17 @@ struct TableColumnDescription: Decodable, Equatable {
   }
 }
 
-final class TableTests: XCTestCase {
-  var client: MySqlClient!
-  let config = TestConfig.environment
+final class TableTests: BaseMySqlClientTests {
   override func setUp() {
     super.setUp()
 
-    client = MySqlClient(to: config.host, port: config.port, username: config.user, password: config.pass, database: nil)
-
-    if config.testAgainstSqlServer {
-      try! client.query("create database \(type(of: self))")
-      try! client.query("use \(type(of: self))")
-      try! client.query("create table \(type(of: self)) (name VARCHAR(20), owner VARCHAR(20), species VARCHAR(20), sex CHAR(1), birth DATE, death DATE)")
-    }
+    try! client.query("create database \(type(of: self))")
+    try! client.query("use \(type(of: self))")
+    try! client.query("create table \(type(of: self)) (name VARCHAR(20), owner VARCHAR(20), species VARCHAR(20), sex CHAR(1), birth DATE, death DATE)")
   }
 
   override func tearDown() {
-    if config.testAgainstSqlServer {
-      try! client.query("drop database \(type(of: self))")
-    }
+    try! client.query("drop database \(type(of: self))")
 
     client = nil
 
@@ -59,10 +51,6 @@ final class TableTests: XCTestCase {
   }
 
   func testDescribesTable() throws {
-    guard config.testAgainstSqlServer else {
-      return
-    }
-
     // When
     let response = try client.query("describe \(type(of: self))", rowType: TableColumnDescription.self)
 

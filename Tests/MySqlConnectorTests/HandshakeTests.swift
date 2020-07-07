@@ -17,56 +17,8 @@ import Socket
 @testable import MySqlConnector
 import XCTest
 
-final class HandshakeTests: XCTestCase {
-  var socket: Socket!
-  var socketDataStream: BufferedData!
-  let config = TestConfig.environment
-  override func setUp() {
-    super.setUp()
-
-    do {
-      socket = try Socket.create()
-      try socket.connect(to: config.host, port: config.port)
-    } catch {
-      return
-    }
-
-    if !socket.isConnected {
-      return
-    }
-
-    var buffer = Data(capacity: socket.readBufferSize)
-    socketDataStream = BufferedData(reader: AnyBufferedDataSource(read: { recommendedAmount in
-      if buffer.count == 0 {
-        _ = try self.socket.read(into: &buffer)
-      }
-      let pulledData = buffer.prefix(recommendedAmount)
-      buffer = buffer.dropFirst(recommendedAmount)
-      return pulledData
-    }, isAtEnd: {
-      do {
-        return try buffer.isEmpty && !self.socket.isReadableOrWritable(waitForever: false, timeout: 0).readable
-      } catch {
-        return true
-      }
-    }))
-  }
-
-  override func tearDown() {
-    if socket != nil {
-      socket.close()
-      socket = nil
-    }
-    socketDataStream = nil
-
-    super.tearDown()
-  }
-
+final class HandshakeTests: BaseServerTestCase {
   func testHandshake() throws {
-    guard config.testAgainstSqlServer else {
-      return
-    }
-
     // Given
     let decoder = BinaryDataDecoder()
 
@@ -74,10 +26,10 @@ final class HandshakeTests: XCTestCase {
     let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
 
     // Then
+    XCTAssertTrue(socketDataStream.isAtEnd)
     XCTAssertEqual(handshake.sequenceNumber, 0)
     XCTAssertEqual(handshake.payload.protocolVersion, .v10)
-    XCTAssertEqual(handshake.payload.authPluginName, "mysql_native_password")
-    XCTAssertEqual(handshake.payload.serverCapabilityFlags, [
+    let standardCapabilityFlags: CapabilityFlags = [
       .longPassword,
       .foundRows,
       .longFlag,
@@ -89,7 +41,7 @@ final class HandshakeTests: XCTestCase {
       .ignoreSpace,
       .protocol41,
       .interactive,
-//      .ssl,
+      .ssl,
       .ignoreSigpipe,
       .transactions,
       .reserved,
@@ -103,15 +55,27 @@ final class HandshakeTests: XCTestCase {
       .canHandleExpiredPasswords,
       .sessionTrack,
       .deprecateEof,
-      .mystery
-    ])
+      .mystery40000000,
+      .mystery80000000
+    ]
+    if handshake.payload.serverVersion.hasPrefix("5.7") {
+      XCTAssertEqual(handshake.payload.authPluginName, "mysql_native_password")
+      XCTAssertEqual(
+        handshake.payload.serverCapabilityFlags,
+        standardCapabilityFlags,
+        "\nThe server returned the following additional flags: \(handshake.payload.serverCapabilityFlags.subtracting(standardCapabilityFlags))\n" +
+        "The server was missing the following flags: \(standardCapabilityFlags.subtracting(handshake.payload.serverCapabilityFlags))"
+      )
+    } else if handshake.payload.serverVersion.hasPrefix("8.0") {
+      XCTAssertEqual(handshake.payload.authPluginName, "caching_sha2_password")
+      XCTAssertEqual(handshake.payload.serverCapabilityFlags, standardCapabilityFlags.union([
+        .mystery02000000,
+        .mystery04000000,
+      ]))
+    }
   }
 
   func testAuthFailsWithInvalidPassword() throws {
-    guard config.testAgainstSqlServer else {
-      return
-    }
-
     // Given
     var decoder = BinaryDataDecoder()
     let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
@@ -127,8 +91,8 @@ final class HandshakeTests: XCTestCase {
     decoder.userInfo[.capabilityFlags] = capabilityFlags
 
     // When
-    let handshakeResponse = try HandshakeResponse(username: config.user,
-                                                  password: config.pass + "bogus",
+    let handshakeResponse = try HandshakeResponse(username: "root",
+                                                  password: "bogus",
                                                   database: nil,
                                                   capabilityFlags: capabilityFlags,
                                                   authPluginData: handshake.payload.authPluginData,
@@ -147,17 +111,14 @@ final class HandshakeTests: XCTestCase {
     switch response.payload {
     case .ERR(let errorCode, let errorMessage):
       XCTAssertEqual(errorCode, .ER_ACCESS_DENIED_ERROR)
-      XCTAssertEqual(errorMessage, "Access denied for user \'\(config.user)\'@\'\(config.host)\' (using password: YES)")
+      XCTAssertTrue(errorMessage.hasPrefix("Access denied for user '"))
+      XCTAssertTrue(errorMessage.hasSuffix("' (using password: YES)"))
     default:
       XCTFail("Unexpected response \(response)")
     }
   }
 
   func testAuthSucceedsWithValidPassword() throws {
-    guard config.testAgainstSqlServer else {
-      return
-    }
-
     // Given
     var decoder = BinaryDataDecoder()
     let handshake = try decoder.decode(Packet<Handshake>.self, from: socketDataStream)
@@ -173,8 +134,8 @@ final class HandshakeTests: XCTestCase {
     decoder.userInfo[.capabilityFlags] = capabilityFlags
 
     // When
-    let handshakeResponse = try HandshakeResponse(username: config.user,
-                                                  password: config.pass,
+    let handshakeResponse = try HandshakeResponse(username: "root",
+                                                  password: "",
                                                   database: nil,
                                                   capabilityFlags: capabilityFlags,
                                                   authPluginData: handshake.payload.authPluginData,

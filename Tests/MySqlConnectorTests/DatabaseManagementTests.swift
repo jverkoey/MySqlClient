@@ -16,26 +16,8 @@ import BinaryCodable
 @testable import MySqlConnector
 import XCTest
 
-final class DatabaseManagementTests: XCTestCase {
-  var client: MySqlClient!
-  let config = TestConfig.environment
-  override func setUp() {
-    super.setUp()
-
-    client = MySqlClient(to: config.host, port: config.port, username: config.user, password: config.pass, database: nil)
-  }
-
-  override func tearDown() {
-    client = nil
-
-    super.tearDown()
-  }
-
+final class DatabaseManagementTests: BaseMySqlClientTests {
   func testCreatesAndDeletesDatabase() throws {
-    guard config.testAgainstSqlServer else {
-      return
-    }
-
     // When
     let creationResponse = try client.query("create database \(type(of: self))")
     let dropResponse = try client.query("drop database \(type(of: self))")

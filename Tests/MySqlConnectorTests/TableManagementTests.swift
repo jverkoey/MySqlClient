@@ -16,34 +16,20 @@ import BinaryCodable
 @testable import MySqlConnector
 import XCTest
 
-final class TableManagementTests: XCTestCase {
-  var client: MySqlClient!
-  let config = TestConfig.environment
+final class TableManagementTests: BaseMySqlClientTests {
   override func setUp() {
     super.setUp()
 
-    client = MySqlClient(to: config.host, port: config.port, username: config.user, password: config.pass, database: nil)
-
-    if config.testAgainstSqlServer {
-      try! client.query("create database \(type(of: self))")
-    }
+    try! client.query("create database \(type(of: self))")
   }
 
   override func tearDown() {
-    if config.testAgainstSqlServer {
-      try! client.query("drop database \(type(of: self))")
-    }
-
-    client = nil
+    try! client.query("drop database \(type(of: self))")
 
     super.tearDown()
   }
 
   func testFailsToCreateTableWithoutSelectingDatabase() throws {
-    guard config.testAgainstSqlServer else {
-      return
-    }
-
     // When
     let creationResponse = try client.query("create table \(type(of: self))")
 
@@ -58,10 +44,6 @@ final class TableManagementTests: XCTestCase {
   }
 
   func testFailsToCreateTableWithoutColumns() throws {
-    guard config.testAgainstSqlServer else {
-      return
-    }
-
     // When
     let useResponse = try client.query("use \(type(of: self))")
     let creationResponse = try client.query("create table \(type(of: self))")
@@ -85,10 +67,6 @@ final class TableManagementTests: XCTestCase {
   }
 
   func testCreatesAndDropsTable() throws {
-    guard config.testAgainstSqlServer else {
-      return
-    }
-
     // When
     let useResponse = try client.query("use \(type(of: self))")
     // Example query from https://dev.mysql.com/doc/refman/5.7/en/creating-tables.html
