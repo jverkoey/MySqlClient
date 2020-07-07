@@ -5,12 +5,16 @@ on:
       - develop
 
 jobs:
-  # mac_test:
-  #   runs-on: macOS-latest
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v2
-  #   - run: swift test
+  mac_test:
+    runs-on: macOS-latest
+    strategy:
+      matrix:
+        server_url: ["https://downloads.mysql.com/archives/get/p/23/file/mysql-5.7.29-macos10.14-x86_64.tar.gz"]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - run: swift run bootstrap "${{ matrix.server_url }}"
+    - run: swift test
 
   linux_test:
     container:
@@ -35,15 +39,15 @@ jobs:
           MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
           HOST: "mysql"
       - uses: mattpolzin/swift-codecov-action@0.4.0
-  #
-  # lint:
-  #   container:
-  #     image: swift:5.2
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - run: apt-get update && apt-get install -y libssl-dev
-  #     - uses: actions/checkout@v2
-  #     - name: Run SwiftLint
-  #       uses: norio-nomura/action-swiftlint@3.1.0
-  #       with:
-  #         args: --strict
+
+  lint:
+    container:
+      image: swift:5.2
+    runs-on: ubuntu-latest
+    steps:
+      - run: apt-get update && apt-get install -y libssl-dev
+      - uses: actions/checkout@v2
+      - name: Run SwiftLint
+        uses: norio-nomura/action-swiftlint@3.1.0
+        with:
+          args: --strict
