@@ -32,9 +32,7 @@ jobs:
         ports:
           - 3306
         env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes
-          MYSQL_DATABASE: test
-          MYSQL_ROOT_PASSWORD: 
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes 
   #
   # lint:
   #   container:
