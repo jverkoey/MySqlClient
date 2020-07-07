@@ -35,7 +35,7 @@ class HandshakeResponseEncodingTests: XCTestCase {
     // Then
     let payloadDataPart1 = response.capabilityFlags.rawValue.bytes
       + UInt32(0).bytes
-      + CharacterSet.utf8mb4.rawValue.bytes
+      + CharacterSet.utf8Mb4GeneralCi.rawValue.bytes
       + [UInt8](repeating: 0, count: 23)
     let payloadDataPart2 = response.username.utf8 + [0]
     XCTAssertEqual([UInt8](data), payloadDataPart1 + payloadDataPart2)
@@ -57,7 +57,7 @@ class HandshakeResponseEncodingTests: XCTestCase {
     // Then
     let payloadDataPart1 = response.capabilityFlags.rawValue.bytes
       + UInt32(0).bytes
-      + CharacterSet.utf8mb4.rawValue.bytes
+      + CharacterSet.utf8Mb4GeneralCi.rawValue.bytes
       + [UInt8](repeating: 0, count: 23)
     let payloadDataPart2 = response.username.utf8 + [0]
     let authDataPart1: Data = CryptoUtils.data(fromHex: response.password.sha1)

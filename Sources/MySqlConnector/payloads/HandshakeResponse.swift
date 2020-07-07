@@ -35,7 +35,7 @@ struct HandshakeResponse: BinaryEncodable, CustomStringConvertible {
     let maxPacketLength: UInt32 = 0
     try container.encode(maxPacketLength)
 
-    try container.encode(CharacterSet.utf8mb4)
+    try container.encode(CharacterSet.utf8Mb4GeneralCi)
 
     let reserved = [UInt8](repeating: 0, count: 23)
     try container.encode(sequence: reserved)
