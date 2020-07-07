@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import ArgumentParser
+import ArgumentParserx
 import Foundation
+import FoundationNetworking
 
 struct Bootstrap: ParsableCommand {
   @Argument(help: "The url to the server package that should be downloaded and installed.")
