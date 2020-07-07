@@ -144,6 +144,7 @@ struct Bootstrap: ParsableCommand {
     ]
     initializationTask.launch()
     initializationTask.waitUntilExit()
+    print("Initialization terminated with status \(initializationTask.terminationStatus)", to: &stderrOut)
 
     let runTask = Process()
     runTask.launchPath = serverPath.path
