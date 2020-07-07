@@ -25,37 +25,27 @@ func getEnvironmentVariable(named name: String) -> String? {
   }
 }
 
-final class StandardErrorOutputStream: TextOutputStream {
-  func write(_ string: String) {
-    FileHandle.standardError.write(Data(string.utf8))
-  }
-}
-
 class BaseServerTestCase: XCTestCase {
   var socket: Socket!
   var socketDataStream: BufferedData!
+  var port: Int32!
+  var host: String!
 
   override func setUp() {
     super.setUp()
 
     socket = try! Socket.create()
 
-    let port: Int32
     if let portEnvVar = getEnvironmentVariable(named: "PORT") {
       port = Int32(portEnvVar)!
     } else {
       port = 3306
     }
-    let host: String
     if let hostEnvVar = getEnvironmentVariable(named: "HOST") {
       host = hostEnvVar
     } else {
       host = "localhost"
     }
-
-    var stderrOut = StandardErrorOutputStream()
-    print("Connecting to port \(port) on \(host)...", to: &stderrOut)
-    // Hi.
 
     try! socket.connect(to: host, port: port)
 
