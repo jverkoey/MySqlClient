@@ -16,6 +16,12 @@ import ArgumentParser
 import Foundation
 import FoundationNetworking
 
+final class StandardErrorOutputStream: TextOutputStream {
+  func write(_ string: String) {
+    FileHandle.standardError.write(Data(string.utf8))
+  }
+}
+
 struct Bootstrap: ParsableCommand {
   @Argument(help: "The url to the server package that should be downloaded and installed.")
   var serverPackageUrl: String
@@ -24,6 +30,8 @@ struct Bootstrap: ParsableCommand {
     // https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.20-macos10.15-x86_64.tar.gz
     // https://downloads.mysql.com/archives/get/p/23/file/mysql-5.7.29-macos10.14-x86_64.tar.gz
     let serverUrl = URL(string: serverPackageUrl)!
+
+    var stderrOut = StandardErrorOutputStream()
 
     #if os(macOS)
     // Only run this locally; on GitHub we assume we're starting from a clean machine.
@@ -52,11 +60,11 @@ struct Bootstrap: ParsableCommand {
     if !fileManager.fileExists(atPath: environmentPath.path) {
       let tarPath = testCacheDirectory.appendingPathComponent(serverUrl.lastPathComponent)
       if !fileManager.fileExists(atPath: tarPath.path) {
-        print("Downloading \(serverUrl)...")
+        print("Downloading \(serverUrl)...", to: &stderrOut)
         let tar = try! Data(contentsOf: serverUrl)
         try! tar.write(to: tarPath)
       }
-      print("Untarring \(tarPath.path) to \(testCacheDirectory.path)...")
+      print("Untarring \(tarPath.path) to \(testCacheDirectory.path)...", to: &stderrOut)
 
       #if os(Linux)
       let task = Process()
@@ -99,8 +107,8 @@ struct Bootstrap: ParsableCommand {
     let serverPath = environmentPath.appendingPathComponent("bin/mysqld")
     let dataPath = environmentPath.appendingPathComponent("data")
 
-    print("Initializing server \(serverPath.path)...")
-    print("Server exists at \(fileManager.fileExists(atPath: serverPath.path))...")
+    print("Initializing server \(serverPath.path)...", to: &stderrOut)
+    print("Server exists at \(fileManager.fileExists(atPath: serverPath.path))...", to: &stderrOut)
 
     if fileManager.fileExists(atPath: dataPath.path) {
       try! fileManager.removeItem(at: dataPath)
