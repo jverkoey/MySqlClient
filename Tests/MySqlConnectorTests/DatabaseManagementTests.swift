@@ -16,7 +16,7 @@ import BinaryCodable
 @testable import MySqlConnector
 import XCTest
 
-final class DatabaseManagementTests: BaseMySqlClientTests {
+final class DatabaseManagementTests: MySqlClientHarnessTestCase {
   func testCreatesAndDeletesDatabase() throws {
     // When
     let creationResponse = try client.query("create database \(type(of: self))")

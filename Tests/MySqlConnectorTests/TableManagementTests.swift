@@ -16,7 +16,7 @@ import BinaryCodable
 @testable import MySqlConnector
 import XCTest
 
-final class TableManagementTests: BaseMySqlClientTests {
+final class TableManagementTests: MySqlClientHarnessTestCase {
   override func setUp() {
     super.setUp()
 
