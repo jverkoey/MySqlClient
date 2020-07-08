@@ -28,6 +28,9 @@ extension MySqlClient {
     return connection
   }
 
+  /**
+   Creates a new connection to the given MySql server.
+   */
   private static func connect(
     to host: String,
     port: Int32,
@@ -66,7 +69,6 @@ extension MySqlClient {
     try socket.write(from: handshakeResponse)
 
     let response = try decoder.decode(Packet<GenericResponse>.self, from: socketDataStream)
-
     if case .OK = response.payload {
       return Connection(decoder: decoder, socket: socket, socketDataStream: socketDataStream)
     } else if case .ERR(let errorCode, _) = response.payload {

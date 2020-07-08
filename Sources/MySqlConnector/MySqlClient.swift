@@ -54,8 +54,6 @@ public final class MySqlClient {
     do {
       try connection.send(payload: Query(query))
 
-      connection.isIdle = false
-
       let response = try connection.read(payloadType: GenericResponse.self)
 
       switch response {
