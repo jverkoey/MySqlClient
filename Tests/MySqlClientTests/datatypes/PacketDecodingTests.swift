@@ -1,4 +1,4 @@
-// Copyright 2019-present the MySqlConnector authors. All Rights Reserved.
+// Copyright 2019-present the MySqlClient authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import BinaryCodable
-@testable import MySqlConnector
+@testable import MySqlClient
 import XCTest
 
 private enum SomeEnum: UInt8, BinaryDecodable {

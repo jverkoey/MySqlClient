@@ -16,12 +16,12 @@
 import PackageDescription
 
 let package = Package(
-  name: "MySqlConnector",
+  name: "MySqlClient",
   products: [
     .executable(name: "bootstrap", targets: ["bootstrap"]),
     .library(
-      name: "MySqlConnector",
-      targets: ["MySqlConnector"]
+      name: "MySqlClient",
+      targets: ["MySqlClient"]
     )
   ],
   dependencies: [
@@ -39,7 +39,7 @@ let package = Package(
     ),
 
     .target(
-      name: "MySqlConnector",
+      name: "MySqlClient",
       dependencies: [
         "Cryptor",
         "BinaryCodable",
@@ -47,8 +47,8 @@ let package = Package(
       ]
     ),
     .testTarget(
-      name: "MySqlConnectorTests",
-      dependencies: ["MySqlConnector"]
+      name: "MySqlClientTests",
+      dependencies: ["MySqlClient"]
     ),
   ]
 )
