@@ -16,7 +16,7 @@ import BinaryCodable
 @testable import MySqlClient
 import XCTest
 
-class MySqlClientTests: MySqlClientHarnessTestCase {
+class ConnectionTests: MySqlClientHarnessTestCase {
   func testConnects() throws {
     // When
     let connection = try client.anyIdleConnection()
@@ -33,5 +33,6 @@ class MySqlClientTests: MySqlClientHarnessTestCase {
     // Then
     XCTAssertNotNil(connection1)
     XCTAssertNotNil(connection2)
+    XCTAssertTrue(connection1 === connection2)
   }
 }
