@@ -33,7 +33,7 @@ struct TableColumnDescription: Decodable, Equatable {
   }
 }
 
-final class TableTests: BaseMySqlClientTests {
+final class TableTests: MySqlClientHarnessTestCase {
   override func setUp() {
     super.setUp()
 

@@ -43,7 +43,6 @@ let package = Package(
       dependencies: [
         "Cryptor",
         "BinaryCodable",
-        "MySqlQuery",
         "Socket",
       ]
     ),
@@ -51,14 +50,5 @@ let package = Package(
       name: "MySqlConnectorTests",
       dependencies: ["MySqlConnector"]
     ),
-
-    .target(
-      name: "MySqlQuery",
-      dependencies: []
-    ),
-    .testTarget(
-      name: "MySqlQueryTests",
-      dependencies: ["MySqlQuery"]
-    )
   ]
 )

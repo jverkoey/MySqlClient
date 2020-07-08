@@ -1,4 +1,4 @@
-// Copyright 2019-present the MySqlConnector authors. All Rights Reserved.
+// Copyright 2020-present the MySqlConnector authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,21 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import BinaryCodable
-@testable import MySqlConnector
-import XCTest
+import Foundation
 
-class BaseMySqlClientTests: XCTestCase {
-  var client: MySqlClient!
-  override func setUp() {
-    super.setUp()
+/**
+ An error that occurs when connecting to a MySql server.
+ */
+public enum ClientError: Error, Equatable {
+  /**
+   Indicates that no connection could be made to the MySql server. Check the host and port.
+   */
+  case noConnectionAvailable
 
-    client = MySqlClient(to: environment.host, port: environment.port, username: "root", password: "", database: nil)
-  }
-
-  override func tearDown() {
-    client = nil
-
-    super.tearDown()
-  }
+  /**
+   Indicates that an error was received by the MySql server when attempting to perform the handshake.
+   */
+  case handshakeError(errorCode: ErrorCode)
 }

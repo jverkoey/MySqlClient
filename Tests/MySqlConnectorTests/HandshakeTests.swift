@@ -17,7 +17,7 @@ import Socket
 @testable import MySqlConnector
 import XCTest
 
-final class HandshakeTests: BaseServerTestCase {
+final class HandshakeTests: SocketHarnessTestCase {
   func testHandshake() throws {
     // Given
     let decoder = BinaryDataDecoder()

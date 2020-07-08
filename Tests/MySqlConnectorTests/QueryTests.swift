@@ -21,7 +21,7 @@ struct Variable: Codable {
   let Value: String
 }
 
-final class QueryTests: BaseMySqlClientTests {
+final class QueryTests: MySqlClientHarnessTestCase {
   func testShowVariablesAsDictionaries() throws {
     // Given
     let query = "SHOW VARIABLES;"

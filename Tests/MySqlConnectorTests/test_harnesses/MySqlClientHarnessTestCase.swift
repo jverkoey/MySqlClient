@@ -1,4 +1,4 @@
-// Copyright 2020-present the MySqlConnector authors. All Rights Reserved.
+// Copyright 2019-present the MySqlConnector authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,22 +16,17 @@ import BinaryCodable
 @testable import MySqlConnector
 import XCTest
 
-class MySqlClientTests: MySqlClientHarnessTestCase {
-  func testConnects() throws {
-    // When
-    let connection = try client.anyIdleConnection()
+class MySqlClientHarnessTestCase: XCTestCase {
+  var client: MySqlClient!
+  override func setUp() {
+    super.setUp()
 
-    // Then
-    XCTAssertNotNil(connection)
+    client = MySqlClient(to: environment.host, port: environment.port, username: "root", password: "", database: nil)
   }
 
-  func testReusesIdleConnection() throws {
-    // When
-    let connection1 = try client.anyIdleConnection()
-    let connection2 = try client.anyIdleConnection()
+  override func tearDown() {
+    client = nil
 
-    // Then
-    XCTAssertNotNil(connection1)
-    XCTAssertNotNil(connection2)
+    super.tearDown()
   }
 }

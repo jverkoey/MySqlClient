@@ -17,7 +17,7 @@ import Socket
 @testable import MySqlConnector
 import XCTest
 
-class BaseServerTestCase: XCTestCase {
+class SocketHarnessTestCase: XCTestCase {
   var socket: Socket!
   var socketDataStream: BufferedData!
 
@@ -25,9 +25,7 @@ class BaseServerTestCase: XCTestCase {
     super.setUp()
 
     socket = try! Socket.create()
-
     try! socket.connect(to: environment.host, port: environment.port)
-
     if !socket.isConnected {
       return
     }
