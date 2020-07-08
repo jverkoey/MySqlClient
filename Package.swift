@@ -27,8 +27,8 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/IBM-Swift/BlueSocket.git", .upToNextMajor(from: "1.0.0")),
     .package(url: "https://github.com/IBM-Swift/BlueCryptor.git", .upToNextMajor(from: "1.0.0")),
-    .package(url: "https://github.com/jverkoey/BinaryCodable.git", .branch("develop")),
-    .package(url: "https://github.com/apple/swift-argument-parser", from: "0.2.0"),
+    .package(url: "https://github.com/jverkoey/BinaryCodable.git", .upToNextMinor(from: "0.3.0")),
+    .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.2.0")),
   ],
   targets: [
     .target(

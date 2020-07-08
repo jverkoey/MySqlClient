@@ -24,7 +24,7 @@ final class MySqlQueryTests: XCTestCase {
 
   func testInsertSingleObject() throws {
     // Given
-    let encoder = MySqlQueryEncoder()
+    let encoder = MySqlQuery()
     let object = Object(name: "tests", age: 123)
     let table = "some_table"
 
@@ -39,7 +39,7 @@ INSERT INTO some_table (`age`,`name`) VALUES ("123","tests") ON DUPLICATE KEY UP
 
   func testInsertMultipleObjects() throws {
     // Given
-    let encoder = MySqlQueryEncoder()
+    let encoder = MySqlQuery()
     let objects = [Object(name: "object1", age: 123), Object(name: "object2", age: 456)]
     let table = "some_table"
 
@@ -54,7 +54,7 @@ INSERT INTO some_table (`age`,`name`) VALUES (\"123\",\"object1\"),(\"456\",\"ob
 
   func testInsertWithMaxDuplicateKeyBehavior() throws {
     // Given
-    let encoder = MySqlQueryEncoder()
+    let encoder = MySqlQuery()
     let objects = [Object(name: "object1", age: 123), Object(name: "object2", age: 456)]
     let table = "some_table"
 
@@ -69,7 +69,7 @@ INSERT INTO some_table (`age`,`name`) VALUES ("123","object1"),("456","object2")
 
   func testInsertIgnoresFields() throws {
     // Given
-    let encoder = MySqlQueryEncoder()
+    let encoder = MySqlQuery()
     let objects = [Object(name: "object1", age: 123), Object(name: "object2", age: 456)]
     let table = "some_table"
 

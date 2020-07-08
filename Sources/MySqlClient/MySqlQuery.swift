@@ -14,22 +14,30 @@
 
 import Foundation
 
-public enum QueryDuplicateKeyBehavior {
-  case update
-  case max
-}
-
-public final class MySqlQueryEncoder {
+/**
+ A type-safe MySql query builder.
+ */
+public final class MySqlQuery {
   public init() {}
 
-  public func insert<T>(_ object: T,
-                        intoTable table: String,
-                        ignoredFields: [String] = [],
-                        duplicateKeyBehaviors: [String: QueryDuplicateKeyBehavior] = [:]) throws -> String where T: Encodable {
+  /**
+   Returns a query string for inserting an Encodable object into a MySql database.
+   */
+  public func insert<T>(
+    _ object: T,
+    intoTable table: String,
+    ignoredFields: [String] = [],
+    duplicateKeyBehaviors: [String: QueryDuplicateKeyBehavior] = [:]
+  ) throws -> String where T: Encodable {
     let encoder = InsertQueryEncoder(ignoredFields: ignoredFields, duplicateKeyBehaviors: duplicateKeyBehaviors)
     try object.encode(to: encoder)
     return "INSERT INTO \(table) \(encoder.query())"
   }
+}
+
+public enum QueryDuplicateKeyBehavior {
+  case update
+  case max
 }
 
 private final class InsertQueryEncoder: Encoder {
