@@ -37,13 +37,15 @@ final class TableTests: MySqlClientHarnessTestCase {
   override func setUp() {
     super.setUp()
 
-    try! client.query("create database \(type(of: self))")
-    try! client.query("use \(type(of: self))")
+    let databaseName = "\(type(of: self))"
+
+    try! client.createDatabase(named: databaseName)
+    try! client.useDatabase(named: databaseName)
     try! client.query("create table \(type(of: self)) (name VARCHAR(20), owner VARCHAR(20), species VARCHAR(20), sex CHAR(1), birth DATE, death DATE)")
   }
 
   override func tearDown() {
-    try! client.query("drop database \(type(of: self))")
+    try! client.dropDatabase(named: "\(type(of: self))")
 
     client = nil
 

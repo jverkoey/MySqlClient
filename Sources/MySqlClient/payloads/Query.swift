@@ -37,6 +37,13 @@ final class QueryResultDecoder<T: Decodable>: IteratorProtocol {
   let connection: Connection
   let columnDefinitions: [ColumnDefinition]
 
+  deinit {
+    if !connection.isIdle {
+      // Terminate any in-progress connections.
+      connection.terminate()
+    }
+  }
+
   init(columnCount: UInt64, connection: Connection) throws {
     self.connection = connection
 

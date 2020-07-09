@@ -18,9 +18,12 @@ import XCTest
 
 final class DatabaseManagementTests: MySqlClientHarnessTestCase {
   func testCreatesAndDeletesDatabase() throws {
+    // Given
+    let databaseName = "\(type(of: self))"
+
     // When
-    let creationResponse = try client.query("create database \(type(of: self))")
-    let dropResponse = try client.query("drop database \(type(of: self))")
+    let creationResponse = try client.createDatabase(named: databaseName)
+    let dropResponse = try client.dropDatabase(named: databaseName)
 
     // Then
     switch creationResponse {
