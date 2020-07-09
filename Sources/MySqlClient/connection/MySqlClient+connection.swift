@@ -18,10 +18,17 @@ import Socket
 
 extension MySqlClient {
   func anyIdleConnection() throws -> Connection? {
+    connectionPool.removeAll { !$0.socket.isConnected }
     if let connection = connectionPool.first(where: { $0.isIdle }) {
       return connection
     }
-    guard let connection = try MySqlClient.connect(to: host, port: port, username: username, password: password, database: database) else {
+    guard let connection = try MySqlClient.connect(
+      to: host,
+      port: port,
+      username: username,
+      password: password,
+      database: database
+    ) else {
       return nil
     }
     connectionPool.append(connection)
@@ -120,6 +127,10 @@ final class Connection {
 
   // Indicates whether or not this connection is able to send data.
   var isIdle = true
+
+  func terminate() {
+    self.socket.close()
+  }
 
   func send<Payload: BinaryEncodable>(payload: Payload) throws {
     precondition(isIdle, "A connection is being reused even though it is not yet idle.")

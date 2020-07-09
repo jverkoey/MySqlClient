@@ -22,6 +22,17 @@ struct Variable: Codable {
 }
 
 final class QueryTests: MySqlClientHarnessTestCase {
+  func testFood() throws {
+    // When
+    let response = try client.query("SELECT 'pizza' as food")
+
+    // Then
+    if case let .Results(iterator) = response {
+      let keyValues = Array(iterator)
+      XCTAssertGreaterThan(keyValues.count, 0)
+    }
+  }
+
   func testShowVariablesAsDictionaries() throws {
     // Given
     let query = "SHOW VARIABLES;"

@@ -37,6 +37,16 @@ final class QueryResultDecoder<T: Decodable>: IteratorProtocol {
   let connection: Connection
   let columnDefinitions: [ColumnDefinition]
 
+  deinit {
+    if !connection.isIdle {
+      // We kill the connection when this instance is released before the results have been fully exhausted, because
+      // otherwise this connection would never transition to an idle state.
+      // TODO: Explore sending COM_RESET_CONNECTION instead.
+      // https://dev.mysql.com/doc/internals/en/com-reset-connection.html
+      connection.terminate()
+    }
+  }
+
   init(columnCount: UInt64, connection: Connection) throws {
     self.connection = connection
 

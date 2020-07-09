@@ -105,7 +105,7 @@ public final class MySqlClient {
   public func query(_ query: String) throws -> QueryResponse<DictionaryRow> {
     return try self.query(query, rowType: DictionaryRow.self)
   }
-  
+
   var connectionPool: [Connection] = []
   let host: String
   let port: Int32
