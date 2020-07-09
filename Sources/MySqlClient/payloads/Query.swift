@@ -39,7 +39,8 @@ final class QueryResultDecoder<T: Decodable>: IteratorProtocol {
 
   deinit {
     if !connection.isIdle {
-      // Terminate any in-progress connections.
+      // We kill the connection when this instance is released before the results have been fully exhausted, because
+      // otherwise this connection would never transition to an idle state.
       connection.terminate()
     }
   }
